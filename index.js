@@ -1,8 +1,15 @@
 function ListAndMap(){
-	this.list = [];
-	this.map = {};
-	this.idx = {};
-	
+	Object.defineProperties(this, {
+		"list" : {
+			value : []
+		},
+		"map" : {
+			value : {}
+		},
+		"idx" : {
+			value : {}
+		},
+	});
 	return this;
 }
 
@@ -53,10 +60,20 @@ function ListAndMap(){
 
 
 function Location(key, settings){
-	this.key = key;
-	this.servers = new ListAndMap();
-	this.routers = new ListAndMap();
-	this.source = settings;
+	Object.defineProperties(this, {
+		"key" : {
+			value : key
+		},
+		"servers" : {
+			value : new ListAndMap()
+		},
+		"routers" : {
+			value : new ListAndMap()
+		},
+		"source" : {
+			value : settings
+		},
+	});
 	return this;
 }
 
