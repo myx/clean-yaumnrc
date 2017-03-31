@@ -43,7 +43,7 @@ function ListAndMap(){
 					this.map[key] = value;
 					return;
 				}
-				this.idx[key] = list.length;
+				this.idx[key] = this.list.length;
 				this.map[key] = value;
 				this.list.push(value);
 				return;
