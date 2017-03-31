@@ -1,6 +1,238 @@
+function ListAndMap(){
+	this.list = [];
+	this.map = {};
+	this.idx = {};
+	
+	return this;
+}
+
+Object.defineProperties(ListAndMap.prototype, {
+	"ListAndMap" : {
+		value : ListAndMap
+	},
+	"list" : {
+		// instance list
+		value : null
+	},
+	"map" : {
+		// instance map
+		value : null
+	},
+	"keys" : {
+		get : function(){
+			return Object.keys(this.map);
+		}
+	},
+	"idx" : {
+		// instance map
+		value : null
+	},
+	"put" : {
+		value : function(key, value){
+			const idx = this.idx[key];
+			if('number' === typeof idx){
+				this.list[idx] = value;
+				this.map[key] = value;
+				return;
+			}
+			this.idx[key] = list.length;
+			this.map[key] = value;
+			this.list.push(value);
+			return;
+		}
+	},
+	"toString" : {
+		value : function(){
+			return "[yamnrc ListAndMap]";
+		}
+	}
+});
+
+
+
+function Location(key, settings){
+	this.key = key;
+	this.servers = new ListAndMap();
+	this.routers = new ListAndMap();
+	return this;
+}
+
+Object.defineProperties(Location.prototype, {
+	"Location" : {
+		value : Location
+	},
+	"wan6" : {
+		// Array of external IPs for Layer6 access 
+		value : null
+	},
+	"wan3" : {
+		// Array of external IPs for Layer3 access 
+		value : null
+	},
+	"key" : {
+		// key of given instance 
+		value : null
+	},
+	"servers" : {
+		// ListAndMap instance 
+		value : null
+	},
+	"routers" : {
+		// ListAndMap instance 
+		value : null
+	},
+	"toString" : {
+		value : function(){
+			return "[yamnrc Location]";
+		}
+	}
+});
+
+function Server(key, settings){
+	this.key = key;
+	return this;
+}
+
+Object.defineProperties(Server.prototype, {
+	"Server" : {
+		value : Server
+	},
+	"key" : {
+		// key of given instance 
+		value : null
+	},
+	"toString" : {
+		value : function(){
+			return "[yamnrc Server]";
+		}
+	}
+});
+
+function Router(key, settings){
+	this.Server(key, settings);
+	return this;
+}
+
+Object.defineProperties(Router.prototype = Object.create(Server.prototype), {
+	"Router" : {
+		value : Router
+	},
+	"toString" : {
+		value : function(){
+			return "[yamnrc Router]";
+		}
+	}
+});
+
+function Target(key, settings){
+	this.key = key;
+	return this;
+}
+
+Object.defineProperties(Target.prototype, {
+	"Target" : {
+		value : Target
+	},
+	"key" : {
+		// key of given instance 
+		value : null
+	},
+	"toString" : {
+		value : function(){
+			return "[yamnrc Target]";
+		}
+	}
+});
+
+function Configuration(){
+	this.locations = new ListAndMap();
+	this.servers = new ListAndMap();
+	this.routers = new ListAndMap();
+	this.targets = new ListAndMap();
+	return this;
+}
+
+Object.defineProperties(Configuration.prototype, {
+	"Configuration" : {
+		value : Configuration
+	},
+	"wan6" : {
+		
+	},
+	"wan3" : {
+		
+	},
+	"locations" : {
+		// ListAndMap instance 
+		value : null
+	},
+	"servers" : {
+		// ListAndMap instance 
+		value : null
+	},
+	"routers" : {
+		// ListAndMap instance 
+		value : null
+	},
+	"targets" : {
+		// ListAndMap instance 
+		value : null
+	},
+	"makeView" : {
+		value : function(l6name){
+			
+		}
+	},
+	"makeNonSecure" : {
+		value : function(){
+			return ;
+		}
+	},
+	"toString" : {
+		value : function(){
+			return "[yamnrc Configuration]";
+		}
+	}
+});
+
 module.exports = {
-    parse: function (config) {
-        return {
-        };
+	"Location" : Location,
+	"Server" : Server,
+	"Router" : Router,
+	"Target" : Target,
+	
+	"FILTER_ACTIVE_ROUTERS" : function(x){
+		return x && x.router === 'active';
+	},
+
+	// returns Configuration	
+    "parse" : function (config) {
+		if(!config){
+			return undefined;
+		}
+		const result = new Configuration();
+		
+		for(let key in (config.locations || {})){
+			let settings = config.locations[key];
+			let location = new Location(key, settings);
+			result.locations.put(key, location);
+		}
+		
+		for(let key in (config.servers || {})){
+			let settings = config.servers[key];
+			let server = settings.router 
+				? new Router(key, settings)
+				: new Server(key, settings)
+			;
+			result.servers.put(key, server);
+			settings.router && result.routers.put(key, server)
+		}
+		
+		for(let key in (config.targets || {})){
+			let settings = config.targets[key];
+			result.targets.put(key, new Target(key, settings));
+		}
+		
+        return result;
     }
 };
