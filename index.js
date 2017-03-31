@@ -54,6 +54,7 @@ function Location(key, settings){
 	this.key = key;
 	this.servers = new ListAndMap();
 	this.routers = new ListAndMap();
+	this.source = settings;
 	return this;
 }
 
@@ -81,6 +82,10 @@ Object.defineProperties(Location.prototype, {
 		// ListAndMap instance 
 		value : null
 	},
+	"source" : {
+		// the source 'settings' object, from wich Location was constructed
+		value : null
+	},
 	"toString" : {
 		value : function(){
 			return "[yamnrc Location]";
@@ -90,6 +95,7 @@ Object.defineProperties(Location.prototype, {
 
 function Server(key, settings){
 	this.key = key;
+	this.source = settings;
 	return this;
 }
 
@@ -99,6 +105,10 @@ Object.defineProperties(Server.prototype, {
 	},
 	"key" : {
 		// key of given instance 
+		value : null
+	},
+	"source" : {
+		// the source 'settings' object, from wich Server was constructed
 		value : null
 	},
 	"toString" : {
