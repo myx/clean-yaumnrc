@@ -19,20 +19,21 @@ function ListAndMap(){
 			value : ListAndMap
 		},
 		"list" : {
-			// instance list
+			// instance list (items accessible by index, Array)
 			value : null
 		},
 		"map" : {
-			// instance map
+			// instance map (items accessible by key, Object)
 			value : null
 		},
 		"keys" : {
+			// returns array of all map keys, Array
 			get : function(){
 				return Object.keys(this.map);
 			}
 		},
 		"idx" : {
-			// instance map
+			// instance map (item array index by key, Object)
 			value : null
 		},
 		"put" : {
@@ -59,7 +60,7 @@ function ListAndMap(){
 
 
 
-function Location(key, settings){
+function Location(key, source){
 	Object.defineProperties(this, {
 		"key" : {
 			value : key
@@ -71,7 +72,7 @@ function Location(key, settings){
 			value : new ListAndMap()
 		},
 		"source" : {
-			value : settings
+			value : source
 		},
 	});
 	return this;
@@ -102,7 +103,7 @@ Object.defineProperties(Location.prototype, {
 		value : null
 	},
 	"source" : {
-		// the source 'settings' object, from wich Location was constructed
+		// the source 'settings' object, from which this object was constructed
 		value : null
 	},
 	"toString" : {
@@ -112,9 +113,18 @@ Object.defineProperties(Location.prototype, {
 	}
 });
 
-function Server(key, settings){
-	this.key = key;
-	this.source = settings;
+
+
+
+function Server(key, source){
+	Object.defineProperties(this, {
+		"key" : {
+			value : key
+		},
+		"source" : {
+			value : source
+		},
+	});
 	return this;
 }
 
@@ -127,7 +137,7 @@ Object.defineProperties(Server.prototype, {
 		value : null
 	},
 	"source" : {
-		// the source 'settings' object, from wich Server was constructed
+		// the source 'settings' object, from which this object was constructed
 		value : null
 	},
 	"toString" : {
@@ -137,14 +147,23 @@ Object.defineProperties(Server.prototype, {
 	}
 });
 
-function Router(key, settings){
-	this.Server(key, settings);
+function Router(key, source){
+	this.Server(key, source);
+	Object.defineProperties(this, {
+		"router" : {
+			value : source.router
+		},
+	});
 	return this;
 }
 
 Object.defineProperties(Router.prototype = Object.create(Server.prototype), {
 	"Router" : {
 		value : Router
+	},
+	"router" : {
+		// the 'router' mode attribute ('active', 'testing', 'enabled', ...)
+		value : null
 	},
 	"toString" : {
 		value : function(){
@@ -153,8 +172,22 @@ Object.defineProperties(Router.prototype = Object.create(Server.prototype), {
 	}
 });
 
-function Target(key, settings){
-	this.key = key;
+
+
+
+
+
+
+
+function Target(key, source){
+	Object.defineProperties(this, {
+		"key" : {
+			value : key
+		},
+		"source" : {
+			value : source
+		},
+	});
 	return this;
 }
 
@@ -166,6 +199,10 @@ Object.defineProperties(Target.prototype, {
 		// key of given instance 
 		value : null
 	},
+	"source" : {
+		// the source 'settings' object, from which this object was constructed
+		value : null
+	},
 	"toString" : {
 		value : function(){
 			return "[yamnrc Target]";
@@ -173,21 +210,195 @@ Object.defineProperties(Target.prototype, {
 	}
 });
 
-function Configuration(){
+
+
+
+
+
+
+
+
+
+
+function Locations(config, source){
+	this.ListAndMap(this);
+	Object.defineProperties(this, {
+		"config" : {
+			value : config
+		},
+		"source" : {
+			value : source || {}
+		},
+	});
+	return this;
+}
+
+Object.defineProperties(Locations.prototype = Object.create(ListAndMap.prototype), {
+	"Locations" : {
+		value : Locations
+	},
+	"key" : {
+		// key of given instance 
+		value : null
+	},
+	"source" : {
+		// the source 'settings' object, from which this object was constructed
+		value : null
+	},
+	"initializeParse" : {
+		value : function(){
+			for(let key in this.source){
+				const settings = this.source[key];
+				const location = new Location(key, settings);
+				this.put(key, location);
+			}
+		}
+	},
+	"toString" : {
+		value : function(){
+			return "[yamnrc Locations]";
+		}
+	}
+});
+
+
+
+
+function Servers(config, source){
+	this.ListAndMap(this);
+	Object.defineProperties(this, {
+		"config" : {
+			value : config
+		},
+		"source" : {
+			value : source || {}
+		},
+	});
+	return this;
+}
+
+Object.defineProperties(Servers.prototype = Object.create(ListAndMap.prototype), {
+	"Servers" : {
+		value : Servers
+	},
+	"key" : {
+		// key of given instance 
+		value : null
+	},
+	"source" : {
+		// the source 'settings' object, from which this object was constructed
+		value : null
+	},
+	"initializeParse" : {
+		value : function(){
+			for(let key in this.source)){
+				const settings = this.source[key];
+				const server = settings.router 
+					? new Router(key, settings)
+					: new Server(key, settings)
+				;
+				this.put(key, server);
+			}
+		}
+	},
+	"toString" : {
+		value : function(){
+			return "[yamnrc Servers]";
+		}
+	}
+});
+
+
+
+
+
+
+function Routers(config, source){
+	this.Servers(config, source);
+	return this;
+}
+
+Object.defineProperties(Routers.prototype = Object.create(Servers.prototype), {
+	"Routers" : {
+		value : Routers
+	},
+	"key" : {
+		// key of given instance 
+		value : null
+	},
+	"source" : {
+		// the source 'settings' object, from which this object was constructed
+		value : null
+	},
+	"initializeParse" : {
+		value : function(){
+			const servers = this.config.servers.map;
+			for(let key in servers){
+				const server = servers[key];
+				server.Router && this.put(key, server);
+			}
+		}
+	},
+	"toString" : {
+		value : function(){
+			return "[yamnrc Routers]";
+		}
+	}
+});
+
+Object.defineProperties(Routers, {
+	"FILTER_ACTIVE" : {
+		value : function(x){
+			return x && x.router === 'active';
+		}
+	},
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function Configuration(source){
 	Object.defineProperties(this, {
 		"locations" : {
-			value : new ListAndMap()
+			value : new Locations(this, source.locations)
 		},
 		"servers" : {
-			value : new ListAndMap()
+			value : new Servers(this, source.servers)
 		},
 		"routers" : {
-			value : new ListAndMap()
+			value : new Routers(this, source.servers)
+		},
+		"routing" : {
+			value : new Routing(this, source.routing)
 		},
 		"targets" : {
 			value : new ListAndMap()
 		},
+		"source" : {
+			value : source
+		},
 	});
+	
+	this.locations.initializeParse();
+	this.servers.initializeParse();
+	
+	this.routers.initializeParse();
+	
+	for(let key in (config.targets || {})){
+		const settings = config.targets[key];
+		result.targets.put(key, new Target(key, settings));
+	}
 	return this;
 }
 {
@@ -217,6 +428,10 @@ function Configuration(){
 			// ListAndMap instance 
 			value : null
 		},
+		"source" : {
+			// the source 'settings' object, from which this object was constructed
+			value : null
+		},
 		"makeView" : {
 			value : function(l6name){
 			
@@ -237,42 +452,18 @@ function Configuration(){
 
 module.exports = {
 	"Location" : Location,
+	"Locations" : Locations,
 	"Server" : Server,
+	"Servers" : Servers,
 	"Router" : Router,
+	"Routers" : Routers,
 	"Target" : Target,
 	
-	"FILTER_ACTIVE_ROUTERS" : function(x){
-		return x && x.router === 'active';
-	},
 
 	// returns Configuration	
     "parse" : function (config) {
-		if(!config){
-			return undefined;
-		}
-		const result = new Configuration();
-		
-		for(let key in (config.locations || {})){
-			const settings = config.locations[key];
-			const location = new Location(key, settings);
-			result.locations.put(key, location);
-		}
-		
-		for(let key in (config.servers || {})){
-			const settings = config.servers[key];
-			const server = settings.router 
-				? new Router(key, settings)
-				: new Server(key, settings)
-			;
-			result.servers.put(key, server);
-			settings.router && result.routers.put(key, server)
-		}
-		
-		for(let key in (config.targets || {})){
-			const settings = config.targets[key];
-			result.targets.put(key, new Target(key, settings));
-		}
-		
-        return result;
+		return config
+			? new Configuration(config)
+			: undefined;
     }
 };
