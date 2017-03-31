@@ -6,47 +6,49 @@ function ListAndMap(){
 	return this;
 }
 
-Object.defineProperties(ListAndMap.prototype, {
-	"ListAndMap" : {
-		value : ListAndMap
-	},
-	"list" : {
-		// instance list
-		value : null
-	},
-	"map" : {
-		// instance map
-		value : null
-	},
-	"keys" : {
-		get : function(){
-			return Object.keys(this.map);
-		}
-	},
-	"idx" : {
-		// instance map
-		value : null
-	},
-	"put" : {
-		value : function(key, value){
-			const idx = this.idx[key];
-			if('number' === typeof idx){
-				this.list[idx] = value;
+{
+	Object.defineProperties(ListAndMap.prototype, {
+		"ListAndMap" : {
+			value : ListAndMap
+		},
+		"list" : {
+			// instance list
+			value : null
+		},
+		"map" : {
+			// instance map
+			value : null
+		},
+		"keys" : {
+			get : function(){
+				return Object.keys(this.map);
+			}
+		},
+		"idx" : {
+			// instance map
+			value : null
+		},
+		"put" : {
+			value : function(key, value){
+				const idx = this.idx[key];
+				if('number' === typeof idx){
+					this.list[idx] = value;
+					this.map[key] = value;
+					return;
+				}
+				this.idx[key] = list.length;
 				this.map[key] = value;
+				this.list.push(value);
 				return;
 			}
-			this.idx[key] = list.length;
-			this.map[key] = value;
-			this.list.push(value);
-			return;
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc ListAndMap]";
+			}
 		}
-	},
-	"toString" : {
-		value : function(){
-			return "[yamnrc ListAndMap]";
-		}
-	}
-});
+	});
+}
 
 
 
@@ -54,6 +56,7 @@ function Location(key, settings){
 	this.key = key;
 	this.servers = new ListAndMap();
 	this.routers = new ListAndMap();
+	this.source = settings;
 	return this;
 }
 
@@ -81,6 +84,10 @@ Object.defineProperties(Location.prototype, {
 		// ListAndMap instance 
 		value : null
 	},
+	"source" : {
+		// the source 'settings' object, from wich Location was constructed
+		value : null
+	},
 	"toString" : {
 		value : function(){
 			return "[yamnrc Location]";
@@ -90,6 +97,7 @@ Object.defineProperties(Location.prototype, {
 
 function Server(key, settings){
 	this.key = key;
+	this.source = settings;
 	return this;
 }
 
@@ -99,6 +107,10 @@ Object.defineProperties(Server.prototype, {
 	},
 	"key" : {
 		// key of given instance 
+		value : null
+	},
+	"source" : {
+		// the source 'settings' object, from wich Server was constructed
 		value : null
 	},
 	"toString" : {
@@ -145,55 +157,66 @@ Object.defineProperties(Target.prototype, {
 });
 
 function Configuration(){
-	this.locations = new ListAndMap();
-	this.servers = new ListAndMap();
-	this.routers = new ListAndMap();
-	this.targets = new ListAndMap();
+	Object.defineProperties(this, {
+		"locations" : {
+			value : new ListAndMap()
+		},
+		"servers" : {
+			value : new ListAndMap()
+		},
+		"routers" : {
+			value : new ListAndMap()
+		},
+		"targets" : {
+			value : new ListAndMap()
+		},
+	});
 	return this;
 }
-
-Object.defineProperties(Configuration.prototype, {
-	"Configuration" : {
-		value : Configuration
-	},
-	"wan6" : {
+{
+	Object.defineProperties(Configuration.prototype, {
+		"Configuration" : {
+			value : Configuration
+		},
+		"wan6" : {
 		
-	},
-	"wan3" : {
+		},
+		"wan3" : {
 		
-	},
-	"locations" : {
-		// ListAndMap instance 
-		value : null
-	},
-	"servers" : {
-		// ListAndMap instance 
-		value : null
-	},
-	"routers" : {
-		// ListAndMap instance 
-		value : null
-	},
-	"targets" : {
-		// ListAndMap instance 
-		value : null
-	},
-	"makeView" : {
-		value : function(l6name){
+		},
+		"locations" : {
+			// ListAndMap instance 
+			value : null
+		},
+		"servers" : {
+			// ListAndMap instance 
+			value : null
+		},
+		"routers" : {
+			// ListAndMap instance 
+			value : null
+		},
+		"targets" : {
+			// ListAndMap instance 
+			value : null
+		},
+		"makeView" : {
+			value : function(l6name){
 			
+			}
+		},
+		"makeNonSecure" : {
+			value : function(){
+				return ;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc Configuration]";
+			}
 		}
-	},
-	"makeNonSecure" : {
-		value : function(){
-			return ;
-		}
-	},
-	"toString" : {
-		value : function(){
-			return "[yamnrc Configuration]";
-		}
-	}
-});
+	});
+}
 
 module.exports = {
 	"Location" : Location,
@@ -213,14 +236,14 @@ module.exports = {
 		const result = new Configuration();
 		
 		for(let key in (config.locations || {})){
-			let settings = config.locations[key];
-			let location = new Location(key, settings);
+			const settings = config.locations[key];
+			const location = new Location(key, settings);
 			result.locations.put(key, location);
 		}
 		
 		for(let key in (config.servers || {})){
-			let settings = config.servers[key];
-			let server = settings.router 
+			const settings = config.servers[key];
+			const server = settings.router 
 				? new Router(key, settings)
 				: new Server(key, settings)
 			;
@@ -229,7 +252,7 @@ module.exports = {
 		}
 		
 		for(let key in (config.targets || {})){
-			let settings = config.targets[key];
+			const settings = config.targets[key];
 			result.targets.put(key, new Target(key, settings));
 		}
 		
