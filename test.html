@@ -25,6 +25,9 @@
 						"l6h1.myx.ru" : {
 							"router" : "active",
 							"location" : "h1"
+						},
+						"ae3.myx.ru" : {
+							"location" : "h1"
 						}
 					}
 				});
@@ -39,11 +42,21 @@
 				out('Config', config);
 				out('Locations', config.locations);
 				out('Servers', config.servers);
+				out('Routers', config.routers);
 				
 				var viewL = config.makeView('h1');
 				
 				out('Config', viewL);
 				out('Location', viewL.location);
+				out('Location.Servers', viewL.location.servers);
+				out('Location.Routers', viewL.location.routers);
+
+				var viewR = config.makeView('g1');
+				
+				out('Config', viewR);
+				out('Location', viewR.location);
+				out('Location.Servers', viewR.location.servers);
+				out('Location.Routers', viewR.location.routers);
 
 				var viewS = config.makeView('l6h1.myx.ru');
 				
@@ -51,6 +64,9 @@
 				out('Location', viewS.location);
 				out('Server', viewS.server);
 				out('Router', viewS.router);
+
+				out('Location.Servers', viewS.location.servers);
+				out('Location.Routers', viewS.location.routers);
 
 			}
 		</script>

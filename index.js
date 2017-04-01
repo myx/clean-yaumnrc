@@ -52,7 +52,7 @@ function ListAndMap(){
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc ListAndMap]";
+				return "[yamnrc ListAndMap(" + this.list.length + ", [" + Object.keys(this.idx) + "])]";
 			}
 		}
 	});
@@ -60,7 +60,7 @@ function ListAndMap(){
 
 
 
-function Location(key, source){
+function Location(config, key, source){
 	const wan3 = source.wan3 || 
 					source.routing && source.routing.external || 
 					source.ext && source.ext.tcp && source.ext.tcp.ip
@@ -71,6 +71,9 @@ function Location(key, source){
 					wan3
 	;
 	Object.defineProperties(this, {
+		"config" : {
+			value : config
+		},
 		"key" : {
 			value : key
 		},
@@ -278,14 +281,14 @@ Object.defineProperties(Locations.prototype = Object.create(ListAndMap.prototype
 		value : function(){
 			for(let key in this.source){
 				const settings = this.source[key];
-				const location = new Location(key, settings);
+				const location = new Location(this.config, key, settings);
 				this.put(key, location);
 			}
 		}
 	},
 	"toString" : {
 		value : function(){
-			return "[yamnrc Locations]";
+			return "[yamnrc Locations(" + this.list.length + ", [" + Object.keys(this.idx) + "])]";
 		}
 	}
 });
@@ -327,12 +330,16 @@ Object.defineProperties(Servers.prototype = Object.create(ListAndMap.prototype),
 					: new Server(key, settings)
 				;
 				this.put(key, server);
+				const location = this.config.locations.map[server.source.location];
+				if(location){
+					location.servers.put(key, server);
+				}
 			}
 		}
 	},
 	"toString" : {
 		value : function(){
-			return "[yamnrc Servers]";
+			return "[yamnrc Servers(" + this.list.length + ", " + Object.keys(this.idx) + ")]";
 		}
 	}
 });
@@ -364,13 +371,19 @@ Object.defineProperties(Routers.prototype = Object.create(Servers.prototype), {
 			const servers = this.config.servers.map;
 			for(let key in servers){
 				const server = servers[key];
-				server.Router && this.put(key, server);
+				if(server.Router){
+					this.put(key, server);
+					const location = this.config.locations.map[server.source.location];
+					if(location){
+						location.routers.put(key, server);
+					}
+				}
 			}
 		}
 	},
 	"toString" : {
 		value : function(){
-			return "[yamnrc Routers]";
+			return "[yamnrc Routers(" + this.list.length + ", " + Object.keys(this.idx) + ")]";
 		}
 	}
 });
