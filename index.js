@@ -291,7 +291,7 @@ Object.defineProperties(Servers.prototype = Object.create(ListAndMap.prototype),
 	},
 	"initializeParse" : {
 		value : function(){
-			for(let key in this.source)){
+			for(let key in this.source){
 				const settings = this.source[key];
 				const server = settings.router 
 					? new Router(key, settings)
@@ -360,6 +360,17 @@ Object.defineProperties(Routers, {
 
 
 
+function Routing(config, source){
+	Object.defineProperties(this, {
+		"config" : {
+			value : config
+		},
+		"source" : {
+			value : source || {}
+		},
+	});
+	return this;
+}
 
 
 
@@ -395,9 +406,9 @@ function Configuration(source){
 	
 	this.routers.initializeParse();
 	
-	for(let key in (config.targets || {})){
-		const settings = config.targets[key];
-		result.targets.put(key, new Target(key, settings));
+	for(let key in (this.targets || {})){
+		const settings = this.targets[key];
+		this.targets.put(key, new Target(key, settings));
 	}
 	return this;
 }
