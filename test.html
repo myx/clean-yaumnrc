@@ -15,6 +15,12 @@
 						},
 						"r1" : {
 						}
+					},
+					"servers" : {
+						"l6h1.myx.ru" : {
+							"router" : "active",
+							"location" : "h1"
+						}
 					}
 				});
 				
@@ -27,6 +33,16 @@
 				
 				out('Locations: ', config.locations);
 				out('Servers: ', config.servers);
+				
+				var viewL = config.makeView('h1');
+				
+				out('Location: ', viewL.location);
+
+				var viewS = config.makeView('l6h1.myx.ru');
+				
+				out('Server: ', viewS.server);
+				out('Router: ', viewS.router);
+
 			}
 		</script>
 	</head>

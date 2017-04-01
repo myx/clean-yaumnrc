@@ -181,7 +181,7 @@ Object.defineProperties(Router.prototype = Object.create(Server.prototype), {
 	},
 	"toString" : {
 		value : function(){
-			return "[yamnrc Router]";
+			return "[yamnrc Router(" + this.key + ")]";
 		}
 	}
 });
@@ -441,12 +441,24 @@ function Configuration(source){
 			// ListAndMap instance 
 			value : null
 		},
+		"location" : {
+			// current Location instance 
+			value : null
+		},
 		"servers" : {
 			// ListAndMap instance 
 			value : null
 		},
+		"server" : {
+			// current Server instance 
+			value : null
+		},
 		"routers" : {
 			// ListAndMap instance 
+			value : null
+		},
+		"router" : {
+			// current Router instance 
 			value : null
 		},
 		"targets" : {
@@ -457,9 +469,72 @@ function Configuration(source){
 			// the source 'settings' object, from which this object was constructed
 			value : null
 		},
+		"makeViewForLocation" : {
+			value : function(location){
+				if(!location){
+					return undefined;
+				}
+				{
+					const result = new Configuration(this.source);
+					Object.defineProperties(result, {
+						"location" : {
+							value : location
+						}
+					});
+					return result;
+				}
+			}
+		},
+		"makeViewForServer" : {
+			value : function(server){
+				if(!server){
+					return undefined;
+				}
+				{
+					const location = this.locations.map[server.location];
+					const result = location 
+						? this.makeViewForLocation(location)
+						: new Configuration(this.source)
+					;
+					Object.defineProperties(result, {
+						"server" : {
+							value : server
+						},
+						"router" : {
+							value : server.Router && server
+						}
+					});
+					return result;
+				}
+			}
+		},
 		"makeView" : {
-			value : function(l6name){
-			
+			value : function(x){
+				if(!x){
+					return undefined;
+				}
+				if('string' === typeof x){
+					{
+						const server = this.servers.map[x];
+						if(server){
+							return this.makeViewForServer(server);
+						}
+					}
+					{
+						const location = this.locations.map[x]
+						if(location){
+							return this.makeViewForLocation(location);
+						}
+					}
+					return undefined;
+				}
+				if(x.Server){
+					return this.makeViewForServer(x);
+				}
+				if(x.Location){
+					return this.makeViewForLocation(x);
+				}
+				return undefined;
 			}
 		},
 		"makeNonSecure" : {
