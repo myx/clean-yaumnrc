@@ -61,9 +61,17 @@ function ListAndMap(){
 
 
 function Location(key, source){
+	const wan3 = source.wan3 || source.routing && source.routing.external || source.ext && source.ext.tcp;
+	const wan6 = source.wan6 || source.routing && source.routing.external || source.ext && source.ext.web || wan3
 	Object.defineProperties(this, {
 		"key" : {
 			value : key
+		},
+		"wan3" : {
+			value : wan3
+		},
+		"wan6" : {
+			value : wan6
 		},
 		"name" : {
 			value : source.name || key
