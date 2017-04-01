@@ -34,15 +34,18 @@
 					output.appendChild(d);
 				}
 				
+				out('Config', config);
 				out('Locations', config.locations);
 				out('Servers', config.servers);
 				
 				var viewL = config.makeView('h1');
 				
+				out('Config', viewL);
 				out('Location', viewL.location);
 
 				var viewS = config.makeView('l6h1.myx.ru');
 				
+				out('Config', viewS);
 				out('Location', viewS.location);
 				out('Server', viewS.server);
 				out('Router', viewS.router);

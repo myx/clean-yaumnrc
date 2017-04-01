@@ -465,6 +465,10 @@ function Configuration(source){
 			// ListAndMap instance 
 			value : null
 		},
+		"view" : {
+			// current View instance (null, location, server or router)
+			value : null
+		},
 		"source" : {
 			// the source 'settings' object, from which this object was constructed
 			value : null
@@ -479,6 +483,9 @@ function Configuration(source){
 					Object.defineProperties(result, {
 						"location" : {
 							value : location
+						},
+						"view" : {
+							value : location
 						}
 					});
 					return result;
@@ -491,17 +498,20 @@ function Configuration(source){
 					return undefined;
 				}
 				{
-					const location = this.locations.map[server.location];
-					const result = location 
-						? this.makeViewForLocation(location)
-						: new Configuration(this.source)
-					;
+					const location = this.locations.map[server.source.location];
+					const result = new Configuration(this.source);
 					Object.defineProperties(result, {
+						"location" : {
+							value : location || null
+						},
 						"server" : {
 							value : server
 						},
 						"router" : {
 							value : server.Router && server
+						},
+						"view" : {
+							value : server
 						}
 					});
 					return result;
@@ -544,7 +554,7 @@ function Configuration(source){
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Configuration]";
+				return "[yamnrc Configuration("+(this.view || '')+")]";
 			}
 		}
 	});
