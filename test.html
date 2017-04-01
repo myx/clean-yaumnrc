@@ -10,10 +10,13 @@
 				var config = Config.parse({
 					"locations" : {
 						"h1" : {
+							"name" : "h1.myx.ru"
 						},
 						"o1" : {
+							"name" : "o1.myx.ru"
 						},
 						"r1" : {
+							"name" : "r1.myx.ru"
 						}
 					},
 					"servers" : {
@@ -31,17 +34,18 @@
 					output.appendChild(d);
 				}
 				
-				out('Locations: ', config.locations);
-				out('Servers: ', config.servers);
+				out('Locations', config.locations);
+				out('Servers', config.servers);
 				
 				var viewL = config.makeView('h1');
 				
-				out('Location: ', viewL.location);
+				out('Location', viewL.location);
 
 				var viewS = config.makeView('l6h1.myx.ru');
 				
-				out('Server: ', viewS.server);
-				out('Router: ', viewS.router);
+				out('Location', viewS.location);
+				out('Server', viewS.server);
+				out('Router', viewS.router);
 
 			}
 		</script>
