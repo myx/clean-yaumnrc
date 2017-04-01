@@ -138,6 +138,11 @@ Object.defineProperties(Location.prototype, {
 		// the source 'settings' object, from which this object was constructed
 		value : null
 	},
+	"toSourceObject" : {
+		value : function(){
+			return this.source;
+		}
+	},
 	"toString" : {
 		value : function(){
 			return "[yamnrc Location(" + this.title + ")]";
@@ -152,6 +157,9 @@ function Server(key, source){
 	Object.defineProperties(this, {
 		"key" : {
 			value : key
+		},
+		"wan3" : {
+			value : source.wan && source.wan.ip
 		},
 		"source" : {
 			value : source
@@ -168,9 +176,18 @@ Object.defineProperties(Server.prototype, {
 		// key of given instance 
 		value : null
 	},
+	"wan3" : {
+		// null or Array of external IPs for Layer3 access 
+		value : null
+	},
 	"source" : {
 		// the source 'settings' object, from which this object was constructed
 		value : null
+	},
+	"toSourceObject" : {
+		value : function(){
+			return this.source;
+		}
 	},
 	"toString" : {
 		value : function(){
@@ -286,6 +303,14 @@ Object.defineProperties(Locations.prototype = Object.create(ListAndMap.prototype
 			}
 		}
 	},
+	"toSourceObject" : {
+		value : function(){
+			return this.list.reduce(function(r, x){
+				r[x.key] = x.toSourceObject();
+				return r;
+			}, {});
+		}
+	},
 	"toString" : {
 		value : function(){
 			return "[yamnrc Locations(" + this.list.length + ", [" + Object.keys(this.idx) + "])]";
@@ -335,6 +360,14 @@ Object.defineProperties(Servers.prototype = Object.create(ListAndMap.prototype),
 					location.servers.put(key, server);
 				}
 			}
+		}
+	},
+	"toSourceObject" : {
+		value : function(){
+			return this.list.reduce(function(r, x){
+				r[x.key] = x.toSourceObject();
+				return r;
+			}, {});
 		}
 	},
 	"toString" : {
@@ -578,6 +611,19 @@ function Configuration(source){
 		"makeNonSecure" : {
 			value : function(){
 				return ;
+			}
+		},
+		"toSource" : {
+			value : function(){
+				return JSON.stringify(this.toSourceObject(), null, 4);
+			}
+		},
+		"toSourceObject" : {
+			value : function(){
+				return {
+					locations : this.locations.toSourceObject(),
+					servers : this.servers.toSourceObject(),
+				};
 			}
 		},
 		"toString" : {

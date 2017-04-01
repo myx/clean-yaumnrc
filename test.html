@@ -35,7 +35,7 @@
 				var output = document.getElementById('output');
 				function out(t,x){
 					var d = document.createElement('div');
-					d.innerHTML = t + ": " + x;
+					d.innerHTML = t + ": <pre>" + x + "</pre>";
 					output.appendChild(d);
 				}
 				
@@ -67,6 +67,9 @@
 
 				out('Location.Servers', viewS.location.servers);
 				out('Location.Routers', viewS.location.routers);
+				
+				
+				out('Config.Source', config.toSource());
 
 			}
 		</script>
