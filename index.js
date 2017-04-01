@@ -65,6 +65,12 @@ function Location(key, source){
 		"key" : {
 			value : key
 		},
+		"name" : {
+			value : source.name || key
+		},
+		"title" : {
+			value : source.title || source.name || key
+		},
 		"servers" : {
 			value : new ListAndMap()
 		},
@@ -94,6 +100,14 @@ Object.defineProperties(Location.prototype, {
 		// key of given instance 
 		value : null
 	},
+	"name" : {
+		// name or key of given instance 
+		value : null
+	},
+	"title" : {
+		// title, name or key of given instance 
+		value : null
+	},
 	"servers" : {
 		// ListAndMap instance 
 		value : null
@@ -108,7 +122,7 @@ Object.defineProperties(Location.prototype, {
 	},
 	"toString" : {
 		value : function(){
-			return "[yamnrc Location]";
+			return "[yamnrc Location(" + this.title + ")]";
 		}
 	}
 });
