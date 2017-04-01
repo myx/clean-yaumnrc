@@ -61,15 +61,22 @@ function ListAndMap(){
 
 
 function Location(config, key, source){
+	
 	const wan3 = source.wan3 || 
 					source.routing && source.routing.external || 
 					source.ext && source.ext.tcp && source.ext.tcp.ip
 	;
+	
 	const wan6 = source.wan6 || 
 					source.routing && source.routing.external || 
 					source.ext && source.ext.web && source.ext.web.ip || 
 					wan3
 	;
+	
+	const lan3 = [].concat(
+		source.lan3 || source.routing && source.routing.gateway
+	).filter(function(x){ return !!x; });
+	
 	Object.defineProperties(this, {
 		"config" : {
 			value : config
@@ -82,6 +89,9 @@ function Location(config, key, source){
 		},
 		"wan6" : {
 			value : wan6
+		},
+		"lan3" : {
+			value : lan3
 		},
 		"name" : {
 			value : source.name || key
@@ -113,6 +123,38 @@ Object.defineProperties(Location.prototype, {
 	"wan3" : {
 		// Array of external IPs for Layer3 access 
 		value : null
+	},
+	"lan3" : {
+		// Array of local IPs for Layer3 access (gateway, dns-server) 
+		value : null
+	},
+	"wan3smart" : {
+		get : function(){
+			if(this.wan3){
+				return this.wan3;
+			}
+			const result = [];
+			for(var i of this.routers.list){
+				if((i.router === 'active' || i.router === 'testing') && i.wan && i.wan.ip){
+					result.push(i.wan.ip);
+				}
+			}
+			return result;
+		}
+	},
+	"lan3smart" : {
+		get : function(){
+			if(this.lan3){
+				return this.lan3;
+			}
+			const result = [];
+			for(var i of this.routers.list){
+				if((i.router === 'active' || i.router === 'testing') && i.lan && i.lan.ip){
+					result.push(i.lan.ip);
+				}
+			}
+			return result;
+		}
 	},
 	"key" : {
 		// key of given instance 
@@ -161,6 +203,9 @@ function Server(key, source){
 		"wan3" : {
 			value : source.wan && source.wan.ip
 		},
+		"lan3" : {
+			value : source.lan && source.lan.ip
+		},
 		"source" : {
 			value : source
 		},
@@ -178,6 +223,10 @@ Object.defineProperties(Server.prototype, {
 	},
 	"wan3" : {
 		// null or Array of external IPs for Layer3 access 
+		value : null
+	},
+	"lan3" : {
+		// null or Array of local network IPs for Layer3 access 
 		value : null
 	},
 	"source" : {

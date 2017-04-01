@@ -11,11 +11,19 @@
 					"locations" : {
 						"h1" : {
 							"name" : "h1.myx.ru",
-							"wan3" : "5.9.15.205"
+							"wan3" : "5.9.15.205",
+							"lan3" : "192.168.1.1"
 						},
 						"h2" : {
 							"name" : "h2.myx.ru",
-							"wan3" : "5.9.100.81"
+							"wan3" : "5.9.100.81",
+						},
+						"o2" : {
+							"name" : "o2.myx.ru",
+							"routing" : {
+								"external" : "9.9.9.9",
+								"gateway" : ["10.1.1.1", "10.2.2.2", "10.3.3.3"]
+							},
 						},
 						"g1" : {
 							"name" : "g1.myx.ru"
@@ -24,7 +32,23 @@
 					"servers" : {
 						"l6h1.myx.ru" : {
 							"router" : "active",
-							"location" : "h1"
+							"location" : "h1",
+							"wan" : {
+								"ip" : "9.11.0.1"
+							},
+							"lan" : {
+								"ip" : "10.9.0.1"
+							},
+						},
+						"l6o2.myx.ru" : {
+							"router" : "active",
+							"location" : "o2",
+							"wan" : {
+								"ip" : "9.10.0.1"
+							},
+							"lan" : {
+								"ip" : "10.0.0.1"
+							},
 						},
 						"ae3.myx.ru" : {
 							"location" : "h1"
@@ -67,6 +91,12 @@
 
 				out('Location.Servers', viewS.location.servers);
 				out('Location.Routers', viewS.location.routers);
+
+				out('Location.wan3', viewS.location.wan3);
+				out('Location.lan3', viewS.location.lan3);
+
+				out('Router.wan3', viewS.router.wan3);
+				out('Router.lan3', viewS.router.lan3);
 				
 				
 				out('Config.Source', config.toSource());
