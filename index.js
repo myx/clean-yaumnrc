@@ -182,7 +182,11 @@ Object.defineProperties(Location.prototype, {
 	},
 	"toSourceObject" : {
 		value : function(){
-			return this.source;
+			return {
+				"name" : this.name || null,
+				"wan3" : this.wan3 || null,
+				"lan3" : this.lan3 && this.lan3.length && this.lan3 || null,
+			};
 		}
 	},
 	"toString" : {
@@ -300,6 +304,11 @@ Object.defineProperties(Target.prototype, {
 	"source" : {
 		// the source 'settings' object, from which this object was constructed
 		value : null
+	},
+	"toSourceObject" : {
+		value : function(){
+			return this.source;
+		}
 	},
 	"toString" : {
 		value : function(){
@@ -484,6 +493,68 @@ Object.defineProperties(Routers, {
 
 
 
+function Targets(config, source){
+	this.ListAndMap(this);
+	Object.defineProperties(this, {
+		"config" : {
+			value : config
+		},
+		"source" : {
+			value : source || {}
+		},
+	});
+	return this;
+}
+
+
+
+Object.defineProperties(Targets.prototype = Object.create(ListAndMap.prototype), {
+	"Targets" : {
+		value : Targets
+	},
+	"key" : {
+		// key of given instance 
+		value : null
+	},
+	"source" : {
+		// the source 'settings' object, from which this object was constructed
+		value : null
+	},
+	"initializeParse" : {
+		value : function(){
+			for(let key in this.source){
+				const settings = this.source[key];
+				const server = new Target(key, settings);
+				this.put(key, server);
+			}
+		}
+	},
+	"toSourceObject" : {
+		value : function(){
+			return this.list.reduce(function(r, x){
+				r[x.key] = x.toSourceObject();
+				return r;
+			}, {});
+		}
+	},
+	"toString" : {
+		value : function(){
+			return "[yamnrc Targets(" + this.list.length + ", " + Object.keys(this.idx) + ")]";
+		}
+	}
+});
+
+
+
+
+
+
+
+
+
+
+
+
 function Routing(config, source){
 	Object.defineProperties(this, {
 		"config" : {
@@ -514,11 +585,11 @@ function Configuration(source){
 		"routers" : {
 			value : new Routers(this, source.servers)
 		},
+		"targets" : {
+			value : new Targets(this, source.targets || source.routing && source.routing.routes)
+		},
 		"routing" : {
 			value : new Routing(this, source.routing)
-		},
-		"targets" : {
-			value : new ListAndMap()
 		},
 		"source" : {
 			value : source
@@ -527,13 +598,9 @@ function Configuration(source){
 	
 	this.locations.initializeParse();
 	this.servers.initializeParse();
+	this.targets.initializeParse();
 	
 	this.routers.initializeParse();
-	
-	for(let key in (this.targets || {})){
-		const settings = this.targets[key];
-		this.targets.put(key, new Target(key, settings));
-	}
 	return this;
 }
 {
@@ -672,6 +739,7 @@ function Configuration(source){
 				return {
 					locations : this.locations.toSourceObject(),
 					servers : this.servers.toSourceObject(),
+					targets : this.targets.toSourceObject(),
 				};
 			}
 		},
