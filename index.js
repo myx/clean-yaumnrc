@@ -147,8 +147,8 @@ Object.defineProperties(Location.prototype, {
 			}
 			const result = [];
 			for(var i of this.routers.list){
-				if((i.router === 'active' || i.router === 'testing') && i.wan && i.wan.ip){
-					result.push(i.wan.ip);
+				if((i.router === 'active' || i.router === 'testing') && i.source.wan && i.source.wan.ip){
+					result.push(i.source.wan.ip);
 				}
 			}
 			return result;
@@ -161,8 +161,8 @@ Object.defineProperties(Location.prototype, {
 			}
 			const result = [];
 			for(var i of this.routers.list){
-				if((i.router === 'active' || i.router === 'testing') && i.lan && i.lan.ip){
-					result.push(i.lan.ip);
+				if((i.router === 'active' || i.router === 'testing') && i.source.lan && i.source.lan.ip){
+					result.push(i.source.lan.ip);
 				}
 			}
 			return result;
@@ -175,8 +175,8 @@ Object.defineProperties(Location.prototype, {
 			}
 			const result = [];
 			for(var i of this.routers.list){
-				if((i.router === 'active' || i.router === 'testing') && i.tap && i.tap.ip){
-					result.push(i.tap.ip);
+				if((i.router === 'active' || i.router === 'testing') && i.source.tap && i.source.tap.ip){
+					result.push(i.source.tap.ip);
 				}
 			}
 			return result;
@@ -634,8 +634,8 @@ function Configuration(source){
 	this.locations.initializeParse();
 	this.servers.initializeParse();
 	this.targets.initializeParse();
-	
 	this.routers.initializeParse();
+	
 	return this;
 }
 {
