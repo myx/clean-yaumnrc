@@ -72,6 +72,11 @@ function Location(config, key, source){
 					source.ext && source.ext.web && source.ext.web.ip || 
 					wan3
 	;
+
+	const tap3 = source.tap3 || 
+					source.routing && source.routing.tap
+	;
+	
 	
 	const lan3 = [].concat(
 		source.lan3 || source.routing && source.routing.gateway
@@ -92,6 +97,9 @@ function Location(config, key, source){
 		},
 		"lan3" : {
 			value : lan3
+		},
+		"tap3" : {
+			value : tap3
 		},
 		"name" : {
 			value : source.name || key
@@ -128,6 +136,10 @@ Object.defineProperties(Location.prototype, {
 		// Array of local IPs for Layer3 access (gateway, dns-server) 
 		value : null
 	},
+	"tap3" : {
+		// Array of local IPs for Layer3 access (tap to inter-cluster vpn) 
+		value : null
+	},
 	"wan3smart" : {
 		get : function(){
 			if(this.wan3){
@@ -151,6 +163,20 @@ Object.defineProperties(Location.prototype, {
 			for(var i of this.routers.list){
 				if((i.router === 'active' || i.router === 'testing') && i.lan && i.lan.ip){
 					result.push(i.lan.ip);
+				}
+			}
+			return result;
+		}
+	},
+	"tap3smart" : {
+		get : function(){
+			if(this.tap3){
+				return this.tap3;
+			}
+			const result = [];
+			for(var i of this.routers.list){
+				if((i.router === 'active' || i.router === 'testing') && i.tap && i.tap.ip){
+					result.push(i.tap.ip);
 				}
 			}
 			return result;
@@ -184,8 +210,10 @@ Object.defineProperties(Location.prototype, {
 		value : function(){
 			return {
 				"name" : this.name || null,
+				"title" : (this.source.title || this.title !== this.name) && this.title || undefined,
 				"wan3" : this.wan3 || null,
 				"lan3" : this.lan3 && this.lan3.length && this.lan3 || null,
+				"tap3" : this.tap3 || undefined,
 			};
 		}
 	},
@@ -255,6 +283,9 @@ function Router(key, source){
 		"router" : {
 			value : source.router
 		},
+		"tap3" : {
+			value : source.tap && source.tap.ip
+		},
 	});
 	return this;
 }
@@ -265,6 +296,10 @@ Object.defineProperties(Router.prototype = Object.create(Server.prototype), {
 	},
 	"router" : {
 		// the 'router' mode attribute ('active', 'testing', 'enabled', ...)
+		value : null
+	},
+	"tap3" : {
+		// null or Array of tinc-tap network IPs for Layer3 access 
 		value : null
 	},
 	"toString" : {
