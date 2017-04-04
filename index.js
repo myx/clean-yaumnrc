@@ -129,7 +129,7 @@ Object.defineProperties(Location.prototype, {
 		value : null
 	},
 	"wan3" : {
-		// Array of external IPs for Layer3 access 
+		// external IP for Layer3 access (gateway - only one IP per location)
 		value : null
 	},
 	"lan3" : {
@@ -141,9 +141,10 @@ Object.defineProperties(Location.prototype, {
 		value : null
 	},
 	"wan3smart" : {
+		// Array of external IPs for Layer3 access (length is likely 1 or 0, but could have several WAN IPs of all the routers) 
 		get : function(){
 			if(this.wan3){
-				return this.wan3;
+				return [].concat(this.wan3);
 			}
 			const result = [];
 			for(var i of this.routers.list){
@@ -155,9 +156,10 @@ Object.defineProperties(Location.prototype, {
 		}
 	},
 	"lan3smart" : {
+		// Array of local IPs for Layer3 access (length is likely 1 or 0, but could have several LAN IPs of all the routers) 
 		get : function(){
 			if(this.lan3){
-				return this.lan3;
+				return [].concat(this.lan3);
 			}
 			const result = [];
 			for(var i of this.routers.list){
@@ -169,9 +171,10 @@ Object.defineProperties(Location.prototype, {
 		}
 	},
 	"tap3smart" : {
+		// Array of local IPs for internal VPN access (length is likely 1 or 0, but could have several TAP IPs of all the routers) 
 		get : function(){
 			if(this.tap3){
-				return this.tap3;
+				return [].concat(this.tap3);
 			}
 			const result = [];
 			for(var i of this.routers.list){
