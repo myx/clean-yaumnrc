@@ -230,8 +230,11 @@ Object.defineProperties(Location.prototype, {
 
 
 
-function Server(key, source){
+function Server(config, key, source){
 	Object.defineProperties(this, {
+		"config" : {
+			value : config
+		},
 		"key" : {
 			value : key
 		},
@@ -264,6 +267,11 @@ Object.defineProperties(Server.prototype, {
 		// null or Array of local network IPs for Layer3 access 
 		value : null
 	},
+	"location" : {
+		get : function(){
+			return this.config.locations.map[this.source.location];
+		}
+	},
 	"source" : {
 		// the source 'settings' object, from which this object was constructed
 		value : null
@@ -280,8 +288,8 @@ Object.defineProperties(Server.prototype, {
 	}
 });
 
-function Router(key, source){
-	this.Server(key, source);
+function Router(config, key, source){
+	this.Server(config, key, source);
 	Object.defineProperties(this, {
 		"router" : {
 			value : source.router
@@ -503,8 +511,8 @@ Object.defineProperties(Servers.prototype = Object.create(ListAndMap.prototype),
 			for(let key in this.source){
 				const settings = this.source[key];
 				const server = settings.router 
-					? new Router(key, settings)
-					: new Server(key, settings)
+					? new Router(this.config, key, settings)
+					: new Server(this.config, key, settings)
 				;
 				this.put(key, server);
 				const location = this.config.locations.map[server.source.location];
