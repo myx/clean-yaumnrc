@@ -280,7 +280,7 @@ Object.defineProperties(Server.prototype, {
 	"modeDns" : {
 		// to be functionally compatible with Target objects
 		value : "use-wan"
-	}
+	},
 	"endpointsToMap" : {
 		// to be functionally compatible with Target objects
 		value : function(mapInitial){
