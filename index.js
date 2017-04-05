@@ -277,6 +277,9 @@ Object.defineProperties(Server.prototype, {
 			return this == this.config.server;
 		}
 	},
+	"dns" : {
+		value : "use-wan"
+	},
 	"endpointsToMap" : {
 		// to be functionally compatible with Target objects
 		value : function(mapInitial){
