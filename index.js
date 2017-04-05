@@ -277,6 +277,26 @@ Object.defineProperties(Server.prototype, {
 			return this == this.config.server;
 		}
 	},
+	"endpointsToMap" : {
+		// to be functionally compatible with Target objects
+		value : function(mapInitial){
+			const map = mapInitial || {};
+			map[this.key] = this;
+			return map;
+		}
+	},
+	"endpointsMap" : {
+		// to be functionally compatible with Target objects
+		get : function(){
+			return this.endpointsToMap({});
+		}
+	},
+	"endpointsList" : {
+		// to be functionally compatible with Target objects
+		get : function(mapInitial){
+			return [ this ];
+		}
+	},
 	"source" : {
 		// the source 'settings' object, from which this object was constructed
 		value : null
@@ -288,7 +308,7 @@ Object.defineProperties(Server.prototype, {
 	},
 	"toString" : {
 		value : function(){
-			return "[yamnrc Server]";
+			return "[yamnrc Server(" + this.key + ")]";
 		}
 	}
 });
@@ -757,6 +777,16 @@ function Configuration(source){
 		"source" : {
 			// the source 'settings' object, from which this object was constructed
 			value : null
+		},
+		"targetListDns" : {
+			// all servers and targets related to DNS
+			get : function(){
+				const map = new Object(this.servers.map);
+				for(const target of this.targets.list){
+					map[target.key] = target;
+				}
+				return Object.values(map);
+			}
 		},
 		"makeViewForLocation" : {
 			value : function(location){

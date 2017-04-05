@@ -147,6 +147,7 @@
 				out('Config.Source', config.toSource());
 				
 				
+				out('Config.Servers["l6h1.myx.ru"].endpoints', config.servers.map["l6h1.myx.ru"].endpointsList);
 				out('Config.Targets["l6.myx.ru"].endpoints', config.targets.map["l6.myx.ru"].endpointsList);
 				out('Targets["web.myx.ru"].endpoints', viewS.targets.map["web.myx.ru"].endpointsList);
 				out('Targets["zyx.myx.ru"].endpoints', viewS.targets.map["zyx.myx.ru"].endpointsList);
@@ -154,6 +155,7 @@
 				out('Config.servers["l6h1.myx.ru"].selected', config.servers.map["l6h1.myx.ru"].selected);
 				out('Server.selected', viewS.server.selected);
 
+				out('targetListDns', viewS.targetListDns);
 			}
 		</script>
 	</head>
