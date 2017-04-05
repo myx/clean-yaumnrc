@@ -319,8 +319,11 @@ Object.defineProperties(Router.prototype = Object.create(Server.prototype), {
 
 
 
-function Target(key, source){
+function Target(config, key, source){
 	Object.defineProperties(this, {
+		"config" : {
+			value : config
+		},
 		"key" : {
 			value : key
 		},
@@ -339,6 +342,43 @@ Object.defineProperties(Target.prototype, {
 		// key of given instance 
 		value : null
 	},
+	"endpointsToMap" : {
+		value : function(mapInitial){
+			const map = mapInitial || {};
+			for(let key of [].concat(this.source.target || [])){
+				if(~key.indexOf('://')){
+					continue;
+				}
+				{
+					const target = this.config.targets.map[key];
+					if(target){
+						if(target != this){
+							target.endpointsToMap(map);
+							continue;
+						}
+					}
+				}
+				{
+					const server = this.config.servers.map[key];
+					if(server){
+						map[key] = server;
+						continue;
+					}
+				}
+			}
+			return map;
+		}
+	},
+	"endpointsMap" : {
+		get : function(){
+			return this.endpointsToMap({});
+		}
+	},
+	"endpointsList" : {
+		get : function(mapInitial){
+			return Object.keys(this.endpointsMap);
+		}
+	},
 	"source" : {
 		// the source 'settings' object, from which this object was constructed
 		value : null
@@ -350,7 +390,7 @@ Object.defineProperties(Target.prototype, {
 	},
 	"toString" : {
 		value : function(){
-			return "[yamnrc Target]";
+			return "[yamnrc Target("+this.key+")]";
 		}
 	}
 });
@@ -358,6 +398,22 @@ Object.defineProperties(Target.prototype, {
 
 
 
+function TargetStatic(config, key, source){
+	this.Target(config, key, source);
+	return this;
+}
+
+
+Object.defineProperties(TargetStatic.prototype = Object.create(Target.prototype), {
+	"TargetStatic" : {
+		value : TargetStatic
+	},
+	"toString" : {
+		value : function(){
+			return "[yamnrc TargetStatic("+this.key+")]";
+		}
+	}
+});
 
 
 
@@ -562,7 +618,7 @@ Object.defineProperties(Targets.prototype = Object.create(ListAndMap.prototype),
 		value : function(){
 			for(let key in this.source){
 				const settings = this.source[key];
-				const server = new Target(key, settings);
+				const server = new Target(this.config, key, settings);
 				this.put(key, server);
 			}
 		}
