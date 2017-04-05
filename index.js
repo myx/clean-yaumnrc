@@ -148,8 +148,8 @@ Object.defineProperties(Location.prototype, {
 			}
 			const result = [];
 			for(var i of this.routers.list){
-				if((i.router === 'active' || i.router === 'testing') && i.source.wan && i.source.wan.ip){
-					result.push(i.source.wan.ip);
+				if((i.router === 'active' || i.router === 'testing') && i.wan3){
+					result.push(i.wan3);
 				}
 			}
 			return result;
@@ -163,8 +163,8 @@ Object.defineProperties(Location.prototype, {
 			}
 			const result = [];
 			for(var i of this.routers.list){
-				if((i.router === 'active' || i.router === 'testing') && i.source.lan && i.source.lan.ip){
-					result.push(i.source.lan.ip);
+				if((i.router === 'active' || i.router === 'testing') && i.lan3){
+					result.push(i.lan3);
 				}
 			}
 			return result;
@@ -178,8 +178,8 @@ Object.defineProperties(Location.prototype, {
 			}
 			const result = [];
 			for(var i of this.routers.list){
-				if((i.router === 'active' || i.router === 'testing') && i.source.tap && i.source.tap.ip){
-					result.push(i.source.tap.ip);
+				if((i.router === 'active' || i.router === 'testing') && i.tap3){
+					result.push(i.tap3);
 				}
 			}
 			return result;
@@ -370,7 +370,7 @@ function Target(config, key, source){
 	});
 	source && source.dns && Object.defineProperties(this, {
 		"modeDns" : {
-			value : source && source.dns
+			value : source.dns
 		},
 	});
 
