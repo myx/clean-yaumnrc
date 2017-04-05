@@ -355,6 +355,7 @@ Object.defineProperties(Target.prototype, {
 			const map = mapInitial || {};
 			for(let key of [].concat(this.source.target || [])){
 				if(~key.indexOf('://')){
+					map[key] = new TargetStatic(this.config, this.key, this.source);
 					continue;
 				}
 				{
@@ -384,7 +385,7 @@ Object.defineProperties(Target.prototype, {
 	},
 	"endpointsList" : {
 		get : function(mapInitial){
-			return Object.keys(this.endpointsMap);
+			return Object.values(this.endpointsMap);
 		}
 	},
 	"source" : {
@@ -839,9 +840,9 @@ function Configuration(source){
 		"toSourceObject" : {
 			value : function(){
 				return {
-					locations : this.locations.toSourceObject(),
-					servers : this.servers.toSourceObject(),
-					targets : this.targets.toSourceObject(),
+					locations	: this.locations.toSourceObject(),
+					servers		: this.servers.toSourceObject(),
+					targets		: this.targets.toSourceObject(),
 				};
 			}
 		},
