@@ -272,6 +272,11 @@ Object.defineProperties(Server.prototype, {
 			return this.config.locations.map[this.source.location];
 		}
 	},
+	"selected" : {
+		get : function(){
+			return this == this.config.server;
+		}
+	},
 	"source" : {
 		// the source 'settings' object, from which this object was constructed
 		value : null
@@ -760,12 +765,13 @@ function Configuration(source){
 				}
 				{
 					const result = new Configuration(this.source);
+					const replacement = result.locations.map[location.key];
 					Object.defineProperties(result, {
 						"location" : {
-							value : location
+							value : replacement
 						},
 						"view" : {
-							value : location
+							value : replacement
 						}
 					});
 					return result;
@@ -778,20 +784,21 @@ function Configuration(source){
 					return undefined;
 				}
 				{
-					const location = this.locations.map[server.source.location];
 					const result = new Configuration(this.source);
+					const replacement = result.servers.map[server.key];
+					const location = result.locations.map[server.source.location];
 					Object.defineProperties(result, {
 						"location" : {
 							value : location || null
 						},
 						"server" : {
-							value : server
+							value : replacement
 						},
 						"router" : {
-							value : server.Router && server
+							value : replacement.Router && replacement
 						},
 						"view" : {
-							value : server
+							value : replacement
 						}
 					});
 					return result;
