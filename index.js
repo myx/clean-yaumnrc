@@ -277,9 +277,10 @@ Object.defineProperties(Server.prototype, {
 			return this == this.config.server;
 		}
 	},
-	"dns" : {
+	"modeDns" : {
+		// to be functionally compatible with Target objects
 		value : "use-wan"
-	},
+	}
 	"endpointsToMap" : {
 		// to be functionally compatible with Target objects
 		value : function(mapInitial){
@@ -367,6 +368,12 @@ function Target(config, key, source){
 			value : source
 		},
 	});
+	source && source.dns && Object.defineProperties(this, {
+		"modeDns" : {
+			value : source && source.dns
+		},
+	});
+
 	return this;
 }
 
@@ -378,6 +385,10 @@ Object.defineProperties(Target.prototype, {
 		// key of given instance 
 		value : null
 	},
+	"modeDns" : {
+		// null, 'use-wan', 'use-router', 'local', 'remote', 'static'
+		value : null
+	}
 	"endpointsToMap" : {
 		value : function(mapInitial){
 			const map = mapInitial || {};
@@ -445,6 +456,10 @@ Object.defineProperties(TargetStatic.prototype = Object.create(Target.prototype)
 	"TargetStatic" : {
 		value : TargetStatic
 	},
+	"modeDns" : {
+		// null, 'use-wan', 'use-router', 'local', 'remote', 'static'
+		value : "use-router"
+	}
 	"toString" : {
 		value : function(){
 			return "[yamnrc TargetStatic("+this.key+")]";
