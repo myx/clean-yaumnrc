@@ -479,14 +479,14 @@ Object.defineProperties(Target.prototype, {
 
 
 
-function TargetStatic(config, key, source, http, https){
+function TargetStatic(config, key, source, proxyHttp, proxyHttps){
 	this.Target(config, key, source);
 	Object.defineProperties(this, {
-		"http" : {
-			value : http
+		"proxyHttp" : {
+			value : proxyHttp
 		},
-		"https" : {
-			value : https
+		"proxyHttps" : {
+			value : proxyHttps
 		},
 		"wan3smart" : {
 			get : function(){
@@ -502,10 +502,10 @@ Object.defineProperties(TargetStatic.prototype = Object.create(Target.prototype)
 	"TargetStatic" : {
 		value : TargetStatic
 	},
-	"http" : {
+	"proxyHttp" : {
 		value : null
 	},
-	"https" : {
+	"proxyHttps" : {
 		value : null
 	},
 	"modeDns" : {
@@ -739,7 +739,7 @@ Object.defineProperties(Targets.prototype = Object.create(ListAndMap.prototype),
 		value : function(){
 			for(let key in this.source){
 				const settings = this.source[key];
-				if(settings.http || settings.https || settings.target && settings.target.length == 2){
+				if(settings.proxyHttp || settings.proxyHttps || settings.target && settings.target.length == 2){
 					const t1 = settings.http || settings.target && settings.target[0];
 					const t2 = settings.https || settings.target && settings.target[1];
 					if(t1 && t1.indexOf('://') !== -1 || t2 && t2.indexOf('://') !== -1){
