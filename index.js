@@ -1044,6 +1044,8 @@ module.exports = {
 	"Router" : Router,
 	"Routers" : Routers,
 	"Target" : Target,
+	"TargetStatic" : TargetStatic,
+	"Targets" : Targets,
 	
 
 	// returns Configuration	
