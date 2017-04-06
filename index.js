@@ -448,8 +448,8 @@ Object.defineProperties(Target.prototype, {
 				if(!target.location || target.location === this.config.location){
 					return true;
 				}
-				return false;
 			}
+			return false;
 		}
 	},
 	"wan3smart" : {
