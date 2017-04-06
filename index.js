@@ -412,10 +412,6 @@ Object.defineProperties(Target.prototype, {
 		value : function(mapInitial){
 			const map = mapInitial || {};
 			for(let key of [].concat(this.source.target || [])){
-				if(~key.indexOf('://')){
-					map[key] = new TargetStatic(this.config, this.key, this.source);
-					continue;
-				}
 				if(key !== this.key){
 					const target = this.config.targets.map[key];
 					if(target){
