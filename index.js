@@ -288,11 +288,11 @@ Object.defineProperties(Server.prototype, {
 	},
 	"wan3smart" : {
 		get : function(){
-			if(!this.location || this.modeDns === "use-router"){
-				return this.config.wan3smart;
-			}
 			if(this.modeDns === "use-wan" && this.wan3){
 				return [ this.wan3 ];
+			}
+			if(!this.location){
+				return this.config.wan3smart;
 			}
 			return this.location.wan3smart;
 		}
