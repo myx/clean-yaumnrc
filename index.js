@@ -380,6 +380,9 @@ function Target(config, key, source){
 		"key" : {
 			value : key
 		},
+		"location" : {
+			value : source.location && config.locations.map[source.location]
+		},
 		"source" : {
 			value : source
 		},
@@ -482,6 +485,19 @@ Object.defineProperties(Target.prototype, {
 
 function TargetStatic(config, key, source){
 	this.Target(config, key, source);
+	Object.defineProperties(this, {
+		"http" : {
+			value : source.http || source.target[0]
+		},
+		"https" : {
+			value : source.https || source.target[1]
+		},
+		"wan3smart" : {
+			get : function(){
+				return this.location ? this.location.wan3smart : this.config.wan3smart;
+			}
+		},
+	});
 	return this;
 }
 
@@ -489,6 +505,12 @@ function TargetStatic(config, key, source){
 Object.defineProperties(TargetStatic.prototype = Object.create(Target.prototype), {
 	"TargetStatic" : {
 		value : TargetStatic
+	},
+	"http" : {
+		value : null
+	},
+	"https" : {
+		value : null
 	},
 	"modeDns" : {
 		// null, 'use-wan', 'use-router', 'local', 'remote', 'static'
@@ -500,6 +522,11 @@ Object.defineProperties(TargetStatic.prototype = Object.create(Target.prototype)
 		}
 	}
 });
+
+
+
+
+
 
 
 
