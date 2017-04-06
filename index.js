@@ -910,6 +910,19 @@ function Configuration(source){
 				return Object.values(map);
 			}
 		},
+		"targetListWeb" : {
+			// all servers and targets related to DNS
+			get : function(){
+				const map = {};
+				for(const target of this.targets.list){
+					map[target.key] = target;
+				}
+				if(!map['default']){
+					map['default'] = new Target(this, 'default', {});
+				}
+				return Object.values(map);
+			}
+		},
 		"makeViewForLocation" : {
 			value : function(location){
 				if(!location){
