@@ -416,7 +416,7 @@ Object.defineProperties(Target.prototype, {
 					map[key] = new TargetStatic(this.config, this.key, this.source);
 					continue;
 				}
-				{
+				if(key !== this.key){
 					const target = this.config.targets.map[key];
 					if(target){
 						if(target != this){
