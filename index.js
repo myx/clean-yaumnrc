@@ -148,7 +148,12 @@ Object.defineProperties(Location.prototype, {
 			}
 			const result = [];
 			for(var i of this.routers.list){
-				if((i.router === 'active' || i.router === 'testing') && i.wan3){
+				if(i.router === 'active'&& i.wan3){
+					result.push(i.wan3);
+				}
+			}
+			if(result.length == 0) for(var i of this.routers.list){
+				if(i.router === 'testing' && i.wan3){
 					result.push(i.wan3);
 				}
 			}
@@ -425,6 +430,24 @@ Object.defineProperties(Target.prototype, {
 	"endpointsList" : {
 		get : function(mapInitial){
 			return Object.values(this.endpointsMap);
+		}
+	},
+	"wan3smart" : {
+		get : function(){
+			if(this.modeDns === 'use-router'){
+				return this.config.wan3smart;
+			}
+			const map = {};
+			for(const target of this.endpointsList){
+				if(this.modeDns === 'use-wan' && target.wan3){
+					map[target.wan3] = true;
+					continue;
+				}
+				for(const address of (target.location ? target.location.wan3smart : this.config.wan3smart)){
+					map[address] = true;
+				}
+			}
+			return Object.keys(map);
 		}
 	},
 	"source" : {
@@ -787,6 +810,31 @@ function Configuration(source){
 		"targets" : {
 			// ListAndMap instance 
 			value : null
+		},
+		"wan3smart" : {
+			// Array of external IPs for Layer3 access (length is likely 1 or 0, but could have several WAN IPs of all the routers) 
+			get : function(){
+				const result = [];
+				for(var l of this.locations.list){
+					if(l.wan3 && l.routers.list.some(function(x){ return x.router === 'active'; })){
+						result.push(l.wan3);
+						continue;
+					}
+					for(var i of l.routers.list){
+						if(i.router === 'active' && i.wan3){
+							result.push(i.wan3);
+						}
+					}
+				}
+				if(result.length == 0) for(var l of this.locations.list){
+					for(var i of this.routers.list){
+						if(i.router === 'testing' && i.wan3){
+							result.push(i.wan3);
+						}
+					}
+				}
+				return result;
+			}
 		},
 		"view" : {
 			// current View instance (null, location, server or router)
