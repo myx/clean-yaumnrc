@@ -77,6 +77,10 @@
 						"h1.myx.ru" : {
 							"target" : "l6h1.myx.ru"
 						},
+						"o2.myx.ru" : {
+							"target" : "l6o2.myx.ru",
+							"ssl" : "strong"
+						},
 						"l6o2.myx.ru" : {
 							"target" : "l6o2.myx.ru",
 							"ssl" : "strong"
@@ -149,6 +153,8 @@
 				
 				out('Config.Servers["l6h1.myx.ru"].endpoints', config.servers.map["l6h1.myx.ru"].endpointsList);
 				out('Config.Targets["l6.myx.ru"].endpoints', config.targets.map["l6.myx.ru"].endpointsList);
+				out('Config.Targets["l6o2.myx.ru"].endpoints', config.targets.map["l6o2.myx.ru"].endpointsList);
+				out('Config.Targets["o2.myx.ru"].endpoints', config.targets.map["o2.myx.ru"].endpointsList);
 				out('Targets["web.myx.ru"].endpoints', viewS.targets.map["web.myx.ru"].endpointsList);
 				out('Targets["zyx.myx.ru"].endpoints', viewS.targets.map["zyx.myx.ru"].endpointsList);
 

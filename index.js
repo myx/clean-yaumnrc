@@ -449,7 +449,7 @@ Object.defineProperties(Target.prototype, {
 	"wan3smart" : {
 		get : function(){
 			if(this.modeDns === 'use-router'){
-				return this.config.wan3smart;
+				return this.location ? this.location.wan3smart : this.config.wan3smart;
 			}
 			const map = {};
 			for(const target of this.endpointsList){
