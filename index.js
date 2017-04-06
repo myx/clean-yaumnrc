@@ -286,6 +286,17 @@ Object.defineProperties(Server.prototype, {
 		// to be functionally compatible with Target objects
 		value : "use-wan"
 	},
+	"wan3smart" : {
+		get : function(){
+			if(!this.location || this.modeDns === "use-router"){
+				return this.config.wan3smart;
+			}
+			if(this.modeDns === "use-wan" && this.wan3){
+				return [ this.wan3 ];
+			}
+			return this.location.wan3smart;
+		}
+	},
 	"endpointsToMap" : {
 		// to be functionally compatible with Target objects
 		value : function(mapInitial){
