@@ -740,9 +740,9 @@ Object.defineProperties(Targets.prototype = Object.create(ListAndMap.prototype),
 			for(let key in this.source){
 				const settings = this.source[key];
 				if(settings.http || settings.https || settings.target && settings.target.length == 2){
-					const t1 = settings.http || settings.target[0];
-					const t2 = settings.https || settings.target[1];
-					if(t1.indexOf('://') !== -1 || t2.indexOf('://') !== -1){
+					const t1 = settings.http || settings.target && settings.target[0];
+					const t2 = settings.https || settings.target && settings.target[1];
+					if(t1 && t1.indexOf('://') !== -1 || t2 && t2.indexOf('://') !== -1){
 						this.put(key, new TargetStatic(this.config, key, settings, t1, t2));
 						continue;
 					}
