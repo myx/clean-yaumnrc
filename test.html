@@ -79,6 +79,7 @@
 						},
 						"o2.myx.ru" : {
 							"target" : "l6o2.myx.ru",
+							"dns" : "use-router",
 							"ssl" : "strong"
 						},
 						"l6o2.myx.ru" : {
@@ -152,11 +153,22 @@
 				
 				
 				out('Config.Servers["l6h1.myx.ru"].endpoints', config.servers.map["l6h1.myx.ru"].endpointsList);
+
+				out('Config.Targets["l6.myx.ru"]', config.targets.map["l6.myx.ru"]);
+				out('Config.Targets["l6o2.myx.ru"]', config.targets.map["l6o2.myx.ru"]);
+				out('Config.Targets["o2.myx.ru"]', config.targets.map["o2.myx.ru"]);
+
+				out('Targets["web.myx.ru"]', viewS.targets.map["web.myx.ru"]);
+				out('Targets["zyx.myx.ru"]', viewS.targets.map["zyx.myx.ru"]);
+				out('Targets["zyxel.myx.ru"]', viewS.targets.map["zyxel.myx.ru"]);
+
 				out('Config.Targets["l6.myx.ru"].endpoints', config.targets.map["l6.myx.ru"].endpointsList);
 				out('Config.Targets["l6o2.myx.ru"].endpoints', config.targets.map["l6o2.myx.ru"].endpointsList);
 				out('Config.Targets["o2.myx.ru"].endpoints', config.targets.map["o2.myx.ru"].endpointsList);
+				
 				out('Targets["web.myx.ru"].endpoints', viewS.targets.map["web.myx.ru"].endpointsList);
 				out('Targets["zyx.myx.ru"].endpoints', viewS.targets.map["zyx.myx.ru"].endpointsList);
+				out('Targets["zyxel.myx.ru"].endpoints', viewS.targets.map["zyxel.myx.ru"].endpointsList);
 
 				out('Config.servers["l6h1.myx.ru"].selected', config.servers.map["l6h1.myx.ru"].selected);
 				out('Server.selected', viewS.server.selected);

@@ -313,7 +313,7 @@ Object.defineProperties(Server.prototype, {
 	},
 	"endpointsList" : {
 		// to be functionally compatible with Target objects
-		get : function(mapInitial){
+		get : function(){
 			return [ this ];
 		}
 	},
@@ -442,7 +442,7 @@ Object.defineProperties(Target.prototype, {
 		}
 	},
 	"endpointsList" : {
-		get : function(mapInitial){
+		get : function(){
 			return Object.values(this.endpointsMap);
 		}
 	},
@@ -483,14 +483,14 @@ Object.defineProperties(Target.prototype, {
 
 
 
-function TargetStatic(config, key, source){
+function TargetStatic(config, key, source, http, https){
 	this.Target(config, key, source);
 	Object.defineProperties(this, {
 		"http" : {
-			value : source.http || source.target[0]
+			value : http
 		},
 		"https" : {
-			value : source.https || source.target[1]
+			value : https
 		},
 		"wan3smart" : {
 			get : function(){
@@ -515,6 +515,18 @@ Object.defineProperties(TargetStatic.prototype = Object.create(Target.prototype)
 	"modeDns" : {
 		// null, 'use-wan', 'use-router', 'local', 'remote', 'static'
 		value : "use-router"
+	},
+	"endpointsToMap" : {
+		value : function(mapInitial){
+			const map = mapInitial || {};
+			map[this.key] = this;
+			return map;
+		}
+	},
+	"endpointsList" : {
+		get : function(){
+			return [ this ];
+		}
 	},
 	"toString" : {
 		value : function(){
@@ -731,8 +743,15 @@ Object.defineProperties(Targets.prototype = Object.create(ListAndMap.prototype),
 		value : function(){
 			for(let key in this.source){
 				const settings = this.source[key];
-				const server = new Target(this.config, key, settings);
-				this.put(key, server);
+				if(settings.http || settings.https || settings.target && settings.target.length == 2){
+					const t1 = settings.http || settings.target[0];
+					const t2 = settings.https || settings.target[1];
+					if(t1.indexOf('://') !== -1 || t2.indexOf('://') !== -1){
+						this.put(key, new TargetStatic(this.config, key, settings, t1, t2));
+						continue;
+					}
+				}
+				this.put(key, new Target(this.config, key, settings));
 			}
 		}
 	},
