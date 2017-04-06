@@ -442,7 +442,7 @@ Object.defineProperties(Target.prototype, {
 			return Object.values(this.endpointsMap);
 		}
 	},
-	"hasLocal" : {
+	"hasLocalEndpoints" : {
 		get : function(){
 			for(const target of this.endpointsList){
 				if(!target.location || target.location === this.config.location){
