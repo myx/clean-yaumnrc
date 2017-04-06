@@ -900,7 +900,10 @@ function Configuration(source){
 		"targetListDns" : {
 			// all servers and targets related to DNS
 			get : function(){
-				const map = new Object(this.servers.map);
+				const map = {};
+				for(const target of this.servers.list){
+					map[target.key] = target;
+				}
 				for(const target of this.targets.list){
 					map[target.key] = target;
 				}
