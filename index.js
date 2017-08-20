@@ -288,7 +288,7 @@ Object.defineProperties(Server.prototype, {
 	},
 	"wan3smart" : {
 		get : function(){
-			if(this.modeDns === "use-wan" && this.wan3){
+			if((this.modeDns === "use-wan" || this.modeDns === "direct") && this.wan3){
 				return [ this.wan3 ];
 			}
 			if(!this.location){
@@ -405,7 +405,7 @@ Object.defineProperties(Target.prototype, {
 		value : null
 	},
 	"modeDns" : {
-		// null, 'use-wan', 'use-router', 'local', 'remote', 'static'
+		// null, 'use-wan', 'use-router', 'direct', 'local', 'remote', 'static'
 		value : null
 	},
 	"endpointsToMap" : {
@@ -454,16 +454,18 @@ Object.defineProperties(Target.prototype, {
 	},
 	"wan3smart" : {
 		get : function(){
-			if(this.modeDns === 'use-router'){
+			if(this.modeDns === "use-router"){
 				return this.location ? this.location.wan3smart : this.config.wan3smart;
 			}
 			const map = {};
 			for(const target of this.endpointsList){
-				if(this.modeDns === 'use-wan' && target.wan3){
+				if((this.modeDns === "use-wan" || this.modeDns === "direct") && target.wan3){
 					map[target.wan3] = true;
 					continue;
 				}
-				for(const address of (target.location ? target.location.wan3smart : this.config.wan3smart)){
+				for(const address of (target.location 
+										? target.location.wan3smart 
+										: this.config.wan3smart)){
 					map[address] = true;
 				}
 			}
@@ -519,7 +521,7 @@ Object.defineProperties(TargetStatic.prototype = Object.create(Target.prototype)
 		value : null
 	},
 	"modeDns" : {
-		// null, 'use-wan', 'use-router', 'local', 'remote', 'static'
+		// null, 'use-wan', 'use-router', 'direct', 'local', 'remote', 'static'
 		value : "use-router"
 	},
 	"endpointsToMap" : {
