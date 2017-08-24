@@ -317,6 +317,12 @@ Object.defineProperties(Server.prototype, {
 			return [ this ];
 		}
 	},
+	"upstreamList" : {
+		// to be functionnally compatible with Target objects
+		get : function(){
+			return [ new UpstreamObject() ];
+		}
+	},
 	"source" : {
 		// the source 'settings' object, from which this object was constructed
 		value : null
@@ -442,6 +448,12 @@ Object.defineProperties(Target.prototype, {
 			return Object.values(this.endpointsMap);
 		}
 	},
+	"upstreamList" : {
+		// to be functionnally compatible with Target objects
+		get : function(){
+			return [ new UpstreamObject() ];
+		}
+	},
 	"hasLocalEndpoints" : {
 		get : function(){
 			for(const target of this.endpointsList){
@@ -458,8 +470,20 @@ Object.defineProperties(Target.prototype, {
 				return this.location ? this.location.wan3smart : this.config.wan3smart;
 			}
 			const map = {};
-			for(const target of this.endpointsList){
-				if((this.modeDns === "use-wan" || this.modeDns === "direct") && target.wan3){
+			const endpoints = this.endpointsList;
+			if(this.modeDns === "direct"){
+				for(const target of endpoints){
+					target.wan3 && (map[target.wan3] = true);
+				}
+				{
+					const keys = Object.keys(map);
+					if(keys.length){
+						return keys;
+					}
+				}
+			}
+			for(const target of endpoints){
+				if(this.modeDns === "use-wan" && target.wan3){
 					map[target.wan3] = true;
 					continue;
 				}
@@ -536,6 +560,12 @@ Object.defineProperties(TargetStatic.prototype = Object.create(Target.prototype)
 			return [ this ];
 		}
 	},
+	"upstreamList" : {
+		// to be functionnally compatible with Target objects
+		get : function(){
+			return [ new UpstreamObject() ];
+		}
+	},
 	"toString" : {
 		value : function(){
 			return "[yamnrc TargetStatic("+this.key+")]";
@@ -545,6 +575,20 @@ Object.defineProperties(TargetStatic.prototype = Object.create(Target.prototype)
 
 
 
+
+
+
+
+function UpstreamObject(){
+	return this;
+}
+
+Object.defineProperties(UpstreamObject.prototype = Object.create(Object.prototype), {
+	"UpstreamObject" : {
+		value : UpstreamObject
+	}
+});	
+	
 
 
 
