@@ -11,18 +11,18 @@
 					"locations" : {
 						"h1" : {
 							"name" : "h1.myx.ru",
-							"wan3" : "5.9.15.205",
-							"lan3" : "192.168.1.1",
+							"wan3" : "h1-wan",
+							"lan3" : "h1-lan",
 							"tap3" : "10.112.11.20"
 						},
 						"h2" : {
 							"name" : "h2.myx.ru",
-							"wan3" : "5.9.100.81"
+							"wan3" : "h2-wan"
 						},
 						"o2" : {
 							"name" : "o2.myx.ru",
 							"routing" : {
-								"external" : "9.9.9.9",
+								"external" : "o2-wan",
 								"gateway" : ["10.1.1.1", "10.2.2.2", "10.3.3.3"],
 								"tap" : { 
 									"ip" : "10.112.21.20" 
@@ -43,13 +43,13 @@
 							"router" : "active",
 							"location" : "h1",
 							"wan" : {
-								"ip" : "9.11.0.1"
+								"ip" : "l6h1-wan"
 							},
 							"lan" : {
-								"ip" : "10.9.0.1"
+								"ip" : "l6h1-lan"
 							},
 							"tap" : { 
-								"ip" : "10.112.11.21",
+								"ip" : "l6h1-tap",
 								"key" : "-----BEGIN RSA PUBLIC KEY-----\r\nMIIBCgKCAQEA1u1UJ1/rKCT2pVPgSAvLWeZ2RW2e72ObC7xG1YVBMUi1V8JCU0+S\r\ntEaEgNknTxNylJm2OiE50YWZzydDMf+GNq3AEqq/9S9UZRuZQlxSbTe4Ic1odgdi\r\nXMZHdMJu3Q4AOCxu8kEHGR4VelvpprjHyZxEteZ/doBSGm4TaomaAT3gI0k5TAol\r\nacjoctu+dgrL1YZA0MtPYAN0JX5yeLA0yZ7AKeHfGW5Ws5E5++Y1QdE3XNXxftL4\r\nX9dhOJBziW4TsPYTpair2oLLcmOYihnD6Bbsb87aoaKt6iheEtVzBgluN+qhzCP1\r\nA5ZgIlicbLrwHD61o83lpatE/dNDbhKVvQIDAQAB\r\n-----END RSA PUBLIC KEY-----"
 							}
 						},
@@ -57,18 +57,33 @@
 							"router" : "active",
 							"location" : "o2",
 							"wan" : {
-								"ip" : "9.10.0.1"
+								"ip" : "l6o2-wan"
 							},
 							"lan" : {
-								"ip" : "10.0.0.1"
+								"ip" : "l6o2-lan"
 							},
 							"tap" : { 
-								"ip" : "10.112.21.21",
+								"ip" : "l6o2-tap",
 								"key" : "-----BEGIN RSA PUBLIC KEY-----\r\nMIIBCgKCAQEA1u1UJ1/rKCT2pVPgSAvLWeX2RW2e72ObC7xG1YVBMUi1V8JCU0+S\r\ntEaEgNknTxNylJm2OiE50YWXzydDMf+GNq3AEqq/9S9UXRuXQlxSbTe4Ic1odgdi\r\nXMXHdMJu3Q4AOCxu8kEHGR4VelvpprjHyXxEteX/doBSGm4TaomaAT3gI0k5TAol\r\nacjoctu+dgrL1YXA0MtPYAN0JX5yeLA0yX7AKeHfGW5Ws5E5++Y1QdE3XNXxftL4\r\nX9dhOJBziW4TsPYTpair2oLLcmOYihnD6Bbsb87aoaKt6iheEtVzBgluN+qhzCP1\r\nA5XgIlicbLrwHD61o83lpatE/dNDbhKVvQIDAQAB\r\n-----END RSA PUBLIC KEY-----"
 							}
 						},
 						"ae3.myx.ru" : {
 							"location" : "h1"
+						},
+						"mpxy1.myx.ru" : {
+							"location" : "h1",
+							"wan" : {
+								"ip" : "mpxy1-wan"
+							},
+							"lan" : {
+								"ip" : "mpxy1-lan"
+							}
+						},
+						"mpxy2.myx.ru" : {
+							"location" : "h2",
+							"lan" : {
+								"ip" : "mpxy2-lan"
+							}
 						}
 					},
 					"" : {
@@ -78,6 +93,7 @@
 							"target" : "l6h1.myx.ru"
 						},
 						"o2.myx.ru" : {
+							"location" : "o2",
 							"target" : "l6o2.myx.ru",
 							"dns" : "use-router",
 							"ssl" : "strong"
@@ -99,6 +115,10 @@
 							"proxyHttp" : "http://zyxel.ru",
 							"proxyHttps" : "https://zyxel.ru"
 						},
+						"mpxy.myx.ru" : {
+							"target" : ["mpxy1.myx.ru","mpxy2.myx.ru"],
+							"dns" : "direct"
+						},
 						"zyxel.myx.ru" : {
 							"target" : [
 								"http://zyxel.ru",
@@ -111,7 +131,9 @@
 				var output = document.getElementById('output');
 				function out(t,x){
 					var d = document.createElement('div');
-					d.innerHTML = t + ": <pre>" + x + "</pre>";
+					d.innerHTML = arguments.length == 2 
+						? t + ": <pre>" + x + "</pre>"
+						: "<h2>" + t + "</h2>";
 					output.appendChild(d);
 				}
 				
@@ -180,7 +202,23 @@
 				out('targetListDns', viewS.targetListDns);
 				out('wan3smart', viewS.wan3smart);
 				out('Server.wan3smart', viewS.server.wan3smart);
-				out('Targets["web.myx.ru"].wan3smart', viewS.targets.map["web.myx.ru"].wan3smart);
+
+				function dumpTarget(name){
+					out('target: ' + name);
+					const target = viewS.targets.map[name];
+					out(' Targets["'+name+'"].location', target.location);
+					out(' Targets["'+name+'"].modeDns', target.modeDns);
+					out(' Targets["'+name+'"].wan3smart', target.wan3smart);
+					out(' Targets["'+name+'"].endpointsList', target.endpointsList);
+					out('');
+				}
+
+				dumpTarget('l6.myx.ru');
+				dumpTarget('l6o2.myx.ru');
+				dumpTarget('o2.myx.ru');
+				dumpTarget('zyxel.myx.ru');
+				dumpTarget('web.myx.ru');
+				dumpTarget('mpxy.myx.ru');
 			}
 		</script>
 	</head>
