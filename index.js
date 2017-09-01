@@ -77,7 +77,7 @@ const AbstractAddress = f.defineClass(
 					}, 0);
 				}
 				if('number' === typeof IPv4){
-					return IPv4|0;
+					return IPv4;
 				}
 				throw new Error("Invalid IP: " + IPv4);
 			}
