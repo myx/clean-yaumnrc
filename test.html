@@ -19,9 +19,9 @@
 							"name" : "h2.myx.ru",
 							"wan3" : "h2-wan"
 						},
-						"o2" : {
-							"name" : "o2.myx.ru",
-							"wan3" : "o2-wan",
+						"o3" : {
+							"name" : "o3.myx.ru",
+							"wan3" : "o3-wan",
 							"lan3" : [
 								"10.1.1.1", 
 								"10.2.2.2", 
@@ -46,24 +46,24 @@
 								"ip" : "l6h1-wan"
 							},
 							"lan" : {
-								"ip" : "l6h1-lan"
+								"ip" : "192.168.1.254"
 							},
 							"tap" : { 
 								"ip" : "l6h1-tap",
 								"key" : "-----BEGIN RSA PUBLIC KEY-----\r\nMIIBCgKCAQEA1u1UJ1/rKCT2pVPgSAvLWeZ2RW2e72ObC7xG1YVBMUi1V8JCU0+S\r\ntEaEgNknTxNylJm2OiE50YWZzydDMf+GNq3AEqq/9S9UZRuZQlxSbTe4Ic1odgdi\r\nXMZHdMJu3Q4AOCxu8kEHGR4VelvpprjHyZxEteZ/doBSGm4TaomaAT3gI0k5TAol\r\nacjoctu+dgrL1YZA0MtPYAN0JX5yeLA0yZ7AKeHfGW5Ws5E5++Y1QdE3XNXxftL4\r\nX9dhOJBziW4TsPYTpair2oLLcmOYihnD6Bbsb87aoaKt6iheEtVzBgluN+qhzCP1\r\nA5ZgIlicbLrwHD61o83lpatE/dNDbhKVvQIDAQAB\r\n-----END RSA PUBLIC KEY-----"
 							}
 						},
-						"l6o2.myx.ru" : {
+						"l6o3.myx.ru" : {
 							"router" : "active",
-							"location" : "o2",
+							"location" : "o3",
 							"wan" : {
-								"ip" : "l6o2-wan"
+								"ip" : "l6o3-wan"
 							},
 							"lan" : {
-								"ip" : "l6o2-lan"
+								"ip" : "192.168.3.254"
 							},
 							"tap" : { 
-								"ip" : "l6o2-tap",
+								"ip" : "l6o3-tap",
 								"key" : "-----BEGIN RSA PUBLIC KEY-----\r\nMIIBCgKCAQEA1u1UJ1/rKCT2pVPgSAvLWeX2RW2e72ObC7xG1YVBMUi1V8JCU0+S\r\ntEaEgNknTxNylJm2OiE50YWXzydDMf+GNq3AEqq/9S9UXRuXQlxSbTe4Ic1odgdi\r\nXMXHdMJu3Q4AOCxu8kEHGR4VelvpprjHyXxEteX/doBSGm4TaomaAT3gI0k5TAol\r\nacjoctu+dgrL1YXA0MtPYAN0JX5yeLA0yX7AKeHfGW5Ws5E5++Y1QdE3XNXxftL4\r\nX9dhOJBziW4TsPYTpair2oLLcmOYihnD6Bbsb87aoaKt6iheEtVzBgluN+qhzCP1\r\nA5XgIlicbLrwHD61o83lpatE/dNDbhKVvQIDAQAB\r\n-----END RSA PUBLIC KEY-----"
 							}
 						},
@@ -92,18 +92,18 @@
 						"h1.myx.ru" : {
 							"target" : "l6h1.myx.ru"
 						},
-						"o2.myx.ru" : {
-							"location" : "o2",
+						"o3.myx.ru" : {
+							"location" : "o3",
 							"target" : "l6o2.myx.ru",
 							"dns" : "use-router",
 							"ssl" : "strong"
 						},
-						"l6o2.myx.ru" : {
-							"target" : "l6o2.myx.ru",
+						"l6o3.myx.ru" : {
+							"target" : "l6o3.myx.ru",
 							"ssl" : "strong"
 						},
 						"l6.myx.ru" : {
-							"target" : [ "l6h1.myx.ru", "l6o2.myx.ru" ]
+							"target" : [ "l6h1.myx.ru", "l6o3.myx.ru" ]
 						},
 						"web.myx.ru" : {
 							"target" : "l6.myx.ru"
@@ -141,64 +141,68 @@
 				out('Locations', config.locations);
 				out('Servers', config.servers);
 				out('Routers', config.routers);
-				
-				var viewL = config.makeView('h1');
-				
-				out('Config', viewL);
-				out('Location', viewL.location);
-				out('Location.lans', viewL.location.lans);
-				out('Location.servers', viewL.location.servers);
-				out('Location.routers', viewL.location.routers);
 
-				var viewR = config.makeView('g1');
+				function dumpLocation(name){
+					out('location: ' + name);
+					const view = config.makeView(name);
+					out(' Location.config', view);
+					out(' Location.location', view.location);
+					out(' Location.lans', view.location.lans);
+					out(' Location.lan3', view.location.lan3);
+					out(' Location.servers', view.location.servers);
+					out(' Location.routers', view.location.routers);
+
+					for(var lan of view.location.lans){
+						out(' Lan(' + lan + ').gway', lan.ip);
+						out(' Lan(' + lan + ').intIPv4', lan.intIPv4);
+						out(' Lan(' + lan + ').strIPv4', lan.strIPv4);
+						out(' Lan(' + lan + ').mask', lan.mask);
+						out(' Lan(' + lan + ').netw', lan.networkIp);
+					}
+
+					out('');
+				}
+
+				dumpLocation('h1');
+				dumpLocation('g1');
 				
-				out('Config', viewR);
-				out('Location', viewR.location);
-				out('Location.lans', viewR.location.lans);
-				out('Location.servers', viewR.location.servers);
-				out('Location.routers', viewR.location.routers);
+				function dumpServer(name){
+					out('server: ' + name);
+					var viewS = config.makeView(name);
+					
+					out('Config', viewS);
+					out('Location', viewS.location);
+					out('Server', viewS.server);
+					out('Router', viewS.router);
 
-				var viewS = config.makeView('l6h1.myx.ru');
+					// temp array - it is not array for now
+					for(var lan of ([viewS.server.lan3] || [])){
+						out('Gateway(for '+lan+') ', viewS.location.findGatewayForClient(lan));
+					}
+	
+					out('Location.lans', viewS.location.lans);
+					out('Location.servers', viewS.location.servers);
+					out('Location.routers', viewS.location.routers);
+	
+					out('Location.wan3', viewS.location.wan3);
+					out('Location.lan3', viewS.location.lan3);
+	
+					out('Router.wan3', viewS.router.wan3);
+					out('Router.lan3', viewS.router.lan3);
+	
+					out('Router.location', viewS.router.location);
+				}
+
+				dumpServer('l6h1.myx.ru');
 				
-				out('Config', viewS);
-				out('Location', viewS.location);
-				out('Server', viewS.server);
-				out('Router', viewS.router);
 
-				out('Location.lans', viewS.location.lans);
-				out('Location.servers', viewS.location.servers);
-				out('Location.routers', viewS.location.routers);
-
-				out('Location.wan3', viewS.location.wan3);
-				out('Location.lan3', viewS.location.lan3);
-
-				out('Router.wan3', viewS.router.wan3);
-				out('Router.lan3', viewS.router.lan3);
-
-				out('Router.location', viewS.router.location);
-				
-				
+				out('Config');
 				out('Config.Source', config.toSource());
 				
+
+				out('Looking from: l6h1.myx.ru');
+				var viewS = config.makeView('l6h1.myx.ru');
 				
-				out('Config.servers["l6h1.myx.ru"].endpoints', config.servers.map["l6h1.myx.ru"].endpointsList);
-
-				out('Config.targets["l6.myx.ru"]', config.targets.map["l6.myx.ru"]);
-				out('Config.targets["l6o2.myx.ru"]', config.targets.map["l6o2.myx.ru"]);
-				out('Config.targets["o2.myx.ru"]', config.targets.map["o2.myx.ru"]);
-
-				out('Targets["web.myx.ru"]', viewS.targets.map["web.myx.ru"]);
-				out('Targets["zyx.myx.ru"]', viewS.targets.map["zyx.myx.ru"]);
-				out('Targets["zyxel.myx.ru"]', viewS.targets.map["zyxel.myx.ru"]);
-
-				out('Config.targets["l6.myx.ru"].endpoints', config.targets.map["l6.myx.ru"].endpointsList);
-				out('Config.targets["l6o2.myx.ru"].endpoints', config.targets.map["l6o2.myx.ru"].endpointsList);
-				out('Config.targets["o2.myx.ru"].endpoints', config.targets.map["o2.myx.ru"].endpointsList);
-				
-				out('Targets["web.myx.ru"].endpoints', viewS.targets.map["web.myx.ru"].endpointsList);
-				out('Targets["zyx.myx.ru"].endpoints', viewS.targets.map["zyx.myx.ru"].endpointsList);
-				out('Targets["zyxel.myx.ru"].endpoints', viewS.targets.map["zyxel.myx.ru"].endpointsList);
-
 				out('Config.servers["l6h1.myx.ru"].selected', config.servers.map["l6h1.myx.ru"].selected);
 				out('Server.selected', viewS.server.selected);
 
@@ -208,17 +212,22 @@
 
 				function dumpTarget(name){
 					out('target: ' + name);
-					const target = viewS.targets.map[name];
-					out(' Targets["'+name+'"].location', target.location);
-					out(' Targets["'+name+'"].modeDns', target.modeDns);
-					out(' Targets["'+name+'"].wan3smart', target.wan3smart);
-					out(' Targets["'+name+'"].endpointsList', target.endpointsList);
+					const target = viewS.targets.map[name] || viewS.servers.map[name];
+					const global = config.targets.map[name] || config.servers.map[name];
+					out(' Global', global);
+					out(' Target', target);
+					out(' Target.location', target.location);
+					out(' Target.modeDns', target.modeDns);
+					out(' Target.wan3smart', target.wan3smart);
+					out(' Global.endpointsList', global.endpointsList);
+					out(' Target.endpointsList', target.endpointsList);
 					out('');
 				}
 
 				dumpTarget('l6.myx.ru');
-				dumpTarget('l6o2.myx.ru');
-				dumpTarget('o2.myx.ru');
+				dumpTarget('l6h1.myx.ru');
+				dumpTarget('l6o3.myx.ru');
+				dumpTarget('o3.myx.ru');
 				dumpTarget('zyxel.myx.ru');
 				dumpTarget('web.myx.ru');
 				dumpTarget('mpxy.myx.ru');

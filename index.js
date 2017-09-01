@@ -1,5 +1,5 @@
 const f = {
-	defineClass : function(name, inherit, constructor, properties){
+	defineClass : function(name, inherit, constructor, properties, statics){
 		constructor.prototype = inherit
 			? Object.create(inherit.prototype || inherit)
 			: {};
@@ -10,6 +10,9 @@ const f = {
 						value : constructor 
 				});
 			}
+		}
+		if(statics){
+			Object.defineProperties(constructor, statics);
 		}
 		return constructor;
 	},
@@ -50,9 +53,46 @@ const AbstractAddress = f.defineClass(
 		"mac" : {
 			value : null
 		},
+		"intIPv4" : {
+			get : function(){
+				return AbstractAddress.intForIPv4(this.ip);
+			}
+		},
+		"strIPv4" : {
+			get : function(){
+				return AbstractAddress.intToIPv4(AbstractAddress.intForIPv4(this.ip));
+			}
+		},
 		"toString" : {
 			value : function(){
 				return "[AbstractAddress]";
+			}
+		}
+	}, {
+		"intForIPv4" : {
+			value : function(IPv4){
+				if('string' === typeof IPv4){
+					return IPv4.split('.').reduce(function(r, v){
+						return (r * 256) + parseInt(v);
+					}, 0);
+				}
+				if('number' === typeof IPv4){
+					return IPv4|0;
+				}
+				throw new Error("Invalid IP: " + IPv4);
+			}
+		},
+		"intToIPv4" : {
+			value : function(uint){
+				return "" 
+					+ ((uint >> 24) & 0xff)
+					+ "."
+					+ ((uint >> 16) & 0xff)
+					+ "."
+					+ ((uint >> 8) & 0xff)
+					+ "."
+					+ ((uint >> 0) & 0xff)
+				;
 			}
 		}
 	}
@@ -72,6 +112,11 @@ const SingleAddress = f.defineClass(
 		});
 		return this;
 	}, {
+		"containsIp" : {
+			value : function(ip){
+				return this.ip === ip;
+			}
+		},
 		"toSourceObject" : {
 			value : function(){
 				return this.mac
@@ -92,12 +137,16 @@ const NetworkAddress = f.defineClass(
 	"NetworkAddress",
 	AbstractAddress,
 	function(cidr, ip, bits, mac){
+		const mask = (0xFFFFFFFF * Math.pow(2, 32 - bits)) % 0x100000000;
 		Object.defineProperties(this, {
 			"cidr" : {
 				value : cidr
 			},
 			"ip" : {
 				value : ip
+			},
+			"networkIp" : {
+				value : AbstractAddress.intToIPv4(AbstractAddress.intForIPv4(ip) & mask) 
 			},
 			"mac" : {
 				value : mac
@@ -106,11 +155,16 @@ const NetworkAddress = f.defineClass(
 				value : bits
 			},
 			"mask" : {
-				value : -1 << (32 - bits)
+				value : mask
 			}
 		});
 		return this;
 	}, {
+		"containsIp" : {
+			value : function(ip){
+				return AbstractAddress.intForIPv4(ip) & this.mask;
+			}
+		},
 		"toSourceObject" : {
 			value : function(){
 				return this.mac
@@ -339,6 +393,22 @@ const Location = f.defineClass(
 		"routers" : {
 			// ListAndMap instance 
 			value : null
+		},
+		"findLanForClient" : {
+			value : function(ip){
+				for(var lan of this.lans){
+					if(lan.containsIp(ip)){
+						return lan;
+					}
+				}
+				return undefined;
+			}
+		},
+		"findGatewayForClient" : {
+			value : function(ip){
+				const lan = this.findLanForClient(ip);
+				return lan ? lan.ip : undefined;
+			}
 		},
 		"source" : {
 			// the source 'settings' object, from which this object was constructed
