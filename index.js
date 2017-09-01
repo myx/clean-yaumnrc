@@ -13,18 +13,27 @@ const f = {
 		}
 		return constructor;
 	},
-	parseNetwork : function(cidr, mac){
+	parseNetwork : function(cidr, mac, defaultBits){
 		if(!cidr){
 			return undefined;
 		}
+		if(cidr.ip){
+			return f.parseNetwork(cidr.ip, cidr.mac);
+		}
 		const pos = cidr.indexOf('/');
 		if(pos === -1){
-			return new SingleAddress(cidr, mac);
+			if(!defaultBits || defaultBits === 32){
+				return new SingleAddress(cidr, mac);
+			}
+			return new NetworkAddress(
+				cidr + '/' + defaultBits, 
+				cidr, 
+				defaultBits, 
+				mac);
 		}
 		{
 			const bits = parseInt(cidr.substr(pos+1));
-			const mask = -1 << (32-bits);
-			return new NetworkAddress(cidr, cidr.substr(0, pos), bits, mask, mac);
+			return new NetworkAddress(cidr, cidr.substr(0, pos), bits, mac);
 		}
 	}
 };
@@ -35,6 +44,12 @@ const AbstractAddress = f.defineClass(
 	function(){
 		return this;
 	}, {
+		"ip" : {
+			value : null
+		},
+		"mac" : {
+			value : null
+		},
 		"toString" : {
 			value : function(){
 				return "[AbstractAddress]";
@@ -76,7 +91,7 @@ const SingleAddress = f.defineClass(
 const NetworkAddress = f.defineClass(
 	"NetworkAddress",
 	AbstractAddress,
-	function(cidr, ip, bits, mask, mac){
+	function(cidr, ip, bits, mac){
 		Object.defineProperties(this, {
 			"cidr" : {
 				value : cidr
@@ -86,6 +101,12 @@ const NetworkAddress = f.defineClass(
 			},
 			"mac" : {
 				value : mac
+			},
+			"bita" : {
+				value : bits
+			},
+			"mask" : {
+				value : -1 << (32 - bits)
 			}
 		});
 		return this;
@@ -169,25 +190,25 @@ const Location = f.defineClass(
 	undefined,
 	function(config, key, source){
 		
-		const wan3 = source.wan3 || 
-						source.routing && source.routing.external || 
-						source.ext && source.ext.tcp && source.ext.tcp.ip
-		;
+		const wan3 = source.wan3;
+		const wan6 = source.wan6 || wan3;
+		const tap3 = source.tap3;
 		
-		const wan6 = source.wan6 || 
-						source.routing && source.routing.external || 
-						source.ext && source.ext.web && source.ext.web.ip || 
-						wan3
-		;
-	
-		const tap3 = source.tap3 || 
-						source.routing && source.routing.tap
-		;
-		
-		
-		const lan3 = [].concat(
-			source.lan3 || source.routing && source.routing.gateway
-		).filter(function(x){ return !!x; });
+		const lans = [].concat(
+			source.lan3
+		).reduce(function(r, x){ 
+			if(!x){
+				return r;
+			}
+			const lan = f.parseNetwork(x, undefined, 24);
+			lan && r.push(lan);
+			return r;
+		}, []);
+
+		const lan3 = lans.reduce(function(r, x){ 
+			x.ip && r.push(x.ip);
+			return r; 
+		}, []);
 		
 		Object.defineProperties(this, {
 			"config" : {
@@ -204,6 +225,9 @@ const Location = f.defineClass(
 			},
 			"lan3" : {
 				value : lan3
+			},
+			"lans" : {
+				value : lans
 			},
 			"tap3" : {
 				value : tap3
@@ -232,6 +256,10 @@ const Location = f.defineClass(
 		},
 		"wan3" : {
 			// external IP for Layer3 access (gateway - only one IP per location)
+			value : null
+		},
+		"lans" : {
+			// Array of local Netrowks for Layer3 access (gateway, dns-server) 
 			value : null
 		},
 		"lan3" : {
@@ -322,7 +350,7 @@ const Location = f.defineClass(
 					"name" : this.name || null,
 					"title" : (this.source.title || this.title !== this.name) && this.title || undefined,
 					"wan3" : this.wan3 || null,
-					"lan3" : this.lan3 && this.lan3.length && this.lan3 || null,
+					"lan3" : this.lans && this.lans.length && this.lans.map(function(x){return x.toSourceObject();}) || null,
 					"tap3" : this.tap3 || undefined,
 				};
 			}

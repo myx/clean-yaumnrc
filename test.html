@@ -12,7 +12,7 @@
 						"h1" : {
 							"name" : "h1.myx.ru",
 							"wan3" : "h1-wan",
-							"lan3" : "h1-lan",
+							"lan3" : "192.168.1.250",
 							"tap3" : "10.112.11.20"
 						},
 						"h2" : {
@@ -21,13 +21,13 @@
 						},
 						"o2" : {
 							"name" : "o2.myx.ru",
-							"routing" : {
-								"external" : "o2-wan",
-								"gateway" : ["10.1.1.1", "10.2.2.2", "10.3.3.3"],
-								"tap" : { 
-									"ip" : "10.112.21.20" 
-								}
-							},
+							"wan3" : "o2-wan",
+							"lan3" : [
+								"10.1.1.1", 
+								"10.2.2.2", 
+								"10.3.3.3"
+							],
+							"tap3" : "10.112.21.20" 
 						},
 						"g1" : {
 							"name" : "g1.myx.ru",
@@ -146,15 +146,17 @@
 				
 				out('Config', viewL);
 				out('Location', viewL.location);
-				out('Location.Servers', viewL.location.servers);
-				out('Location.Routers', viewL.location.routers);
+				out('Location.lans', viewL.location.lans);
+				out('Location.servers', viewL.location.servers);
+				out('Location.routers', viewL.location.routers);
 
 				var viewR = config.makeView('g1');
 				
 				out('Config', viewR);
 				out('Location', viewR.location);
-				out('Location.Servers', viewR.location.servers);
-				out('Location.Routers', viewR.location.routers);
+				out('Location.lans', viewR.location.lans);
+				out('Location.servers', viewR.location.servers);
+				out('Location.routers', viewR.location.routers);
 
 				var viewS = config.makeView('l6h1.myx.ru');
 				
@@ -163,8 +165,9 @@
 				out('Server', viewS.server);
 				out('Router', viewS.router);
 
-				out('Location.Servers', viewS.location.servers);
-				out('Location.Routers', viewS.location.routers);
+				out('Location.lans', viewS.location.lans);
+				out('Location.servers', viewS.location.servers);
+				out('Location.routers', viewS.location.routers);
 
 				out('Location.wan3', viewS.location.wan3);
 				out('Location.lan3', viewS.location.lan3);
@@ -178,19 +181,19 @@
 				out('Config.Source', config.toSource());
 				
 				
-				out('Config.Servers["l6h1.myx.ru"].endpoints', config.servers.map["l6h1.myx.ru"].endpointsList);
+				out('Config.servers["l6h1.myx.ru"].endpoints', config.servers.map["l6h1.myx.ru"].endpointsList);
 
-				out('Config.Targets["l6.myx.ru"]', config.targets.map["l6.myx.ru"]);
-				out('Config.Targets["l6o2.myx.ru"]', config.targets.map["l6o2.myx.ru"]);
-				out('Config.Targets["o2.myx.ru"]', config.targets.map["o2.myx.ru"]);
+				out('Config.targets["l6.myx.ru"]', config.targets.map["l6.myx.ru"]);
+				out('Config.targets["l6o2.myx.ru"]', config.targets.map["l6o2.myx.ru"]);
+				out('Config.targets["o2.myx.ru"]', config.targets.map["o2.myx.ru"]);
 
 				out('Targets["web.myx.ru"]', viewS.targets.map["web.myx.ru"]);
 				out('Targets["zyx.myx.ru"]', viewS.targets.map["zyx.myx.ru"]);
 				out('Targets["zyxel.myx.ru"]', viewS.targets.map["zyxel.myx.ru"]);
 
-				out('Config.Targets["l6.myx.ru"].endpoints', config.targets.map["l6.myx.ru"].endpointsList);
-				out('Config.Targets["l6o2.myx.ru"].endpoints', config.targets.map["l6o2.myx.ru"].endpointsList);
-				out('Config.Targets["o2.myx.ru"].endpoints', config.targets.map["o2.myx.ru"].endpointsList);
+				out('Config.targets["l6.myx.ru"].endpoints', config.targets.map["l6.myx.ru"].endpointsList);
+				out('Config.targets["l6o2.myx.ru"].endpoints', config.targets.map["l6o2.myx.ru"].endpointsList);
+				out('Config.targets["o2.myx.ru"].endpoints', config.targets.map["o2.myx.ru"].endpointsList);
 				
 				out('Targets["web.myx.ru"].endpoints', viewS.targets.map["web.myx.ru"].endpointsList);
 				out('Targets["zyx.myx.ru"].endpoints', viewS.targets.map["zyx.myx.ru"].endpointsList);
