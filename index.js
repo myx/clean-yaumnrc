@@ -282,6 +282,19 @@ const Networks = f.defineClass(
 				return false;
 			}
 		},
+		"filterIp" : {
+			value : function(ip, any){
+				if(any){
+					return this.containsIp(ip) ? ip : undefined;
+				}
+				for(let net of this.list){
+					if(!net.containsIp(ip)){
+						return undefined;
+					}
+				}
+				return ip;
+			}
+		},
 		"networkForIp" : {
 			value : function(ip){
 				for(var net of this.list){
@@ -394,7 +407,18 @@ const Location = f.defineClass(
 		).reduce(function(r, x){ 
 			if(x){
 				const lan = f.parseNetwork(x, undefined, 24);
-				lan && r.addNetwork(lan);
+				if(lan){
+					if(!r){
+						return lan;
+					}
+					if(r.Networks){
+						r.addNetwork(lan);
+					}else{
+						const lans = new Networks();
+						land.addNetwork(r);
+						r = lans;
+					}
+				}
 			}
 			return r;
 		}, new Networks());
