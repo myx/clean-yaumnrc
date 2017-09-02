@@ -1532,7 +1532,7 @@ const DomainInfrastructure = f.defineClass(
 						return x.substr(0, x.length-d.key.length) + this.key + '.';
 					}
 				}
-				return undefined;
+				return x + this.key + '.';
 			}
 		},
 		"toString" : {
