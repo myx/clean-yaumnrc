@@ -191,6 +191,10 @@
 						"mpxy-default.myx.ru" : {
 							"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru"]
 						},
+						"mpxy-def-h1l.myx.ru" : {
+							"location" : "h1",
+							"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru"]
+						},
 						"zyxel.myx.ru" : {
 							"target" : [
 								"http://zyxel.ru",
@@ -317,6 +321,7 @@
 				dumpTarget('mpxy3.myx.ru');
 				dumpTarget('mpxy-direct.myx.ru');
 				dumpTarget('mpxy-default.myx.ru');
+				dumpTarget('mpxy-def-h1l.myx.ru');
 				
 
 				function dumpDns(view){
@@ -331,6 +336,7 @@
 
 				dumpDns(config);
 				dumpDns(viewS);
+				dumpDns(config.makeView('l6o3.myx.ru'));
 				
 			}
 		</script>
