@@ -1,24 +1,33 @@
 const f = {
+	defineProperty : function(o, n, v){
+		Object.defineProperty(o, n, { value : v	});
+	},
 	defineClass : function(name, inherit, constructor, properties, statics){
 		constructor.prototype = inherit
 			? Object.create(inherit.prototype || inherit)
 			: {};
 		if(properties){
 			Object.defineProperties(constructor.prototype, properties);
-			if(name && !properties[name]){
-				Object.defineProperty(constructor.prototype, name, { 
-						value : constructor 
-				});
-			}
+		}
+		if(name && !(properties && properties[name])){
+			f.defineProperty(constructor.prototype, name, constructor);
 		}
 		if(statics){
 			Object.defineProperties(constructor, statics);
+		}
+		if(name && !(statics && statics["toString"])){
+			f.defineProperty(constructor, "toString", function(){
+				return "[class " + name + "]";
+			});
 		}
 		return constructor;
 	},
 	parseNetwork : function(cidr, mac, defaultBits){
 		if(!cidr){
 			return undefined;
+		}
+		if(cidr.AbstractAddress){
+			return cidr;
 		}
 		if(cidr.ip){
 			return f.parseNetwork(cidr.ip, cidr.mac);
@@ -61,6 +70,16 @@ const AbstractAddress = f.defineClass(
 		"strIPv4" : {
 			get : function(){
 				return AbstractAddress.intToIPv4(AbstractAddress.intForIPv4(this.ip));
+			}
+		},
+		"containsIp" : {
+			value : function(ip){
+				return this.ip === ip;
+			}
+		},
+		"filterIp" : {
+			value : function(ip){
+				return this.containsIp(ip) ? ip : undefined;
 			}
 		},
 		"toString" : {
@@ -112,11 +131,6 @@ const SingleAddress = f.defineClass(
 		});
 		return this;
 	}, {
-		"containsIp" : {
-			value : function(ip){
-				return this.ip === ip;
-			}
-		},
 		"toSourceObject" : {
 			value : function(){
 				return this.mac
@@ -127,6 +141,15 @@ const SingleAddress = f.defineClass(
 		"toString" : {
 			value : function(){
 				return "[SingleAddress "+this.ip+"]";
+			}
+		}
+	}, {
+		"LOCALHOST" : {
+			configurable : true,
+			get : function(){
+				return SingleAddress.LOCALHOST = new SingleAddress(
+					"127.0.0.1"
+				);
 			}
 		}
 	}
@@ -151,7 +174,7 @@ const NetworkAddress = f.defineClass(
 			"mac" : {
 				value : mac
 			},
-			"bita" : {
+			"bits" : {
 				value : bits
 			},
 			"mask" : {
@@ -165,6 +188,14 @@ const NetworkAddress = f.defineClass(
 				return AbstractAddress.intForIPv4(ip) & this.mask;
 			}
 		},
+		"networkForIp" : {
+			value : function(ip){
+				if(this.containsIp(ip)){
+					return this;
+				}
+				return undefined;
+			}
+		},
 		"toSourceObject" : {
 			value : function(){
 				return this.mac
@@ -175,6 +206,100 @@ const NetworkAddress = f.defineClass(
 		"toString" : {
 			value : function(){
 				return "[NetworkAddress "+this.cidr+"]";
+			}
+		}
+	}, {
+		"GLOBAL" : {
+			configurable : true,
+			get : function(){
+				return NetworkAddress.GLOBAL = new NetworkAddress(
+					"0.0.0.0/0", 
+					"0.0.0.0", 
+					0
+				);
+			}
+		}
+	}
+);
+
+
+const Networks = f.defineClass(
+	"Networks",
+	AbstractAddress,
+	function(cidrArray){
+		Object.defineProperties(this, {
+			"cidrs" : {
+				value : cidrArray ? [].concat(cidrArray) : []
+			},
+		});
+		return this;
+	}, {
+		"addNetwork" : {
+			value : function(net){
+				this.cidrs.push(net);
+				delete this.list;
+				return this;
+			}
+		},
+		"list" : {
+			get : function(){
+				if(!this.cidrs){
+					throw new Error("This ia an instance method!");
+				}
+				return this.list = this.cidrs.reduce(function(r,v){
+					const net = f.parseNetwork(v);
+					net && r.push(net);
+					return r;
+				}, []);
+			}
+		},
+		"cidrs" : {
+			value : undefined
+		},
+		"ip" : {
+			value : function(){
+				return "127.0.0.1";
+			}
+		},
+		"containsIp" : {
+			value : function(ip){
+				for(var net of this.list){
+					if(net.containsIp(ip)){
+						return true;
+					}
+				}
+				return false;
+			}
+		},
+		"networkForIp" : {
+			value : function(ip){
+				for(var net of this.list){
+					if(net.containsIp(ip)){
+						return net;
+					}
+				}
+				return undefined;
+			}
+		},
+		"toSourceObject" : {
+			value : function(){
+				return this.cidrs;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[Networks ("+this.cidrs+")]";
+			}
+		}
+	}, {
+		"LOCAL" : {
+			configurable : true,
+			get : function(){
+				return Networks.LOCAL = new Networks([
+					"10.0.0.0/8",
+					"172.16.0.0/12",
+					"192.168.0.0/16"
+				]);
 			}
 		}
 	}
@@ -197,6 +322,11 @@ const ListAndMap = f.defineClass(
 		});
 		return this;
 	}, {
+		"isEmpty" : {
+			value : function(){
+				return this.list.length == 0;
+			}
+		},
 		"list" : {
 			// instance list (items accessible by index, Array)
 			value : null
@@ -251,19 +381,13 @@ const Location = f.defineClass(
 		const lans = [].concat(
 			source.lan3
 		).reduce(function(r, x){ 
-			if(!x){
-				return r;
+			if(x){
+				const lan = f.parseNetwork(x, undefined, 24);
+				lan && r.addNetwork(lan);
 			}
-			const lan = f.parseNetwork(x, undefined, 24);
-			lan && r.push(lan);
 			return r;
-		}, []);
+		}, new Networks());
 
-		const lan3 = lans.reduce(function(r, x){ 
-			x.ip && r.push(x.ip);
-			return r; 
-		}, []);
-		
 		Object.defineProperties(this, {
 			"config" : {
 				value : config
@@ -276,9 +400,6 @@ const Location = f.defineClass(
 			},
 			"wan6" : {
 				value : wan6
-			},
-			"lan3" : {
-				value : lan3
 			},
 			"lans" : {
 				value : lans
@@ -313,12 +434,17 @@ const Location = f.defineClass(
 			value : null
 		},
 		"lans" : {
-			// Array of local Netrowks for Layer3 access (gateway, dns-server) 
+			// Array of local Netrowks for Layer3 access
 			value : null
 		},
 		"lan3" : {
 			// Array of local IPs for Layer3 access (gateway, dns-server) 
-			value : null
+			get : function(){
+				return this.lans.list.reduce(function(r, x){ 
+					x.ip && r.push(x.ip);
+					return r; 
+				}, []);
+			}
 		},
 		"tap3" : {
 			// Array of local IPs for Layer3 access (tap to inter-cluster vpn) 
@@ -352,7 +478,12 @@ const Location = f.defineClass(
 				}
 				const result = [];
 				for(var i of this.routers.list){
-					if((i.router === 'active' || i.router === 'testing') && i.lan3){
+					if(i.router === 'active' && i.lan3){
+						result.push(i.lan3);
+					}
+				}
+				if(result.length == 0) for(var i of this.routers.list){
+					if(i.router === 'testing' && i.lan3){
 						result.push(i.lan3);
 					}
 				}
@@ -396,17 +527,12 @@ const Location = f.defineClass(
 		},
 		"findLanForClient" : {
 			value : function(ip){
-				for(var lan of this.lans){
-					if(lan.containsIp(ip)){
-						return lan;
-					}
-				}
-				return undefined;
+				return this.lans.networkForIp(ip);
 			}
 		},
 		"findGatewayForClient" : {
 			value : function(ip){
-				const lan = this.findLanForClient(ip);
+				const lan = this.lans.networkForIp(ip);
 				return lan ? lan.ip : undefined;
 			}
 		},
@@ -523,6 +649,11 @@ const Server = f.defineClass(
 			// to be functionnally compatible with Target objects
 			get : function(){
 				return [ new UpstreamObject() ];
+			}
+		},
+		"fillDnsView" : {
+			value : function(result, net){
+
 			}
 		},
 		"source" : {
@@ -961,17 +1092,15 @@ const Routers = f.defineClass(
 				return "[yamnrc Routers(" + this.list.length + ", " + Object.keys(this.idx) + ")]";
 			}
 		}
+	},{
+		"FILTER_ACTIVE" : {
+			value : function(x){
+				return x && x.router === 'active';
+			}
+		}
 	}
 );
 
-
-Object.defineProperties(Routers, {
-	"FILTER_ACTIVE" : {
-		value : function(x){
-			return x && x.router === 'active';
-		}
-	},
-});
 
 
 
@@ -1056,12 +1185,366 @@ const Routing = f.defineClass(
 			"source" : {
 				value : source || {}
 			},
+			"domains" : {
+				value : new Domains(config, (source || {}).domains)
+			}
 		});
 		return this;
 	}, {
+		"domains" : {
+			value : undefined
+		},
+		"initializeParse" : {
+			value : function(){
+				this.domains.initializeParse();
+			}
+		},
+		"toSourceObject" : {
+			value : function(){
+				return {
+					domains : this.domains && this.domains.toSourceObject() || undefined
+				};
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc Routing()]";
+			}
+		}
 	}
 );
 
+
+
+
+const Domains = f.defineClass(
+	"Domains",
+	ListAndMap,
+	function(config, source){
+		this.ListAndMap(this);
+		Object.defineProperties(this, {
+			"config" : {
+				value : config
+			},
+			"source" : {
+				value : source || {}
+			}
+		});
+		return this;
+	},{
+		"initializeParse" : {
+			value : function(){
+				for(let key in this.source){
+					const settings = this.source[key];
+					const domain = Domain.makeDomain(key, this.config, settings);
+					domain && this.put(key, domain);
+				}
+			}
+		},
+		"toSourceObject" : {
+			value : function(){
+				return this.list.reduce(function(r, x){
+					r[x.key] = x.toSourceObject();
+					return r;
+				}, {});
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc Domains()]";
+			}
+		}
+	},{
+
+	}
+);
+
+
+const Domain = f.defineClass(
+	"Domain",
+	undefined,
+	/* (".myx.ru"...) */
+	function(key, config, source){
+		Object.defineProperties(this, {
+			"key" : {
+				value : key
+			},
+			"config" : {
+				value : config
+			},
+			"source" : {
+				value : source || {}
+			},
+		});
+		return this;
+	},{
+		"key" : {
+			value : undefined
+		},
+		"publish" : {
+			value : undefined
+		},
+		"mode" : {
+			value : undefined
+		},
+		"toSourceObject" : {
+			value : function(){
+				return {
+					"publish" : this.publish,
+					"mode" : this.mode,
+					"toString" : this.toString()
+				};
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc Domain()]";
+			}
+		}
+	},{
+		"makeDomain" : {
+			value : function(key, config, source){
+				if(!source){
+					throw new Error("No source for domain: " + key);
+				}
+				switch(source.mode || 'static'){
+					case 'static':
+						return new DomainStatic(key, config, source);
+					case 'infrastructure':
+						return new DomainInfrastructure(key, config, source);
+					case 'slave':
+						return new DomainSlave(key, config, source);
+					case 'dedicated':
+						return new DomainDedicated(key, config, source);
+				}
+				throw new Error("Invalid domain ("+key+") mode: " + source.mode);
+			}
+		}
+	}
+);
+
+
+const DomainStatic = f.defineClass(
+	"DomainStatic",
+	Domain,
+	function(key, config, source){
+		this.Domain(key, config, source);
+		Object.defineProperties(this, {
+			"dns" : {
+				value : new DnsStatic(config, source && source.dns)
+			}
+		});
+		return this;
+	}, {
+		"mode" : {
+			value : "static"
+		},
+		"allowTransfer" : {
+			value : "none"
+		},
+		"dns" : {
+			value : undefined
+		},
+		"toSourceObject" : {
+			value : function(){
+				return {
+					"publish" : this.publish,
+					"mode" : this.mode,
+					"dns" : this.dns.toSourceObject()
+				};
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc DomainStatic()]";
+			}
+		}
+	}, {
+		
+	}
+);
+
+
+
+
+const DomainInfrastructure = f.defineClass(
+	"DomainInfrastructure",
+	DomainStatic,
+	function(key, config, source){
+		this.DomainStatic(key, config, source);
+		return this;
+	}, {
+		"mode" : {
+			value : "infrastructure"
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc DomainInfrastructure()]";
+			}
+		}
+	}, {
+		
+	}
+);
+
+
+const DomainDedicated = f.defineClass(
+	"DomainDedicated",
+	Domain,
+	function(key, config, source){
+		this.Domain(key, config, source);
+		return this;
+	}, {
+		"mode" : {
+			value : "dedicated"
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc DomainDedicated()]";
+			}
+		}
+	}, {
+		
+	}
+);
+
+
+const DomainSlave = f.defineClass(
+	"DomainSlave",
+	Domain,
+	function(key, config, source){
+		this.Domain(key, config, source);
+		return this;
+	}, {
+		"mode" : {
+			value : "slave"
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc DomainSlave()]";
+			}
+		}
+	}, {
+		
+	}
+);
+
+
+const DnsStatic = f.defineClass(
+	"DnsStatic",
+	ListAndMap,
+	function(config, source){
+		this.ListAndMap(this);
+		Object.defineProperties(this, {
+			"config" : {
+				value : config
+			},
+			"source" : {
+				value : source || {}
+			},
+			"types" : {
+				value : []
+			}
+		});
+		if(source){
+			for(let key in source){
+				this.put(key, new DnsTypeStatic(key, config, source[key]));
+			}
+		}
+		return this;
+	},{
+		"toSourceObject" : {
+			value : function(){
+				return this.isEmpty()
+					? undefined
+					: this.list.reduce(function(r, x){
+						r[x.key] = x.toSourceObject();
+						return r;
+					}, {})
+				;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc DnsStatic()]";
+			}
+		}
+	}
+);
+
+const DnsTypeStatic = f.defineClass(
+	"DnsTypeStatic",
+	ListAndMap,
+	function(key, config, source){
+		this.ListAndMap(this);
+		Object.defineProperties(this, {
+			"key" : {
+				value : key
+			},
+			"config" : {
+				value : config
+			},
+			"source" : {
+				value : source || {}
+			}
+		});
+		if(source){
+			for(let key in source){
+				this.put(key, new DnsRecordStatic(key, source[key]));
+			}
+		}
+		return this;
+	}, {
+		"toSourceObject" : {
+			value : function(){
+				return this.list.reduce(function(r, x){
+					r[x.key] = x.toSourceObject();
+					return r;
+				}, {});
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc DnsTypeStatic()]";
+			}
+		}
+	}
+);
+
+
+
+const DnsRecordStatic = f.defineClass(
+	"DnsRecordStatic",
+	undefined,
+	function(key, value){
+		Object.defineProperties(this, {
+			"key" : {
+				value : key
+			},
+			"value" : {
+				value : value
+			}
+		});
+		return this;
+	},{
+		"key" : {
+			value : undefined
+		},
+		"value" : {
+			value : undefined
+		},
+		"toSourceObject" : {
+			value : function(){
+				return this.value;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc DnsRecordStatic()]";
+			}
+		}
+	}
+);
 
 
 
@@ -1096,10 +1579,11 @@ const Configuration = f.defineClass(
 		this.servers.initializeParse();
 		this.targets.initializeParse();
 		this.routers.initializeParse();
+		this.routing.initializeParse();
 		
 		return this;
 	}, {
-	"wan6" : {
+		"wan6" : {
 		
 		},
 		"wan3" : {
@@ -1170,11 +1654,11 @@ const Configuration = f.defineClass(
 			// all servers and targets related to DNS
 			get : function(){
 				const map = {};
-				for(const target of this.servers.list){
-					map[target.key] = target;
+				for(const t of this.servers.list){
+					map[t.key] = t;
 				}
-				for(const target of this.targets.list){
-					map[target.key] = target;
+				for(const t of this.targets.list){
+					map[t.key] = t;
 				}
 				return Object.values(map);
 			}
@@ -1190,6 +1674,53 @@ const Configuration = f.defineClass(
 					map['default'] = new Target(this, 'default', {});
 				}
 				return Object.values(map);
+			}
+		},
+		"dnsViewLocal" : {
+			get : function(){
+				return this.buildDnsView(Networks.LOCAL);
+			}
+		},
+		"dnsViewGlobal" : {
+			get : function(){
+				return this.buildDnsView(null /*NetworkAddress.GLOBAL*/);
+			}
+		},
+		"buildDnsZoneView" : {
+			value : function(net, domain){
+				if(!domain.DomainInfrastructure){
+					return domain;
+				}
+				const result = new DomainStatic(domain.key, this, domain.source);
+				var arecds = result.dns.map['A'];
+				if(!arecds) {
+					arecds = new DnsTypeStatic("A", this, []);
+					result.dns.put('A', arecds);
+				}
+				for(let i of this.targetListDns){
+					if(arecds.map[i.key]){
+						continue;
+					}
+					// i.fillDnsView(result, net);
+					const a = null === net
+						? i.wan3smart 
+						: (net.filterIp(i.lan3) || i.wan3smart)
+					;
+					if(a){
+						arecds.put(i.key, new DnsRecordStatic(i.key, a));
+					}
+				}
+				return result;
+			}
+		},
+		"buildDnsView" : {
+			value : function(net){
+				const result = new Domains(this);
+				for(let domain of this.routing.domains.list){
+					const view = this.buildDnsZoneView(net, domain);
+					view && (result.put(domain.key, view));
+				}
+				return result;
 			}
 		},
 		"makeViewForLocation" : {
@@ -1283,6 +1814,7 @@ const Configuration = f.defineClass(
 				return {
 					locations	: this.locations.toSourceObject(),
 					servers		: this.servers.toSourceObject(),
+					routing		: this.routing.toSourceObject(),
 					targets		: this.targets.toSourceObject(),
 				};
 			}
@@ -1297,6 +1829,8 @@ const Configuration = f.defineClass(
 
 
 module.exports = {
+	"SingleAddress" : SingleAddress,
+	"NetworkAddress" : NetworkAddress,
 	"Location" : Location,
 	"Locations" : Locations,
 	"Server" : Server,

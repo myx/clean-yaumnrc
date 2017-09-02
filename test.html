@@ -4,6 +4,13 @@
 			var module = { export : {} };
 		</script>
 		<script src="index.js"></script>
+		<style>
+				TEXTAREA {
+					width: 50%;
+					height: 100pt;
+					vertical-align: top;
+				}
+		</style>		
 		<script>
 			function test(){
 				var Config = module.exports;
@@ -86,7 +93,33 @@
 							}
 						}
 					},
-					"" : {
+					"routing" : {
+						"domains" : {
+							".myx.co.nz" : {
+								"mode" : "infrastructure",
+								"dns" : {
+									"A" : {
+										"*" : "5.9.34.107",
+										"@" : "5.9.100.81"
+									},
+									"CNAME" : {
+										"nsc46uvvjmnf.cgit.ndm9.net." : "gv-m6frfsjni3q2d2.dv.googlehosted.com."
+									}
+								}
+							},
+							".myx.ru" : {
+								"mode" : "infrastructure"
+							},
+							".del.myx.ru" : {
+								"mode" : "dedicated"
+							},
+							".sta.myx.ru" : {
+								"mode" : "static"
+							},
+							".sla.myx.ru" : {
+								"mode" : "slave"
+							}
+						}
 					},
 					"targets" : {
 						"h1.myx.ru" : {
@@ -129,11 +162,22 @@
 				});
 				
 				var output = document.getElementById('output');
-				function out(t,x){
-					var d = document.createElement('div');
-					d.innerHTML = arguments.length == 2 
-						? t + ": <pre>" + x + "</pre>"
-						: "<h2>" + t + "</h2>";
+				function out(t,x,e,d){
+					switch(arguments.length){
+						case 0:
+							d = document.createElement('hr');
+							break;
+						case 1:
+							d = document.createElement('h2');
+							d.innerHTML = t;
+							break;
+						default:
+							d = document.createElement('div');
+							d.innerHTML = t + ": ";
+							e = document.createElement(e || 'pre')
+							e.innerHTML = x;
+							d.appendChild(e);
+					}
 					output.appendChild(d);
 				}
 				
@@ -152,7 +196,7 @@
 					out(' Location.servers', view.location.servers);
 					out(' Location.routers', view.location.routers);
 
-					for(var lan of view.location.lans){
+					for(var lan of view.location.lans.list){
 						out(' Lan(' + lan + ').gway', lan.ip);
 						out(' Lan(' + lan + ').intIPv4', lan.intIPv4);
 						out(' Lan(' + lan + ').strIPv4', lan.strIPv4);
@@ -231,6 +275,16 @@
 				dumpTarget('zyxel.myx.ru');
 				dumpTarget('web.myx.ru');
 				dumpTarget('mpxy.myx.ru');
+
+
+				function dumpDns(view){
+					out("DNS, " + view);
+					out("DNS", JSON.stringify(view.buildDnsView(null).toSourceObject(), null, 4), 'pre');
+				}
+
+				dumpDns(config);
+				dumpDns(viewS);
+				
 			}
 		</script>
 	</head>
