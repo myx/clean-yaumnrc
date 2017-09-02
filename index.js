@@ -772,6 +772,10 @@ const Router = f.defineClass(
 			// the 'router' mode attribute ('active', 'testing', 'enabled', ...)
 			value : null
 		},
+		"modeDns" : {
+			// to be functionally compatible with Target objects
+			value : "use-wan"
+		},
 		"tap3" : {
 			// null or Array of tinc-tap network IPs for Layer3 access 
 			value : null
