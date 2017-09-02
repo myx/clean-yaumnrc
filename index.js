@@ -816,7 +816,9 @@ const Target = f.defineClass(
 		"wan3smart" : {
 			get : function(){
 				if(this.modeDns === "use-router"){
-					return this.location ? this.location.wan3smart : this.config.wan3smart;
+					if(this.location){
+						return this.location.wan3smart;	
+					}
 				}
 				const map = {};
 				const endpoints = this.endpointsList;
