@@ -1535,7 +1535,7 @@ const DnsRecordStatic = f.defineClass(
 		},
 		"toSourceObject" : {
 			value : function(){
-				return this.value;
+				return [].concat(this.value);
 			}
 		},
 		"toString" : {
@@ -1704,8 +1704,9 @@ const Configuration = f.defineClass(
 					// i.fillDnsView(result, net);
 					const a = null === net
 						? i.wan3smart 
-						: (net.filterIp(i.lan3) || i.wan3smart)
+						: (i.lan3 && net.filterIp(i.lan3) || i.wan3smart)
 					;
+
 					if(a){
 						arecds.put(i.key, new DnsRecordStatic(i.key, a));
 					}
@@ -1831,6 +1832,7 @@ const Configuration = f.defineClass(
 module.exports = {
 	"SingleAddress" : SingleAddress,
 	"NetworkAddress" : NetworkAddress,
+	"Networks" : Networks,
 	"Location" : Location,
 	"Locations" : Locations,
 	"Server" : Server,
@@ -1840,6 +1842,9 @@ module.exports = {
 	"Target" : Target,
 	"TargetStatic" : TargetStatic,
 	"Targets" : Targets,
+	"Routing" : Routing,
+	"Domains" : Domains,
+	"Domain" : Domain,
 	
 
 	// returns Configuration	

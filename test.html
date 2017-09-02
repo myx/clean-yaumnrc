@@ -30,9 +30,10 @@
 							"name" : "o3.myx.ru",
 							"wan3" : "o3-wan",
 							"lan3" : [
-								"10.1.1.1", 
-								"10.2.2.2", 
-								"10.3.3.3"
+								"192.168.3.250", 
+								"10.1.2.1/16", 
+								"10.2.2.2/16", 
+								"10.3.2.3/16"
 							],
 							"tap3" : "10.112.21.20" 
 						},
@@ -83,13 +84,13 @@
 								"ip" : "mpxy1-wan"
 							},
 							"lan" : {
-								"ip" : "mpxy1-lan"
+								"ip" : "192.168.1.27"
 							}
 						},
-						"mpxy2.myx.ru" : {
-							"location" : "h2",
+						"mpxy3.myx.ru" : {
+							"location" : "o3",
 							"lan" : {
-								"ip" : "mpxy2-lan"
+								"ip" : "192.168.3.27"
 							}
 						}
 					},
@@ -148,9 +149,12 @@
 							"proxyHttp" : "http://zyxel.ru",
 							"proxyHttps" : "https://zyxel.ru"
 						},
-						"mpxy.myx.ru" : {
-							"target" : ["mpxy1.myx.ru","mpxy2.myx.ru"],
+						"mpxy-direct.myx.ru" : {
+							"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru"],
 							"dns" : "direct"
+						},
+						"mpxy-default.myx.ru" : {
+							"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru"]
 						},
 						"zyxel.myx.ru" : {
 							"target" : [
@@ -274,12 +278,14 @@
 				dumpTarget('o3.myx.ru');
 				dumpTarget('zyxel.myx.ru');
 				dumpTarget('web.myx.ru');
-				dumpTarget('mpxy.myx.ru');
-
+				dumpTarget('mpxy-direct.myx.ru');
+				dumpTarget('mpxy-default.myx.ru');
+				
 
 				function dumpDns(view){
 					out("DNS, " + view);
-					out("DNS", JSON.stringify(view.buildDnsView(null).toSourceObject(), null, 4), 'pre');
+					out("DNS-WAN", JSON.stringify(view.buildDnsView(null).toSourceObject(), null, 4), 'pre');
+					out("DNS-LAN", JSON.stringify(view.buildDnsView(Config.Networks.LOCAL).toSourceObject(), null, 4), 'pre');
 				}
 
 				dumpDns(config);
