@@ -675,7 +675,7 @@ const Server = f.defineClass(
 		},
 		"modeDns" : {
 			// to be functionally compatible with Target objects
-			value : "direct"
+			value : null
 		},
 		"wan3smart" : {
 			get : function(){
@@ -719,7 +719,7 @@ const Server = f.defineClass(
 		},
 		"buildDnsViewIP4" : {
 			value : function(net, own, parent/*, location*/){
-				const modeDns = parent && parent.modeDns || this.modeDns;
+				const modeDns = parent && (parent.modeDns || 'default') || this.modeDns || 'direct';
 				if(modeDns === "use-wan"){
 					const a = this.buildDirectIP4(null);
 					if(a){

@@ -82,6 +82,33 @@
 								"key" : "-----BEGIN RSA PUBLIC KEY-----\r\nMIIBCgKCAQEA1u1UJ1/rKCT2pVPgSAvLWeX2RW2e72ObC7xG1YVBMUi1V8JCU0+S\r\ntEaEgNknTxNylJm2OiE50YWXzydDMf+GNq3AEqq/9S9UXRuXQlxSbTe4Ic1odgdi\r\nXMXHdMJu3Q4AOCxu8kEHGR4VelvpprjHyXxEteX/doBSGm4TaomaAT3gI0k5TAol\r\nacjoctu+dgrL1YXA0MtPYAN0JX5yeLA0yX7AKeHfGW5Ws5E5++Y1QdE3XNXxftL4\r\nX9dhOJBziW4TsPYTpair2oLLcmOYihnD6Bbsb87aoaKt6iheEtVzBgluN+qhzCP1\r\nA5XgIlicbLrwHD61o83lpatE/dNDbhKVvQIDAQAB\r\n-----END RSA PUBLIC KEY-----"
 							}
 						},
+						"stdalone1-h1.myx.ru" : {
+							"location" : "h1",
+							"wan" : {
+								"ip" : "stdalone1-h1.wan"
+							},
+							"lan" : {
+								"ip" : "192.168.1.77"
+							}
+						},
+						"stdalone2-h1.myx.ru" : {
+							"location" : "h1",
+							"wan" : {
+								"ip" : "stdalone2-h1.wan"
+							},
+							"lan" : {
+								"ip" : "192.168.1.79"
+							}
+						},
+						"stdalone3-h1.myx.ru" : {
+							"location" : "h1",
+							"wan" : {
+								"ip" : "stdalone3-h1.wan"
+							},
+							"lan" : {
+								"ip" : "7.7.7.7"
+							}
+						},
 						"ae3.myx.ru" : {
 							"location" : "h1"
 						},
@@ -179,6 +206,21 @@
 						},
 						"l6.myx.ru" : {
 							"target" : [ "l6h1.myx.ru", "l6o3.myx.ru" ]
+						},
+						"stdalone2-h1.myx.ru" : {
+							"target" : "stdalone2-h1.myx.ru",
+							"dns" : "ignore-wan"
+						},
+						"stdalone3-h1.myx.ru" : {
+							"target" : "stdalone2-h1.myx.ru",
+							"dns" : "ignore-wan"
+						},
+						"stdalone.myx.ru" : {
+							"target" : [
+								"stdalone1-h1.myx.ru", 
+								"stdalone2-h1.myx.ru", 
+								"stdalone3-h1.myx.ru"
+							]
 						},
 						"web.myx.ru" : {
 							"target" : "l6.myx.ru"
