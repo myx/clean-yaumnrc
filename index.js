@@ -990,7 +990,7 @@ const TargetStatic = f.defineClass(
 		},
 		"modeDns" : {
 			// null, 'use-wan', 'use-router', 'direct', 'local', 'remote', 'static'
-			value : "default"
+			value : null
 		},
 		"endpointsToMap" : {
 			value : function(mapInitial){
@@ -1024,12 +1024,16 @@ const TargetStatic = f.defineClass(
 				if(modeDns === "direct"){
 					return undefined;
 				}
-				const location = this.location || this.config.location;
 				if(modeDns === "use-router"){
-					if(location){
-						return location.buildDnsViewIP4(net);
+					if(this.location){
+						return this.location.buildDnsViewIP4(net);
 					}
+					return this.config.buildDnsViewIP4(net);
 				}
+				if(!modeDns && !this.location){
+					return this.config.buildDnsViewIP4(net);
+				}
+				const location = this.location || this.config.location;
 				if(modeDns === "use-wan"){
 					if(location){
 						return location.buildDnsViewIP4(null);
