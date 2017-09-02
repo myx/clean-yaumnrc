@@ -679,13 +679,7 @@ const Server = f.defineClass(
 		},
 		"wan3smart" : {
 			get : function(){
-				if((this.modeDns === "use-wan" || this.modeDns === "direct") && this.wan3){
-					return [ this.wan3 ];
-				}
-				if(!this.location){
-					return this.config.wan3smart;
-				}
-				return this.location.wan3smart;
+				return this.buildDnsViewIP4(null);
 			}
 		},
 		"endpointsToMap" : {
@@ -885,36 +879,7 @@ const Target = f.defineClass(
 		},
 		"wan3smart" : {
 			get : function(){
-				if(this.modeDns === "use-router"){
-					if(this.location){
-						return this.location.wan3smart;	
-					}
-				}
-				const map = {};
-				const endpoints = this.endpointsList;
-				if(this.modeDns === "direct"){
-					for(const target of endpoints){
-						target.wan3 && (map[target.wan3] = true);
-					}
-					{
-						const keys = Object.keys(map);
-						if(keys.length){
-							return keys;
-						}
-					}
-				}
-				for(const target of endpoints){
-					if(this.modeDns === "use-wan" && target.wan3){
-						map[target.wan3] = true;
-						continue;
-					}
-					for(const address of (target.location 
-											? target.location.wan3smart 
-											: this.config.wan3smart)){
-						map[address] = true;
-					}
-				}
-				return Object.keys(map);
+				return this.buildDnsViewIP4(null);
 			}
 		},
 		"buildDnsViewIP4" : {
@@ -998,11 +963,6 @@ const TargetStatic = f.defineClass(
 			"proxyHttps" : {
 				value : proxyHttps
 			},
-			"wan3smart" : {
-				get : function(){
-					return this.location ? this.location.wan3smart : this.config.wan3smart;
-				}
-			},
 		});
 		return this;
 	},{
@@ -1034,6 +994,11 @@ const TargetStatic = f.defineClass(
 				return [ new UpstreamObject() ];
 			}
 		},
+		"wan3smart" : {
+			get : function(){
+				return this.buildDnsViewIP4(null);
+			}
+		},
 		"buildDnsViewIP4" : {
 			value : function(net, own/*, location*/){
 				if(own){
@@ -1044,40 +1009,19 @@ const TargetStatic = f.defineClass(
 						return this.location.buildDnsViewIP4(net);
 					}
 				}
-				const map = {};
-				const endpoints = this.endpointsList;
 				if(this.modeDns === "direct"){
-					for(const t of endpoints){
-						const lan3 = null !== net && t.lan3 && net.filterIp(t.lan3);
-						(lan3 && (map[lan3] = true)) ||
-							(t.wan3 && (map[t.wan3] = true))
-						;
-					}
-					{
-						const keys = Object.keys(map);
-						if(keys.length){
-							return keys;
-						}
-					}
+					return undefined;
 				}
 				if(this.modeDns === "use-wan"){
-					for(const t of endpoints){
-						if(t.wan3){
-							map[t.wan3] = true;
-							continue;
-						}
+					if(this.location){
+						return this.location.buildDnsViewIP4(null);
 					}
-					{
-						const keys = Object.keys(map);
-						if(keys.length){
-							return keys;
-						}
-					}
+					return this.config.buildDnsViewIP4(null);
 				}
 				if(this.location){
 					return this.location.buildDnsViewIP4(net);
 				}
-				return undefined;
+				return this.config.buildDnsViewIP4(net);
 			}
 		},
 		"toString" : {
@@ -1766,7 +1710,7 @@ const DnsRecordStatic = f.defineClass(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DnsRecordStatic()]";
+				return "[yamnrc DnsRecordStatic("+this.key+")]";
 			}
 		}
 	}
@@ -1850,26 +1794,37 @@ const Configuration = f.defineClass(
 		"wan3smart" : {
 			// Array of external IPs for Layer3 access (length is likely 1 or 0, but could have several WAN IPs of all the routers) 
 			get : function(){
-				const result = [];
+				return this.buildDnsViewIP4(null);
+			}
+		},
+		"buildDnsViewIP4" : {
+			value : function(net){
+				const result = {};
 				for(var l of this.locations.list){
 					if(l.wan3 && l.routers.list.some(function(x){ return x.router === 'active'; })){
-						result.push(l.wan3);
+						result[l.wan3] = true;
 						continue;
 					}
 					for(var i of l.routers.list){
 						if(i.router === 'active' && i.wan3){
-							result.push(i.wan3);
+							result[i.wan3] = true;
 						}
 					}
 				}
-				if(result.length == 0) for(var l of this.locations.list){
+				{
+					const keys = Object.keys(result);
+					if(keys.length) {
+						return keys;
+					}
+				}
+				for(var l of this.locations.list){
 					for(var i of this.routers.list){
 						if(i.router === 'testing' && i.wan3){
-							result.push(i.wan3);
+							result[i.wan3] = true;
 						}
 					}
 				}
-				return result;
+				return Object.keys(result);
 			}
 		},
 		"view" : {
@@ -1934,14 +1889,6 @@ const Configuration = f.defineClass(
 					const name = domain.filterName(i.key);
 					if(name){
 						const a = i.buildDnsViewIP4(net);
-						/**
-						 const a = null === net
-							? i.wan3smart 
-							: (i.lan3 && net.filterIp(i.lan3) || i.wan3smart)
-						;
-						* 
-						*/
-						
 						if(a){
 							arecds.put(name, new DnsRecordStatic(name, a));
 						}
