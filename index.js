@@ -1919,7 +1919,7 @@ const Configuration = f.defineClass(
 		},
 		"buildDnsZoneView" : {
 			value : function(net, domain){
-				if(!domain.DomainInfrastructure){
+				if(!domain.DomainStatic){
 					return domain;
 				}
 				const result = new DomainStatic(domain.key, this, domain.source);
