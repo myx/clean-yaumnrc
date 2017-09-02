@@ -1534,7 +1534,7 @@ const DomainInfrastructure = f.defineClass(
 					return x + '.';
 				}
 				for(let d of this.config.routing.domains.list){
-					if(d.DomainInfrastructure && x.endsWith(d.key)){
+					if(x.endsWith(d.key)){
 						return d.DomainInfrastructure
 							? x.substr(0, x.length-d.key.length) + this.key + '.'
 							: undefined;
