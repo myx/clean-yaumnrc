@@ -990,7 +990,7 @@ const TargetStatic = f.defineClass(
 		},
 		"modeDns" : {
 			// null, 'use-wan', 'use-router', 'direct', 'local', 'remote', 'static'
-			value : "use-router"
+			value : "default"
 		},
 		"endpointsToMap" : {
 			value : function(mapInitial){
