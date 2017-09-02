@@ -1016,26 +1016,28 @@ const TargetStatic = f.defineClass(
 			}
 		},
 		"buildDnsViewIP4" : {
-			value : function(net, own/*, location*/){
+			value : function(net, own, parent/*, location*/){
+				const modeDns = parent && parent.modeDns || this.modeDns;
 				if(own){
 					return undefined;
 				}
-				if(this.modeDns === "use-router"){
-					if(this.location){
-						return this.location.buildDnsViewIP4(net);
-					}
-				}
-				if(this.modeDns === "direct"){
+				if(modeDns === "direct"){
 					return undefined;
 				}
-				if(this.modeDns === "use-wan"){
-					if(this.location){
-						return this.location.buildDnsViewIP4(null);
+				const location = this.location || config.location;
+				if(modeDns === "use-router"){
+					if(location){
+						return location.buildDnsViewIP4(net);
+					}
+				}
+				if(modeDns === "use-wan"){
+					if(location){
+						return location.buildDnsViewIP4(null);
 					}
 					return this.config.buildDnsViewIP4(null);
 				}
-				if(this.location){
-					return this.location.buildDnsViewIP4(net);
+				if(location){
+					return location.buildDnsViewIP4(net);
 				}
 				return this.config.buildDnsViewIP4(net);
 			}
