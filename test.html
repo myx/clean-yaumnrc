@@ -8,6 +8,7 @@
 				TEXTAREA {
 					width: 50%;
 					height: 100pt;
+					font: monospaced;
 					vertical-align: top;
 				}
 		</style>		
@@ -104,7 +105,7 @@
 										"@" : "5.9.100.81"
 									},
 									"CNAME" : {
-										"nsc46uvvjmnf.cgit.ndm9.net." : "gv-m6frfsjni3q2d2.dv.googlehosted.com."
+										"cgit.myx.co.nz." : "yandex.googlehosted.com."
 									}
 								}
 							},
@@ -112,13 +113,45 @@
 								"mode" : "infrastructure"
 							},
 							".del.myx.ru" : {
-								"mode" : "dedicated"
+								"mode" : "dedicated",
+								"servers" : [
+									"ns1.keen.com", 
+									"ns2.keen.com"
+								]
 							},
 							".sta.myx.ru" : {
-								"mode" : "static"
+								"mode" : "static",
+								"dns" : {
+									"NS" : {
+										"@" : [
+											"l3o1.ndm9.net.",
+											"l3h1.ndm9.net.",
+											"l3r2.ndm9.net."
+										]
+									},
+									"A" : {
+										"*" : "55.9.34.107",
+										"@" : "55.9.100.81"
+									},
+									"AAAA" : {
+										"@"   : "2a01:4f8:160:30c1:0:0:0:2",
+										"www" : "2a01:4f8:160:30c1:0:0:0:2"
+									},
+									"MX" : {
+										"@" : [
+											"5 aspmx.l.google.com.",
+											"10 alt1.aspmx.l.google.com.",
+											"15 alt2.aspmx.l.google.com."
+										]
+									},
+									"CNAME" : {
+										"zinka.sta.myx.ru." : "www.microsoft.com."
+									}
+								}
 							},
 							".sla.myx.ru" : {
-								"mode" : "slave"
+								"mode": "slave",
+								"masters": ["5.9.100.67", "172.16.111.11", "172.16.121.11"]
 							}
 						}
 					},
@@ -284,8 +317,11 @@
 
 				function dumpDns(view){
 					out("DNS, " + view);
-					out("DNS-WAN", JSON.stringify(view.buildDnsView(null).toSourceObject(), null, 4), 'pre');
-					out("DNS-LAN", JSON.stringify(view.buildDnsView(Config.Networks.LOCAL).toSourceObject(), null, 4), 'pre');
+					out("DNS-WAN", JSON.stringify(view.buildDnsView(null).toSourceObject(), null, 4), 'textarea');
+					out("DNS-LAN", JSON.stringify(view.buildDnsView(Config.Networks.LOCAL).toSourceObject(), null, 4), 'textarea');
+					if(view.location){
+						out("DNS-LOC", JSON.stringify(view.buildDnsView(view.location.lans).toSourceObject(), null, 4), 'textarea');
+					}
 				}
 
 				dumpDns(config);

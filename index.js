@@ -1287,6 +1287,14 @@ const Domain = f.defineClass(
 		"mode" : {
 			value : undefined
 		},
+		"filterName" : {
+			value : function(x){
+				if(x.endsWith(this.key)){
+					return x + '.';
+				}
+				return undefined;
+			}
+		},
 		"toSourceObject" : {
 			value : function(){
 				return {
@@ -1298,7 +1306,7 @@ const Domain = f.defineClass(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Domain()]";
+				return "[yamnrc Domain("+this.key+")]";
 			}
 		}
 	},{
@@ -1356,7 +1364,7 @@ const DomainStatic = f.defineClass(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DomainStatic()]";
+				return "[yamnrc DomainStatic("+this.key+")]";
 			}
 		}
 	}, {
@@ -1377,9 +1385,22 @@ const DomainInfrastructure = f.defineClass(
 		"mode" : {
 			value : "infrastructure"
 		},
+		"filterName" : {
+			value : function(x){
+				if(x.endsWith(this.key)){
+					return x + '.';
+				}
+				for(let d of this.config.routing.domains.list){
+					if(d.DomainInfrastructure && x.endsWith(d.key)){
+						return x.substr(0, x.length-d.key.length) + this.key + '.';
+					}
+				}
+				return undefined;
+			}
+		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DomainInfrastructure()]";
+				return "[yamnrc DomainInfrastructure("+this.key+")]";
 			}
 		}
 	}, {
@@ -1393,14 +1414,28 @@ const DomainDedicated = f.defineClass(
 	Domain,
 	function(key, config, source){
 		this.Domain(key, config, source);
+		Object.defineProperties(this, {
+			"servers" : {
+				value : source && source.servers && [].concat(source.servers) || []
+			}
+		});
 		return this;
 	}, {
 		"mode" : {
 			value : "dedicated"
 		},
+		"toSourceObject" : {
+			value : function(){
+				return {
+					"publish" : this.publish,
+					"mode" : this.mode,
+					"servers" : this.servers
+				};
+			}
+		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DomainDedicated()]";
+				return "[yamnrc DomainDedicated("+this.key+")]";
 			}
 		}
 	}, {
@@ -1414,14 +1449,28 @@ const DomainSlave = f.defineClass(
 	Domain,
 	function(key, config, source){
 		this.Domain(key, config, source);
+		Object.defineProperties(this, {
+			"masters" : {
+				value : source && source.masters && [].concat(source.masters) || []
+			}
+		});
 		return this;
 	}, {
 		"mode" : {
 			value : "slave"
 		},
+		"toSourceObject" : {
+			value : function(){
+				return {
+					"publish" : this.publish,
+					"mode" : this.mode,
+					"masters" : this.masters
+				};
+			}
+		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DomainSlave()]";
+				return "[yamnrc DomainSlave("+this.key+")]";
 			}
 		}
 	}, {
@@ -1706,9 +1755,11 @@ const Configuration = f.defineClass(
 						? i.wan3smart 
 						: (i.lan3 && net.filterIp(i.lan3) || i.wan3smart)
 					;
-
 					if(a){
-						arecds.put(i.key, new DnsRecordStatic(i.key, a));
+						const name = domain.filterName(i.key);
+						if(name){
+							arecds.put(name, new DnsRecordStatic(name, a));
+						}
 					}
 				}
 				return result;
