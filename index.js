@@ -1467,6 +1467,8 @@ const Domain = f.defineClass(
 						return new DomainSlave(key, config, source);
 					case 'dedicated':
 						return new DomainDedicated(key, config, source);
+					case 'delegated':
+						return new DomainDelegated(key, config, source);
 				}
 				throw new Error("Invalid domain ("+key+") mode: " + source.mode);
 			}
@@ -1556,6 +1558,27 @@ const DomainInfrastructure = f.defineClass(
 
 const DomainDedicated = f.defineClass(
 	"DomainDedicated",
+	DomainStatic,
+	function(key, config, source){
+		this.DomainStatic(key, config, source);
+		return this;
+	}, {
+		"mode" : {
+			value : "dedicated"
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc DomainDedicated("+this.key+")]";
+			}
+		}
+	}, {
+		
+	}
+);
+
+
+const DomainDeletaged = f.defineClass(
+	"DomainDelegated",
 	Domain,
 	function(key, config, source){
 		this.Domain(key, config, source);
@@ -1567,7 +1590,7 @@ const DomainDedicated = f.defineClass(
 		return this;
 	}, {
 		"mode" : {
-			value : "dedicated"
+			value : "delegated"
 		},
 		"toSourceObject" : {
 			value : function(){
@@ -1580,14 +1603,13 @@ const DomainDedicated = f.defineClass(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DomainDedicated("+this.key+")]";
+				return "[yamnrc DomainDelegated("+this.key+")]";
 			}
 		}
 	}, {
 		
 	}
 );
-
 
 const DomainSlave = f.defineClass(
 	"DomainSlave",
