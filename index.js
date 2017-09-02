@@ -161,7 +161,7 @@ const NetworkAddress = f.defineClass(
 	AbstractAddress,
 	function(cidr, ip, bits, mac){
 		const mask = (0xFFFFFFFF * Math.pow(2, 32 - bits)) % 0x100000000;
-		const networkInt = AbstractAddress.intForIPv4(ip) & mask
+		const network = AbstractAddress.intForIPv4(ip) & mask
 		Object.defineProperties(this, {
 			"cidr" : {
 				value : cidr
@@ -170,10 +170,7 @@ const NetworkAddress = f.defineClass(
 				value : ip
 			},
 			"networkInt" : {
-				value : networkInt
-			},
-			"networkIp" : {
-				value : AbstractAddress.intToIPv4(networkInt) 
+				value : network
 			},
 			"mac" : {
 				value : mac
@@ -181,15 +178,25 @@ const NetworkAddress = f.defineClass(
 			"bits" : {
 				value : bits
 			},
-			"mask" : {
+			"maskInt" : {
 				value : mask
 			}
 		});
 		return this;
 	}, {
+		"network" : {
+			get : function(){
+				return this.network = AbstractAddress.intToIPv4(this.networkInt);
+			}
+		},
+		"mask" : {
+			get : function(){
+				return this.mask = AbstractAddress.intToIPv4(0xFFFFFFFF & this.maskInt) 
+			}
+		},
 		"containsIp" : {
 			value : function(ip){
-				return (AbstractAddress.intForIPv4(ip) & this.mask) == this.networkInt;
+				return (AbstractAddress.intForIPv4(ip) & this.maskInt) == this.networkInt;
 			}
 		},
 		"networkForIp" : {
@@ -1662,6 +1669,10 @@ const Configuration = f.defineClass(
 			// ListAndMap instance 
 			value : null
 		},
+		"routing" : {
+			// Routing configuration class instance
+			value : null
+		},
 		"router" : {
 			// current Router instance 
 			value : null
@@ -1763,7 +1774,6 @@ const Configuration = f.defineClass(
 					if(a){
 						const name = domain.filterName(i.key);
 						if(name){
-							net && console.warn(">>>>> " + name + ", " + i.lan3 + ", " + net.filterIp(i.lan3 || "0.0.0.0") + ", " + net);
 							arecds.put(name, new DnsRecordStatic(name, a));
 						}
 					}
