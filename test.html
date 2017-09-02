@@ -14,8 +14,8 @@
 		</style>		
 		<script>
 			function test(){
-				var Config = module.exports;
-				var config = Config.parse({
+				const Config = module.exports;
+				const config = Config.parse({
 					"locations" : {
 						"h1" : {
 							"name" : "h1.myx.ru",
@@ -200,7 +200,7 @@
 					},
 				});
 				
-				var output = document.getElementById('output');
+				const output = document.getElementById('output');
 				function out(t,x,e,d){
 					switch(arguments.length){
 						case 0:
@@ -251,7 +251,7 @@
 				
 				function dumpServer(name){
 					out('server: ' + name);
-					var viewS = config.makeView(name);
+					const viewS = config.makeView(name);
 					
 					out('Config', viewS);
 					out('Location', viewS.location);
@@ -259,7 +259,7 @@
 					out('Router', viewS.router);
 
 					// temp array - it is not array for now
-					for(var lan of ([viewS.server.lan3] || [])){
+					for(let lan of ([viewS.server.lan3] || [])){
 						out('Gateway(for '+lan+') ', viewS.location.findGatewayForClient(lan));
 					}
 	
@@ -284,7 +284,7 @@
 				
 
 				out('Looking from: l6h1.myx.ru');
-				var viewS = config.makeView('l6h1.myx.ru');
+				const viewS = config.makeView('l6h1.myx.ru');
 				
 				out('Config.servers["l6h1.myx.ru"].selected', config.servers.map["l6h1.myx.ru"].selected);
 				out('Server.selected', viewS.server.selected);
