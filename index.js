@@ -1024,7 +1024,7 @@ const TargetStatic = f.defineClass(
 				if(modeDns === "direct"){
 					return undefined;
 				}
-				const location = this.location || config.location;
+				const location = this.location || this.config.location;
 				if(modeDns === "use-router"){
 					if(location){
 						return location.buildDnsViewIP4(net);
