@@ -81,6 +81,7 @@
 						},
 						"mpxy1.myx.ru" : {
 							"location" : "h1",
+							"net" : "monitoring",
 							"wan" : {
 								"ip" : "mpxy1-wan"
 							},
@@ -90,6 +91,7 @@
 						},
 						"mpxy3.myx.ru" : {
 							"location" : "o3",
+							"net" : "monitoring",
 							"lan" : {
 								"ip" : "192.168.3.27"
 							}
@@ -311,6 +313,8 @@
 				dumpTarget('o3.myx.ru');
 				dumpTarget('zyxel.myx.ru');
 				dumpTarget('web.myx.ru');
+				dumpTarget('mpxy1.myx.ru');
+				dumpTarget('mpxy3.myx.ru');
 				dumpTarget('mpxy-direct.myx.ru');
 				dumpTarget('mpxy-default.myx.ru');
 				
@@ -320,6 +324,7 @@
 					out("DNS-WAN", JSON.stringify(view.buildDnsView(null).toSourceObject(), null, 4), 'textarea');
 					out("DNS-LAN", JSON.stringify(view.buildDnsView(Config.Networks.LOCAL).toSourceObject(), null, 4), 'textarea');
 					if(view.location){
+						out("DNS-LOC lans", view.location.lans);
 						out("DNS-LOC", JSON.stringify(view.buildDnsView(view.location.lans).toSourceObject(), null, 4), 'textarea');
 					}
 				}

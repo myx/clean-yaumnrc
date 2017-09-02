@@ -161,6 +161,7 @@ const NetworkAddress = f.defineClass(
 	AbstractAddress,
 	function(cidr, ip, bits, mac){
 		const mask = (0xFFFFFFFF * Math.pow(2, 32 - bits)) % 0x100000000;
+		const networkInt = AbstractAddress.intForIPv4(ip) & mask
 		Object.defineProperties(this, {
 			"cidr" : {
 				value : cidr
@@ -168,8 +169,11 @@ const NetworkAddress = f.defineClass(
 			"ip" : {
 				value : ip
 			},
+			"networkInt" : {
+				value : networkInt
+			},
 			"networkIp" : {
-				value : AbstractAddress.intToIPv4(AbstractAddress.intForIPv4(ip) & mask) 
+				value : AbstractAddress.intToIPv4(networkInt) 
 			},
 			"mac" : {
 				value : mac
@@ -185,7 +189,7 @@ const NetworkAddress = f.defineClass(
 	}, {
 		"containsIp" : {
 			value : function(ip){
-				return AbstractAddress.intForIPv4(ip) & this.mask;
+				return (AbstractAddress.intForIPv4(ip) & this.mask) == this.networkInt;
 			}
 		},
 		"networkForIp" : {
@@ -263,7 +267,7 @@ const Networks = f.defineClass(
 		},
 		"containsIp" : {
 			value : function(ip){
-				for(var net of this.list){
+				for(let net of this.list){
 					if(net.containsIp(ip)){
 						return true;
 					}
@@ -1755,9 +1759,11 @@ const Configuration = f.defineClass(
 						? i.wan3smart 
 						: (i.lan3 && net.filterIp(i.lan3) || i.wan3smart)
 					;
+
 					if(a){
 						const name = domain.filterName(i.key);
 						if(name){
+							net && console.warn(">>>>> " + name + ", " + i.lan3 + ", " + net.filterIp(i.lan3 || "0.0.0.0") + ", " + net);
 							arecds.put(name, new DnsRecordStatic(name, a));
 						}
 					}
