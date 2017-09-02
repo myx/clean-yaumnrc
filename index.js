@@ -644,6 +644,11 @@ const Server = f.defineClass(
 				value : source
 			},
 		});
+		source && source.dns && Object.defineProperties(this, {
+			"modeDns" : {
+				value : source.dns
+			},
+		});
 		return this;
 	}, {
 		"key" : {
@@ -670,7 +675,7 @@ const Server = f.defineClass(
 		},
 		"modeDns" : {
 			// to be functionally compatible with Target objects
-			value : "use-wan"
+			value : null
 		},
 		"wan3smart" : {
 			get : function(){
@@ -953,7 +958,6 @@ const Target = f.defineClass(
 					return this.location.buildDnsViewIP4(net);
 				}
 				for(const t of endpoints){
-					console.warn(">>>>>> " + t + ", this=" + this);
 					for(const a of (t.buildDnsViewIP4(net) || [])){
 						map[a] = true;
 					}
