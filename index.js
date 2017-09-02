@@ -675,7 +675,7 @@ const Server = f.defineClass(
 		},
 		"modeDns" : {
 			// to be functionally compatible with Target objects
-			value : null
+			value : "direct"
 		},
 		"wan3smart" : {
 			get : function(){
@@ -708,18 +708,28 @@ const Server = f.defineClass(
 				return [ new UpstreamObject() ];
 			}
 		},
+		"buildDirectIP4" : {
+			value : function(net){
+				const a = null === net
+					? this.wan3
+					: this.lan3 && net.filterIp(this.lan3) || this.wan3
+				;
+				return a ? [ a ] : undefined;
+			}
+		},
 		"buildDnsViewIP4" : {
-			value : function(net, own/*, location*/){
-				if(this.modeDns === "use-wan" && this.wan3){
-					return [ this.wan3 ];
-				}
-				if(this.modeDns === "direct"){
-					const a = null === net
-						? this.wan3
-						: this.lan3 && net.filterIp(this.lan3) || this.wan3
-					;
+			value : function(net, own, parent/*, location*/){
+				const modeDns = parent && parent.modeDns || this.modeDns;
+				if(modeDns === "use-wan"){
+					const a = this.buildDirectIP4(null);
 					if(a){
-						return [ a ];
+						return a;
+					}
+				}
+				if(modeDns === "direct"){
+					const a = this.buildDirectIP4(net);
+					if(a){
+						return a;
 					}
 				}
 				if(own){
@@ -771,10 +781,6 @@ const Router = f.defineClass(
 		"router" : {
 			// the 'router' mode attribute ('active', 'testing', 'enabled', ...)
 			value : null
-		},
-		"modeDns" : {
-			// to be functionally compatible with Target objects
-			value : "use-wan"
 		},
 		"tap3" : {
 			// null or Array of tinc-tap network IPs for Layer3 access 
@@ -886,48 +892,54 @@ const Target = f.defineClass(
 				return this.buildDnsViewIP4(null);
 			}
 		},
+		"buildDirectIP4" : {
+			value : function(net){
+				const map = {};
+				for(const t of this.endpointsList){
+					const lan3 = null !== net && t.lan3 && net.filterIp(t.lan3);
+					(lan3 && (map[lan3] = true)) ||
+						(t.wan3 && (map[t.wan3] = true))
+					;
+				}
+				const keys = Object.keys(map);
+				return keys.length ? keys : undefined;
+			}
+		},
 		"buildDnsViewIP4" : {
-			value : function(net, own/*, location*/){
-				if(this.modeDns === "use-router"){
+			value : function(net, own, parent/*, location*/){
+				const modeDns = parent && parent.modeDns || this.modeDns;
+				if(modeDns === "use-router"){
 					if(this.location){
 						return this.location.buildDnsViewIP4(net);
 					}
 				}
-				const map = {};
-				const endpoints = this.endpointsList;
-				if(this.modeDns === "direct"){
-					for(const t of endpoints){
-						const lan3 = null !== net && t.lan3 && net.filterIp(t.lan3);
-						(lan3 && (map[lan3] = true)) ||
-							(t.wan3 && (map[t.wan3] = true))
-						;
-					}
-					{
-						const keys = Object.keys(map);
-						if(keys.length){
-							return keys;
-						}
+				if(modeDns === "direct"){
+					const result = this.buildDirectIP4(net);
+					if(result){
+						return result;
 					}
 				}
-				if(this.modeDns === "use-wan"){
-					for(const t of endpoints){
-						if(t.wan3){
-							map[t.wan3] = true;
-							continue;
+				const map = {};
+				if(modeDns === "use-wan"){
+					const result = this.buildDirectIP4(null);
+					if(result){
+						return result;
+					}
+					if(this.location){
+						return this.location.buildDnsViewIP4(null);
+					}
+					for(const t of this.endpointsList){
+						for(const a of (t.buildDnsViewIP4(null, false, this) || [])){
+							map[a] = true;
 						}
 					}
-					{
-						const keys = Object.keys(map);
-						if(keys.length){
-							return keys;
-						}
-					}
+					return Object.keys(map);
 				}
 				if(this.location){
 					return this.location.buildDnsViewIP4(net);
 				}
-				for(const t of endpoints){
-					for(const a of (t.buildDnsViewIP4(net) || [])){
+				for(const t of this.endpointsList){
+					for(const a of (t.buildDnsViewIP4(net, false, this) || [])){
 						map[a] = true;
 					}
 				}
