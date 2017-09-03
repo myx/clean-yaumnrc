@@ -375,10 +375,109 @@ const Networks = f.defineClass(
 	}
 );
 
+
+const SourceObject = f.defineClass(
+	"SourceObject",
+	undefined,
+	function(source){
+		if(undefined !== source){
+			f.defineProperty(this, 'source', source);
+		}
+		return this;
+	},{
+		"source" : {
+			// the source 'settings' object, from which this object was constructed
+			value : null
+		},
+		"toSourceNonSecure" : {
+			value : function(){
+				return JSON.stringify(this.toSourceObjectNonSecure(), null, 4);
+			}
+		},
+		"toSource" : {
+			value : function(){
+				return JSON.stringify(this.toSourceObject(), null, 4);
+			}
+		},
+		"toSourceObjectNonSecure" : {
+			value : function(){
+				const o = this.toSourceObject();
+				return SourceObject.filterSecrets(o);
+			}
+		},
+		"toSourceObject" : {
+			value : function(){
+				return undefined;
+			}
+		}
+	},{
+		"hashCode" : {
+			value : function() {
+				const len = this.length;
+				var ret = 0, i = 0;
+				for(; i < len; ++i) {
+					ret = (31 * ret + this.charCodeAt(i)) << 0;
+				}
+				return ret;
+			}
+		},
+		"filterSecrets" : {
+			value : function(x){
+				switch(typeof x){
+					case 'string':{
+						if(x.includes("RSA PRIVATE KEY")){
+							return "--- RSA PRIVATE KEY, hash: " + SourceObject.hashCode.call(x);
+						}
+						if(x.includes("RSA PUBLIC KEY")){
+							return "--- RSA PUBLIC KEY, hash: " + SourceObject.hashCode.call(x);
+						}
+						if(x.includes("BEGIN PRIVATE KEY")){
+							return "--- SSL PRIVATE KEY, hash: " + SourceObject.hashCode.call(x);
+						}
+						
+					}
+					case 'undefined':
+					case 'null':
+					case 'number':
+					case 'boolean':
+						return x;
+					default:{
+						if(x === null){
+							return null;
+						}
+						if(Array.isArray(x)){
+							var r = [], d = false, k, l = x.length, v, f;
+							for(k = 0; k < l; ++k){
+								v = x[k];
+								f = SourceObject.filterSecrets(v);
+								f !== v && (d = true);
+								f !== undefined && (r[k] = f);
+							}
+							return d ? r : x;
+						}
+						{
+							var r = {}, d = false, k, l = x.length, v, f;
+							for(k in x){
+								v = x[k];
+								f = SourceObject.filterSecrets(v);
+								f !== v && (d = true);
+								f !== undefined && (r[k] = f);
+							}
+							return d ? r : x;
+						}
+					}
+				}
+			}
+		}
+	}
+);
+
+
 const ListAndMap = f.defineClass(
 	"ListAndMap",
-	undefined,
-	function(){
+	SourceObject,
+	function(source){
+		this.SourceObject(source);
 		Object.defineProperties(this, {
 			"list" : {
 				value : []
@@ -441,9 +540,10 @@ const ListAndMap = f.defineClass(
 
 const Location = f.defineClass(
 	"Location",
-	undefined,
+	SourceObject,
 	function(config, key, source){
-		
+		this.SourceObject(source);
+
 		const wan3 = source.wan3;
 		const wan6 = source.wan6 || wan3;
 		const tap3 = source.tap3;
@@ -500,9 +600,6 @@ const Location = f.defineClass(
 			},
 			"routers" : {
 				value : new ListAndMap()
-			},
-			"source" : {
-				value : source
 			},
 		});
 		return this;
@@ -649,12 +746,8 @@ const Location = f.defineClass(
 		"findGatewayForClient" : {
 			value : function(ip){
 				const lan = this.lans.networkForIp(ip);
-				return lan ? lan.ip : undefined;
+				return lan && lan.ip || undefined;
 			}
-		},
-		"source" : {
-			// the source 'settings' object, from which this object was constructed
-			value : null
 		},
 		"toSourceObject" : {
 			value : function(){
@@ -683,8 +776,9 @@ const Location = f.defineClass(
 
 const Server = f.defineClass(
 	"Server",
-	undefined,
+	SourceObject,
 	function(config, key, source){
+		this.SourceObject(source);
 		Object.defineProperties(this, {
 			"config" : {
 				value : config
@@ -697,9 +791,6 @@ const Server = f.defineClass(
 			},
 			"lan3" : {
 				value : source.lan && source.lan.ip
-			},
-			"source" : {
-				value : source
 			},
 		});
 		source && source.dns && Object.defineProperties(this, {
@@ -810,10 +901,6 @@ const Server = f.defineClass(
 				return this.config.buildDnsViewIP4(net);
 			}
 		},
-		"source" : {
-			// the source 'settings' object, from which this object was constructed
-			value : null
-		},
 		"toSourceObject" : {
 			value : function(){
 				return this.source;
@@ -874,8 +961,9 @@ const Router = f.defineClass(
 
 const Target = f.defineClass(
 	"Target",
-	undefined,
+	SourceObject,
 	function(config, key, source){
+		this.SourceObject(source);
 		Object.defineProperties(this, {
 			"config" : {
 				value : config
@@ -885,9 +973,6 @@ const Target = f.defineClass(
 			},
 			"location" : {
 				value : source.location && config.locations.map[source.location]
-			},
-			"source" : {
-				value : source
 			},
 		});
 		source && source.dns && Object.defineProperties(this, {
@@ -1021,10 +1106,6 @@ const Target = f.defineClass(
 					return keys;
 				}
 			}
-		},
-		"source" : {
-			// the source 'settings' object, from which this object was constructed
-			value : null
 		},
 		"toSourceObject" : {
 			value : function(){
@@ -1293,23 +1374,16 @@ const Locations = f.defineClass(
 	"Locations",
 	ListAndMap,
 	function(config, source){
-		this.ListAndMap(this);
+		this.ListAndMap(source || {});
 		Object.defineProperties(this, {
 			"config" : {
 				value : config
-			},
-			"source" : {
-				value : source || {}
 			},
 		});
 		return this;
 	},{
 		"key" : {
 			// key of given instance 
-			value : null
-		},
-		"source" : {
-			// the source 'settings' object, from which this object was constructed
 			value : null
 		},
 		"initializeParse" : {
@@ -1346,23 +1420,16 @@ const Servers = f.defineClass(
 	"Servers",
 	ListAndMap,
 	function(config, source){
-		this.ListAndMap(this);
+		this.ListAndMap(source || {});
 		Object.defineProperties(this, {
 			"config" : {
 				value : config
-			},
-			"source" : {
-				value : source || {}
 			},
 		});
 		return this;
 	},{
 		"key" : {
 			// key of given instance 
-			value : null
-		},
-		"source" : {
-			// the source 'settings' object, from which this object was constructed
 			value : null
 		},
 		"initializeParse" : {
@@ -1460,23 +1527,16 @@ const Targets = f.defineClass(
 	"Targets",
 	ListAndMap,
 	function(config, source){
-		this.ListAndMap(this);
+		this.ListAndMap(source || {});
 		Object.defineProperties(this, {
 			"config" : {
 				value : config
-			},
-			"source" : {
-				value : source || {}
 			},
 		});
 		return this;
 	},{
 		"key" : {
 			// key of given instance 
-			value : null
-		},
-		"source" : {
-			// the source 'settings' object, from which this object was constructed
 			value : null
 		},
 		"initializeParse" : {
@@ -1520,14 +1580,12 @@ const Targets = f.defineClass(
 
 const Routing = f.defineClass(
 	"Routing",
-	undefined,
+	SourceObject,
 	function(config, source){
+		this.SourceObject(source || {});
 		Object.defineProperties(this, {
 			"config" : {
 				value : config
-			},
-			"source" : {
-				value : source || {}
 			},
 			"domains" : {
 				value : new Domains(config, (source || {}).domains)
@@ -1565,13 +1623,10 @@ const Domains = f.defineClass(
 	"Domains",
 	ListAndMap,
 	function(config, source){
-		this.ListAndMap(this);
+		this.ListAndMap(source);
 		Object.defineProperties(this, {
 			"config" : {
 				value : config
-			},
-			"source" : {
-				value : source || {}
 			}
 		});
 		return this;
@@ -1606,18 +1661,16 @@ const Domains = f.defineClass(
 
 const Domain = f.defineClass(
 	"Domain",
-	undefined,
+	SourceObject,
 	/* (".myx.ru"...) */
 	function(key, config, source){
+		this.SourceObject(source || {});
 		Object.defineProperties(this, {
 			"key" : {
 				value : key
 			},
 			"config" : {
 				value : config
-			},
-			"source" : {
-				value : source || {}
 			},
 		});
 		return this;
@@ -1851,13 +1904,10 @@ const DnsStatic = f.defineClass(
 	"DnsStatic",
 	ListAndMap,
 	function(config, source){
-		this.ListAndMap(this);
+		this.ListAndMap(source || {});
 		Object.defineProperties(this, {
 			"config" : {
 				value : config
-			},
-			"source" : {
-				value : source || {}
 			},
 			"types" : {
 				value : []
@@ -1893,16 +1943,13 @@ const DnsTypeStatic = f.defineClass(
 	"DnsTypeStatic",
 	ListAndMap,
 	function(key, config, source){
-		this.ListAndMap(this);
+		this.ListAndMap(source || {});
 		Object.defineProperties(this, {
 			"key" : {
 				value : key
 			},
 			"config" : {
 				value : config
-			},
-			"source" : {
-				value : source || {}
 			}
 		});
 		if(source){
@@ -1969,8 +2016,9 @@ const DnsRecordStatic = f.defineClass(
 
 const Configuration = f.defineClass(
 	"Configuration",
-	undefined,
+	SourceObject,
 	function(source){
+		this.SourceObject(source);
 		Object.defineProperties(this, {
 			"locations" : {
 				value : new Locations(this, source.locations)
@@ -1986,9 +2034,6 @@ const Configuration = f.defineClass(
 			},
 			"routing" : {
 				value : new Routing(this, source.routing)
-			},
-			"source" : {
-				value : source
 			},
 		});
 		
@@ -2098,10 +2143,6 @@ const Configuration = f.defineClass(
 			// current View instance (null, location, server or router)
 			value : null
 		},
-		"source" : {
-			// the source 'settings' object, from which this object was constructed
-			value : null
-		},
 		"targetListDns" : {
 			// all servers and targets related to DNS
 			get : function(){
@@ -2126,6 +2167,11 @@ const Configuration = f.defineClass(
 					map['default'] = new Target(this, 'default', {});
 				}
 				return Object.values(map);
+			}
+		},
+		"findLanForClient" : {
+			value : function(ip){
+				return this.location && this.location.findLanForClient(ip) || undefined;
 			}
 		},
 		"dnsViewLocal" : {
@@ -2258,11 +2304,6 @@ const Configuration = f.defineClass(
 				return ;
 			}
 		},
-		"toSource" : {
-			value : function(){
-				return JSON.stringify(this.toSourceObject(), null, 4);
-			}
-		},
 		"toSourceObject" : {
 			value : function(){
 				return {
@@ -2286,6 +2327,7 @@ module.exports = {
 	"SingleAddress" : SingleAddress,
 	"NetworkAddress" : NetworkAddress,
 	"Networks" : Networks,
+	"SourceObject" : SourceObject,
 	"Location" : Location,
 	"Locations" : Locations,
 	"Server" : Server,

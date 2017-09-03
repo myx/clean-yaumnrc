@@ -351,7 +351,8 @@
 				
 
 				out('Config');
-				out('Config.Source', config.toSource());
+				out('Config.Source', config.toSource(), 'textarea');
+				out('Config.SourceNonSecure', config.toSourceNonSecure(), 'textarea');
 				
 
 				out('Looking from: l6h1.myx.ru');
