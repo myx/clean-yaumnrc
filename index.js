@@ -2003,34 +2003,48 @@ const Configuration = f.defineClass(
 				return this.buildDnsViewIP4(this.location && this.location.lans || null);
 			}
 		},
-		"buildDnsViewIP4" : {
+		"buildDirectIP4" : {
+			// leads to l6routes
 			value : function(net){
 				const result = {};
 				for(var l of this.locations.list){
-					if(l.wan3 && l.routers.list.some(function(x){ return x.router === 'active'; })){
-						result[l.wan3] = true;
+					if(l.routers.list.some(function(x){ return x.router === 'active'; })){
+						const ips = l.buildDirectIP4(net);
+						for(const ip of (ips || [])){
+							result[ip] = true;
+						}
 						continue;
 					}
 					for(var i of l.routers.list){
 						if(i.router === 'active' && i.wan3){
-							result[i.wan3] = true;
+							const ips = i.buildDirectIP4(net);
+							for(const ip of (ips || [])){
+								result[ip] = true;
+							}
 						}
+						continue;
 					}
+				}
+				const keys = Object.keys(result);
+				return keys.length ? keys : undefined;
+			}
+		},
+		"buildDnsViewIP4" : {
+			value : function(net){
+				{
+					const result = this.buildDirectIP4(net);
+					if(result) return result;
 				}
 				{
-					const keys = Object.keys(result);
-					if(keys.length) {
-						return keys;
-					}
-				}
-				for(var l of this.locations.list){
-					for(var i of this.routers.list){
-						if(i.router === 'testing' && i.wan3){
-							result[i.wan3] = true;
+					for(var l of this.locations.list){
+						for(var i of this.routers.list){
+							if(i.router === 'testing' && i.wan3){
+								result[i.wan3] = true;
+							}
 						}
 					}
+					return Object.keys(result);
 				}
-				return Object.keys(result);
 			}
 		},
 		"view" : {
