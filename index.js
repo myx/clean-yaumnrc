@@ -716,7 +716,7 @@ const Server = f.defineClass(
 		"buildDirectIP4" : {
 			value : function(net){
 				if(null !== net){
-					if(this.location === this.config.location){
+					if(this.location === net.location){
 						const a = this.lan3 && net.filterIp(this.lan3, true) || this.wan3;
 						return a ? [ a ] : undefined;
 					}
@@ -894,7 +894,7 @@ const Target = f.defineClass(
 				const map = {};
 				if(null !== net){
 					for(const t of this.endpointsList){
-						if(t.location === this.config.location){
+						if(t.location === net.location){
 							const lan3 = t.lan3 && net.filterIp(t.lan3, true);
 							(lan3 && (map[lan3] = true));
 						}
@@ -921,16 +921,12 @@ const Target = f.defineClass(
 				}
 				if(modeDns === "direct"){
 					const result = this.buildDirectIP4(net);
-					if(result){
-						return result;
-					}
+					if(result.length) return result;
 				}
 				const map = {};
 				if(modeDns === "use-wan"){
 					const result = this.buildDirectIP4(null);
-					if(result){
-						return result;
-					}
+					if(result.length) return result;
 					if(this.location){
 						return this.location.buildDnsViewIP4(null);
 					}
@@ -951,15 +947,11 @@ const Target = f.defineClass(
 				}
 				{
 					const keys = Object.keys(map);
-					if(!keys.length){
-						return undefined;
-					}
-					if(null !== net && this.config.location){
+					if(!keys.length) return undefined;
+					if(null !== net && net.location){
 						if(keys.length > 1){
-							const view = this.config.location.buildDnsViewIP4(net);
-							if(view){
-								return view;
-							}
+							const view = net.location.buildDnsViewIP4(net);
+							if(view) return view;
 						}
 					}
 					return keys;
@@ -1077,16 +1069,20 @@ const TargetStatic = f.defineClass(
 			}
 		},
 		"buildDirectIP4" : {
+			// leads to l6routes
 			value : function(net){
-				const map = {};
-				for(const t of [ this ]){
-					const lan3 = null !== net && t.lan3 && net.filterIp(t.lan3);
-					(lan3 && (map[lan3] = true)) ||
-						(t.wan3 && (map[t.wan3] = true))
-					;
+				if(this.location){
+					return this.location.buildDirectIP4(net);
 				}
-				const keys = Object.keys(map);
-				return keys.length ? keys : undefined;
+				if(null !== net){
+					if(net.location){
+						return net.location.buildDirectIP4(net);
+					}
+					if(this.config.location){
+						return this.config.location.buildDirectIP4(net);
+					}
+				}
+				return this.config.buildDirectIP4(net);
 			}
 		},
 		"buildDnsViewIP4" : {
@@ -1095,29 +1091,16 @@ const TargetStatic = f.defineClass(
 				if(own){
 					return undefined;
 				}
-				if(modeDns === "direct"){
-					return undefined;
-				}
-				if(modeDns === "use-router"){
-					if(this.location){
-						return this.location.buildDnsViewIP4(net);
-					}
-					return this.config.buildDnsViewIP4(net);
+				if(modeDns === "direct" || modeDns === "use-router"){
+					return this.buildDirectIP4(net);
 				}
 				if(!modeDns && !this.location){
 					return this.config.buildDnsViewIP4(net);
 				}
-				const location = this.location || this.config.location;
 				if(modeDns === "use-wan"){
-					if(location){
-						return location.buildDnsViewIP4(null);
-					}
-					return this.config.buildDnsViewIP4(null);
+					return this.buildDirectIP4(null);
 				}
-				if(location){
-					return location.buildDnsViewIP4(net);
-				}
-				return this.config.buildDnsViewIP4(net);
+				return this.buildDirectIP4(net);
 			}
 		},
 		"toString" : {
