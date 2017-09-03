@@ -887,14 +887,23 @@ const Target = f.defineClass(
 		"buildDirectIP4" : {
 			value : function(net){
 				const map = {};
-				for(const t of this.endpointsList){
-					const lan3 = null !== net && t.lan3 && net.filterIp(t.lan3);
-					(lan3 && (map[lan3] = true)) ||
-						(t.wan3 && (map[t.wan3] = true))
-					;
+				if(null !== net){
+					for(const t of this.endpointsList){
+						if(t.location === this.config.location){
+							const lan3 = t.lan3 && net.filterIp(t.lan3);
+							(lan3 && (map[lan3] = true));
+						}
+					}
+					const keys = Object.keys(map);
+					if(keys.length) return keys;
 				}
-				const keys = Object.keys(map);
-				return keys.length ? keys : undefined;
+				{
+					for(const t of this.endpointsList){
+						(t.wan3 && (map[t.wan3] = true));
+					}
+					const keys = Object.keys(map);
+					return keys.length ? keys : undefined;
+				}
 			}
 		},
 		"buildDnsViewIP4" : {
