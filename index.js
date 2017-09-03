@@ -462,7 +462,7 @@ const Location = f.defineClass(
 					if(r.Networks){
 						r.addNetwork(lan);
 					}else{
-						r = new Networks().addNetwork(r);
+						r = new Networks().addNetwork(r).addNetwork(lan);
 						f.defineProperty(r, 'location', self);
 					}
 				}
