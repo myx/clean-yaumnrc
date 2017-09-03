@@ -715,11 +715,16 @@ const Server = f.defineClass(
 		},
 		"buildDirectIP4" : {
 			value : function(net){
-				const a = null === net
-					? this.wan3
-					: this.lan3 && net.filterIp(this.lan3) || this.wan3
-				;
-				return a ? [ a ] : undefined;
+				if(null !== net){
+					if(this.location === this.config.location){
+						const a = this.lan3 && net.filterIp(this.lan3, true) || this.wan3;
+						return a ? [ a ] : undefined;
+					}
+				}
+				{
+					const a = this.wan3;
+					return a ? [ a ] : undefined;
+				}
 			}
 		},
 		"buildDnsViewIP4" : {
