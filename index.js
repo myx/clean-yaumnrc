@@ -935,7 +935,19 @@ const Target = f.defineClass(
 						map[a] = true;
 					}
 				}
-				return Object.keys(map);
+				{
+					const keys = Object.keys(map);
+					if(!keys.length){
+						return undefined;
+					}
+					if(null !== net && this.config.location){
+						const view = this.config.location.buildDnsViewIP4(net);
+						if(view){
+							return view;
+						}
+					}
+					return keys;
+				}
 			}
 		},
 		"source" : {
