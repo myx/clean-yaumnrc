@@ -273,7 +273,7 @@ const Networks = f.defineClass(
 			value : undefined
 		},
 		"ip" : {
-			value : function(){
+			get : function(){
 				return "127.0.0.1";
 			}
 		},
@@ -482,14 +482,14 @@ const Location = f.defineClass(
 			// Array of local IPs for Layer3 access (gateway, dns-server) 
 			get : function(){
 				if(this.lans){
-					if(this.lans.ip){
-						return [ this.lans.ip ];
-					}
 					if(this.lans.list){
 						return this.lans.list.reduce(function(r, x){ 
 							x.ip && r.push(x.ip);
 							return r; 
 						}, []);
+					}
+					if(this.lans.ip){
+						return [ this.lans.ip ];
 					}
 				}
 				return undefined;
