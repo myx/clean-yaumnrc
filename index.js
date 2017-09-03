@@ -206,10 +206,7 @@ const NetworkAddress = f.defineClass(
 		},
 		"networkForIp" : {
 			value : function(ip){
-				if(this.containsIp(ip)){
-					return this;
-				}
-				return undefined;
+				return this.containsIp(ip) ? this : undefined;
 			}
 		},
 		"toSourceObject" : {
