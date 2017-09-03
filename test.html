@@ -297,7 +297,7 @@
 					out(' Location.servers', view.location.servers);
 					out(' Location.routers', view.location.routers);
 
-					for(var lan of view.location.lans.list){
+					if(view.location.lans) for(var lan of view.location.lans.list){
 						out(' Lan(' + lan + ').gway', lan.ip);
 						out(' Lan(' + lan + ').intIPv4', lan.intIPv4);
 						out(' Lan(' + lan + ').strIPv4', lan.strIPv4);

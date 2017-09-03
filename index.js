@@ -194,6 +194,11 @@ const NetworkAddress = f.defineClass(
 				return this.mask = AbstractAddress.intToIPv4(0xFFFFFFFF & this.maskInt) 
 			}
 		},
+		"list" : {
+			get : function(){
+				return [ this ];
+			}
+		},
 		"containsIp" : {
 			value : function(ip){
 				return (AbstractAddress.intForIPv4(ip) & this.maskInt) == this.networkInt;
@@ -402,26 +407,26 @@ const Location = f.defineClass(
 		const wan6 = source.wan6 || wan3;
 		const tap3 = source.tap3;
 		
+		const self = this;
 		const lans = [].concat(
 			source.lan3
 		).reduce(function(r, x){ 
 			if(x){
 				const lan = f.parseNetwork(x, undefined, 24);
 				if(lan){
+					lan.location = self;
 					if(!r){
 						return lan;
 					}
 					if(r.Networks){
 						r.addNetwork(lan);
 					}else{
-						const lans = new Networks();
-						land.addNetwork(r);
-						r = lans;
+						r = new Networks().addNetwork(r);
 					}
 				}
 			}
 			return r;
-		}, new Networks());
+		}, undefined);
 
 		Object.defineProperties(this, {
 			"config" : {
@@ -475,10 +480,18 @@ const Location = f.defineClass(
 		"lan3" : {
 			// Array of local IPs for Layer3 access (gateway, dns-server) 
 			get : function(){
-				return this.lans.list.reduce(function(r, x){ 
-					x.ip && r.push(x.ip);
-					return r; 
-				}, []);
+				if(this.lans){
+					if(this.lans.ip){
+						return [ this.lans.ip ];
+					}
+					if(this.lans.list){
+						return this.lans.list.reduce(function(r, x){ 
+							x.ip && r.push(x.ip);
+							return r; 
+						}, []);
+					}
+				}
+				return undefined;
 			}
 		},
 		"tap3" : {
@@ -487,7 +500,7 @@ const Location = f.defineClass(
 		},
 		"buildDnsViewIP4" : {
 			value : function(net/*, location*/){
-				if(null !== net && this.lan3){
+				if(null !== net && this.lan3 && net.location === this){
 					const result = this.lan3.reduce(function(r,x){
 						const lan3 = net.filterIp(x);
 						lan3 && (r || (r = [])).push(lan3);
@@ -531,21 +544,7 @@ const Location = f.defineClass(
 		"lan3smart" : {
 			// Array of local IPs for Layer3 access (length is likely 1 or 0, but could have several LAN IPs of all the routers) 
 			get : function(){
-				if(this.lan3){
-					return [].concat(this.lan3);
-				}
-				const result = [];
-				for(var i of this.routers.list){
-					if(i.router === 'active' && i.lan3){
-						result.push(i.lan3);
-					}
-				}
-				if(result.length == 0) for(var i of this.routers.list){
-					if(i.router === 'testing' && i.lan3){
-						result.push(i.lan3);
-					}
-				}
-				return result;
+				return this.buildDnsViewIP4(this.config.location && this.config.location.lans || null);
 			}
 		},
 		"tap3smart" : {
@@ -680,6 +679,12 @@ const Server = f.defineClass(
 		"wan3smart" : {
 			get : function(){
 				return this.buildDnsViewIP4(null);
+			}
+		},
+		"lan3smart" : {
+			// Array of local IPs for Layer3 access (length is likely 1 or 0, but could have several LAN IPs of all the routers) 
+			get : function(){
+				return this.buildDnsViewIP4(this.config.location && this.config.location.lans || null);
 			}
 		},
 		"endpointsToMap" : {
@@ -839,26 +844,7 @@ const Target = f.defineClass(
 		},
 		"endpointsToMap" : {
 			value : function(mapInitial){
-				const map = mapInitial || {};
-				for(let key of [].concat(this.source.target || [])){
-					if(key !== this.key){
-						const target = this.config.targets.map[key];
-						if(target){
-							if(target != this){
-								target.endpointsToMap(map);
-								continue;
-							}
-						}
-					}
-					{
-						const server = this.config.servers.map[key];
-						if(server){
-							map[key] = server;
-							continue;
-						}
-					}
-				}
-				return map;
+				// abstract
 			}
 		},
 		"endpointsMap" : {
@@ -890,6 +876,11 @@ const Target = f.defineClass(
 		"wan3smart" : {
 			get : function(){
 				return this.buildDnsViewIP4(null);
+			}
+		},
+		"lan3smart" : {
+			get : function(){
+				return this.buildDnsViewIP4(this.config.location && this.config.location.lans || null);
 			}
 		},
 		"buildDirectIP4" : {
@@ -960,6 +951,40 @@ const Target = f.defineClass(
 				return "[yamnrc Target("+this.key+")]";
 			}
 		}
+	},{
+		"makeTargetObject" : {
+			value : function(key, config, source){
+				{
+					const t1 = source.proxyHttp;
+					const t2 = source.proxyHttps;
+					const t3 = source.redirectHttp;
+					const t4 = source.redirectHttps;
+					if(t1 || t2 || t3 || t4){
+						return new TargetStatic(
+							config, 
+							key, 
+							source, 
+							t1, 
+							t2
+						);
+					}
+				}
+				{
+					const t = source.target;
+					if("string" === typeof t){
+						return new TargetSingle(config, key, source, t);
+					}
+					if(t && t.length){
+						return t.length == 1
+							? new TargetSingle(config, key, source, t[0])
+							: new TargetMultiple(config, key, source, t);
+						;
+					}
+				}
+				// invalid?
+				return new Target(config, key, source);
+			}
+		}
 	}
 );
 
@@ -970,7 +995,7 @@ const Target = f.defineClass(
 const TargetStatic = f.defineClass(
 	"TargetStatic",
 	Target,
-	function(config, key, source, proxyHttp, proxyHttps){
+	function(config, key, source, proxyHttp, proxyHttps, redirectHttp, redirectHttps){
 		this.Target(config, key, source);
 		Object.defineProperties(this, {
 			"proxyHttp" : {
@@ -979,6 +1004,12 @@ const TargetStatic = f.defineClass(
 			"proxyHttps" : {
 				value : proxyHttps
 			},
+			"redirectHttp" : {
+				value : redirectHttp
+			},
+			"redirectHttps" : {
+				value : redirectHttps
+			},
 		});
 		return this;
 	},{
@@ -986,6 +1017,12 @@ const TargetStatic = f.defineClass(
 			value : null
 		},
 		"proxyHttps" : {
+			value : null
+		},
+		"redirectHttp" : {
+			value : null
+		},
+		"redirectHttps" : {
 			value : null
 		},
 		"modeDns" : {
@@ -1010,9 +1047,17 @@ const TargetStatic = f.defineClass(
 				return [ new UpstreamObject() ];
 			}
 		},
-		"wan3smart" : {
-			get : function(){
-				return this.buildDnsViewIP4(null);
+		"buildDirectIP4" : {
+			value : function(net){
+				const map = {};
+				for(const t of [ this ]){
+					const lan3 = null !== net && t.lan3 && net.filterIp(t.lan3);
+					(lan3 && (map[lan3] = true)) ||
+						(t.wan3 && (map[t.wan3] = true))
+					;
+				}
+				const keys = Object.keys(map);
+				return keys.length ? keys : undefined;
 			}
 		},
 		"buildDnsViewIP4" : {
@@ -1054,6 +1099,128 @@ const TargetStatic = f.defineClass(
 	}
 );
 
+
+
+
+
+
+const TargetMultiple = f.defineClass(
+	"TargetMultiple",
+	Target,
+	function(config, key, source, target){
+		this.Target(config, key, source);
+		Object.defineProperties(this, {
+			"target" : {
+				value : target
+			},
+		});
+		return this;
+	},{
+		"target" : {
+			// array
+			value : null
+		},
+		"immediateEndpoints" : {
+			value : null
+		},
+		"endpointsToMap" : {
+			value : function(mapInitial){
+				const map = mapInitial || {};
+				for(let key of "".concat(this.target)){
+					if(key !== this.key){
+						const target = this.config.targets.map[key];
+						if(target && target !== this){
+							target.endpointsToMap(map);
+							continue;
+						}
+					}
+					{
+						const server = this.config.servers.map[key];
+						if(server){
+							map[key] = server;
+							continue;
+						}
+					}
+				}
+				return map;
+			}
+		},
+		"upstreamList" : {
+			// to be functionnally compatible with Target objects
+			get : function(){
+				return [ new UpstreamObject() ];
+			}
+		},
+		"buildDnsViewIP4" : {
+			value : function(net, own, parent/*, location*/){
+				const modeDns = parent && parent.modeDns || this.modeDns;
+				if(own){
+					return undefined;
+				}
+				if(modeDns === "direct"){
+					return undefined;
+				}
+				if(modeDns === "use-router"){
+					if(this.location){
+						return this.location.buildDnsViewIP4(net);
+					}
+					return this.config.buildDnsViewIP4(net);
+				}
+				if(!modeDns && !this.location){
+					return this.config.buildDnsViewIP4(net);
+				}
+				const location = this.location || this.config.location;
+				if(modeDns === "use-wan"){
+					if(location){
+						return location.buildDnsViewIP4(null);
+					}
+					return this.config.buildDnsViewIP4(null);
+				}
+				if(location){
+					return location.buildDnsViewIP4(net);
+				}
+				return this.config.buildDnsViewIP4(net);
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc TargetMultiple("+this.key+")]";
+			}
+		}
+	}
+);
+
+
+
+
+
+
+
+
+const TargetSingle = f.defineClass(
+	"TargetSingle",
+	TargetMultiple,
+	function(config, key, source, target){
+		// not TargetMultiple - using different properties
+		this.Target(config, key, source);
+		Object.defineProperties(this, {
+			"target" : {
+				value : target
+			},
+		});
+		return this;
+	},{
+		"target" : {
+			// single target key
+			value : null
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc TargetSingle("+this.key+")]";
+			}
+		}
+	}
+);
 
 
 
@@ -1277,15 +1444,10 @@ const Targets = f.defineClass(
 			value : function(){
 				for(let key in this.source){
 					const settings = this.source[key];
-					if(settings.proxyHttp || settings.proxyHttps || settings.target && settings.target.length == 2){
-						const t1 = settings.proxyHttp || settings.target && settings.target[0];
-						const t2 = settings.proxyHttps || settings.target && settings.target[1];
-						if(t1 && t1.indexOf('://') !== -1 || t2 && t2.indexOf('://') !== -1){
-							this.put(key, new TargetStatic(this.config, key, settings, t1, t2));
-							continue;
-						}
+					const target = Target.makeTargetObject(key, this.config, settings);
+					if(target){
+						this.put(key, target);
 					}
-					this.put(key, new Target(this.config, key, settings));
 				}
 			}
 		},
@@ -1841,6 +2003,12 @@ const Configuration = f.defineClass(
 			// Array of external IPs for Layer3 access (length is likely 1 or 0, but could have several WAN IPs of all the routers) 
 			get : function(){
 				return this.buildDnsViewIP4(null);
+			}
+		},
+		"lan3smart" : {
+			// Array of local IPs for Layer3 access (length is likely 1 or 0, but could have several LAN IPs of all the routers) 
+			get : function(){
+				return this.buildDnsViewIP4(this.location && this.location.lans || null);
 			}
 		},
 		"buildDnsViewIP4" : {
