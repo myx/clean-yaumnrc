@@ -426,7 +426,7 @@ const Location = f.defineClass(
 			if(x){
 				const lan = f.parseNetwork(x, undefined, 24);
 				if(lan){
-					lan.location = self;
+					f.defineProperty(lan, 'location', self);
 					if(!r){
 						return lan;
 					}
@@ -434,7 +434,7 @@ const Location = f.defineClass(
 						r.addNetwork(lan);
 					}else{
 						r = new Networks().addNetwork(r);
-						r.location = self;
+						f.defineProperty(r, 'location', self);
 					}
 				}
 			}
