@@ -890,7 +890,7 @@ const Target = f.defineClass(
 				if(null !== net){
 					for(const t of this.endpointsList){
 						if(t.location === this.config.location){
-							const lan3 = t.lan3 && net.filterIp(t.lan3);
+							const lan3 = t.lan3 && net.filterIp(t.lan3, true);
 							(lan3 && (map[lan3] = true));
 						}
 					}
