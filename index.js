@@ -131,6 +131,11 @@ const SingleAddress = f.defineClass(
 		});
 		return this;
 	}, {
+		"key" : {
+			get : function(){
+				return this.AbstractAddress.intForIPv4(ip);
+			}
+		},
 		"toSourceObject" : {
 			value : function(){
 				return this.mac
@@ -161,7 +166,7 @@ const NetworkAddress = f.defineClass(
 	AbstractAddress,
 	function(cidr, ip, bits, mac){
 		const mask = (0xFFFFFFFF * Math.pow(2, 32 - bits)) % 0x100000000;
-		const network = AbstractAddress.intForIPv4(ip) & mask
+		const network = AbstractAddress.intForIPv4(ip) & mask;
 		Object.defineProperties(this, {
 			"cidr" : {
 				value : cidr
@@ -184,6 +189,11 @@ const NetworkAddress = f.defineClass(
 		});
 		return this;
 	}, {
+		"key" : {
+			get : function(){
+				return this.networkInt;
+			}
+		},
 		"network" : {
 			get : function(){
 				return this.network = AbstractAddress.intToIPv4(this.networkInt);
@@ -247,6 +257,11 @@ const Networks = f.defineClass(
 		});
 		return this;
 	}, {
+		"key" : {
+			get : function(){
+				return this.list.map(function(x){return x.key;}).join('-');
+			}
+		},
 		"addNetwork" : {
 			value : function(net){
 				this.cidrs.push(net);
