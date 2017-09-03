@@ -136,6 +136,11 @@ const SingleAddress = f.defineClass(
 				return this.AbstractAddress.intForIPv4(ip);
 			}
 		},
+		"networkCidr" : {
+			get : function(){
+				return this.ip + '/32';
+			}
+		},
 		"toSourceObject" : {
 			value : function(){
 				return this.mac
@@ -197,6 +202,11 @@ const NetworkAddress = f.defineClass(
 		"network" : {
 			get : function(){
 				return this.network = AbstractAddress.intToIPv4(this.networkInt);
+			}
+		},
+		"networkCidr" : {
+			get : function(){
+				return this.network + '/' + this.bits;
 			}
 		},
 		"mask" : {
