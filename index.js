@@ -422,6 +422,7 @@ const Location = f.defineClass(
 						r.addNetwork(lan);
 					}else{
 						r = new Networks().addNetwork(r);
+						r.location = self;
 					}
 				}
 			}
@@ -934,6 +935,9 @@ const Target = f.defineClass(
 				if(modeDns === "use-router"){
 					if(this.location){
 						return this.location.buildDnsViewIP4(net);
+					}
+					if(net && net.location){
+						return net.location.buildDnsViewIP4(net);
 					}
 				}
 				if(modeDns === "direct"){
