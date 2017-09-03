@@ -1155,32 +1155,42 @@ const TargetMultiple = f.defineClass(
 		"buildDnsViewIP4" : {
 			value : function(net, own, parent/*, location*/){
 				const modeDns = parent && parent.modeDns || this.modeDns;
-				if(own){
-					return undefined;
-				}
-				if(modeDns === "direct"){
-					return undefined;
-				}
 				if(modeDns === "use-router"){
 					if(this.location){
 						return this.location.buildDnsViewIP4(net);
 					}
-					return this.config.buildDnsViewIP4(net);
 				}
-				if(!modeDns && !this.location){
-					return this.config.buildDnsViewIP4(net);
-				}
-				const location = this.location || this.config.location;
-				if(modeDns === "use-wan"){
-					if(location){
-						return location.buildDnsViewIP4(null);
+				if(modeDns === "direct"){
+					const result = this.buildDirectIP4(net);
+					if(result){
+						return result;
 					}
-					return this.config.buildDnsViewIP4(null);
 				}
-				if(location){
-					return location.buildDnsViewIP4(net);
+				const map = {};
+				if(modeDns === "use-wan"){
+					const result = this.buildDirectIP4(null);
+					if(result){
+						return result;
+					}
+					if(this.location){
+						return this.location.buildDnsViewIP4(null);
+					}
+					for(const t of this.endpointsList){
+						for(const a of (t.buildDnsViewIP4(null, false, this) || [])){
+							map[a] = true;
+						}
+					}
+					return Object.keys(map);
 				}
-				return this.config.buildDnsViewIP4(net);
+				if(this.location){
+					return this.location.buildDnsViewIP4(net);
+				}
+				for(const t of this.endpointsList){
+					for(const a of (t.buildDnsViewIP4(net, false, this) || [])){
+						map[a] = true;
+					}
+				}
+				return Object.keys(map);
 			}
 		},
 		"toString" : {
