@@ -498,8 +498,8 @@ const Location = f.defineClass(
 			// Array of local IPs for Layer3 access (tap to inter-cluster vpn) 
 			value : null
 		},
-		"buildDnsViewIP4" : {
-			value : function(net/*, location*/){
+		"buildDirectIP4" : {
+			value : function(net){
 				if(null !== net && this.lan3 && net.location === this){
 					const result = this.lan3.reduce(function(r,x){
 						const lan3 = net.filterIp(x);
@@ -515,24 +515,34 @@ const Location = f.defineClass(
 						return [].concat(this.wan3);
 					}
 				}
+				return undefined;
+			}
+		},
+		"buildDnsViewIP4" : {
+			value : function(net/*, location*/){
 
-				const result = {};
-
-				for(var i of this.routers.list){
-					if(i.router === 'active'){
-						for(const i of (i.buildDnsViewIP4(net, true) || [])){
-							result[i] = true;
+				{
+					const result = this.buildDirectIP4(net);
+					if(result) return result;
+				}
+				{
+					const result = {};
+					for(var i of this.routers.list){
+						if(i.router === 'active'){
+							for(const i of (i.buildDnsViewIP4(net, true) || [])){
+								result[i] = true;
+							}
 						}
 					}
-				}
-				if(result.length == 0) for(var i of this.routers.list){
-					if(i.router === 'testing'){
-						for(const i of (i.buildDnsViewIP4(net, true) || [])){
-							result[i] = true;
+					if(result.length == 0) for(var i of this.routers.list){
+						if(i.router === 'testing'){
+							for(const i of (i.buildDnsViewIP4(net, true) || [])){
+								result[i] = true;
+							}
 						}
 					}
+					return Object.keys(result);
 				}
-				return Object.keys(result);
 			}
 		},
 		"wan3smart" : {
