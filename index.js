@@ -279,6 +279,11 @@ const Networks = f.defineClass(
 				return this;
 			}
 		},
+		"networkCidr" : {
+			get : function(){
+				return this.list.map(function(x){return x.networkCidr;}).join(';');
+			}
+		},
 		"list" : {
 			get : function(){
 				if(!this.cidrs){
