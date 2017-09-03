@@ -1127,7 +1127,7 @@ const TargetMultiple = f.defineClass(
 		"endpointsToMap" : {
 			value : function(mapInitial){
 				const map = mapInitial || {};
-				for(let key of "".concat(this.target)){
+				for(let key of [].concat(this.target)){
 					if(key !== this.key){
 						const target = this.config.targets.map[key];
 						if(target && target !== this){
@@ -1144,53 +1144,6 @@ const TargetMultiple = f.defineClass(
 					}
 				}
 				return map;
-			}
-		},
-		"upstreamList" : {
-			// to be functionnally compatible with Target objects
-			get : function(){
-				return [ new UpstreamObject() ];
-			}
-		},
-		"buildDnsViewIP4" : {
-			value : function(net, own, parent/*, location*/){
-				const modeDns = parent && parent.modeDns || this.modeDns;
-				if(modeDns === "use-router"){
-					if(this.location){
-						return this.location.buildDnsViewIP4(net);
-					}
-				}
-				if(modeDns === "direct"){
-					const result = this.buildDirectIP4(net);
-					if(result){
-						return result;
-					}
-				}
-				const map = {};
-				if(modeDns === "use-wan"){
-					const result = this.buildDirectIP4(null);
-					if(result){
-						return result;
-					}
-					if(this.location){
-						return this.location.buildDnsViewIP4(null);
-					}
-					for(const t of this.endpointsList){
-						for(const a of (t.buildDnsViewIP4(null, false, this) || [])){
-							map[a] = true;
-						}
-					}
-					return Object.keys(map);
-				}
-				if(this.location){
-					return this.location.buildDnsViewIP4(net);
-				}
-				for(const t of this.endpointsList){
-					for(const a of (t.buildDnsViewIP4(net, false, this) || [])){
-						map[a] = true;
-					}
-				}
-				return Object.keys(map);
 			}
 		},
 		"toString" : {
