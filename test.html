@@ -34,7 +34,10 @@
 								"192.168.3.250", 
 								"10.1.2.1/16", 
 								"10.2.2.2/16", 
-								"10.3.2.3/16"
+								{
+									"key": "lan323",
+									"ip" : "10.3.2.3/16"
+								}
 							],
 							"tap3" : "10.112.21.20" 
 						},
@@ -298,11 +301,15 @@
 					out(' Location.routers', view.location.routers);
 
 					if(view.location.lans) for(var lan of view.location.lans.list){
-						out(' Lan(' + lan + ').gway', lan.ip);
+						out(' Lan(' + lan + ').key', lan.key);
+						out(' Lan(' + lan + ').ip', lan.ip);
 						out(' Lan(' + lan + ').intIPv4', lan.intIPv4);
 						out(' Lan(' + lan + ').strIPv4', lan.strIPv4);
+						out(' Lan(' + lan + ').bits', lan.bits);
 						out(' Lan(' + lan + ').mask', lan.mask);
 						out(' Lan(' + lan + ').network', lan.network);
+						out(' Lan(' + lan + ').networkInt', lan.networkInt);
+						out(' Lan(' + lan + ').networkCidr', lan.networkCidr);
 						out(' Lan(' + lan + ').location', lan.location);
 					}
 
@@ -311,6 +318,7 @@
 
 				dumpLocation('h1');
 				dumpLocation('g1');
+				dumpLocation('o3');
 				
 				function dumpServer(name){
 					out('server: ' + name);

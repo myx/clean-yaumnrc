@@ -22,15 +22,15 @@ const f = {
 		}
 		return constructor;
 	},
-	parseNetwork : function(cidr, mac, defaultBits){
+	parseNetwork : function(cidr, mac, defaultBits, key){
 		if(!cidr){
 			return undefined;
 		}
 		if(cidr.AbstractAddress){
 			return cidr;
 		}
-		if(cidr.ip){
-			return f.parseNetwork(cidr.ip, cidr.mac);
+		if(cidr.ip || cidr.key || cidr.mac){
+			return f.parseNetwork(cidr.ip, cidr.mac, defaultBits, key || cidr.key);
 		}
 		const pos = cidr.indexOf('/');
 		if(pos === -1){
@@ -41,11 +41,19 @@ const f = {
 				cidr + '/' + defaultBits, 
 				cidr, 
 				defaultBits, 
-				mac);
+				mac,
+				key
+			);
 		}
 		{
 			const bits = parseInt(cidr.substr(pos+1));
-			return new NetworkAddress(cidr, cidr.substr(0, pos), bits, mac);
+			return new NetworkAddress(
+				cidr, 
+				cidr.substr(0, pos), 
+				bits, 
+				mac,
+				key
+			);
 		}
 	}
 };
@@ -169,7 +177,7 @@ const SingleAddress = f.defineClass(
 const NetworkAddress = f.defineClass(
 	"NetworkAddress",
 	AbstractAddress,
-	function(cidr, ip, bits, mac){
+	function(cidr, ip, bits, mac, key){
 		const mask = (0xFFFFFFFF * Math.pow(2, 32 - bits)) % 0x100000000;
 		const network = AbstractAddress.intForIPv4(ip) & mask;
 		Object.defineProperties(this, {
@@ -192,11 +200,14 @@ const NetworkAddress = f.defineClass(
 				value : mask
 			}
 		});
+		if(key){
+			f.defineProperty(this, 'key', key);
+		}
 		return this;
 	}, {
 		"key" : {
 			get : function(){
-				return this.networkInt;
+				return 'net-' + this.network.replace(/\./g,'-')+'-'+this.bits;
 			}
 		},
 		"network" : {
@@ -259,17 +270,20 @@ const NetworkAddress = f.defineClass(
 const Networks = f.defineClass(
 	"Networks",
 	AbstractAddress,
-	function(cidrArray){
+	function(cidrArray, key){
 		Object.defineProperties(this, {
 			"cidrs" : {
 				value : cidrArray ? [].concat(cidrArray) : []
 			},
 		});
+		if(key){
+			f.defineProperty(this, 'key', key);
+		}
 		return this;
 	}, {
 		"key" : {
 			get : function(){
-				return this.list.map(function(x){return x.key;}).join('-');
+				return 'nets-'+this.list.map(function(x){return x.key;}).join('-');
 			}
 		},
 		"addNetwork" : {
