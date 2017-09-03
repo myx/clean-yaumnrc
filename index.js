@@ -527,21 +527,28 @@ const Location = f.defineClass(
 				}
 				{
 					const result = {};
-					for(var i of this.routers.list){
-						if(i.router === 'active'){
-							for(const i of (i.buildDnsViewIP4(net, true) || [])){
-								result[i] = true;
+					{
+						for(var i of this.routers.list){
+							if(i.router === 'active'){
+								for(const i of (i.buildDnsViewIP4(net, true) || [])){
+									result[i] = true;
+								}
 							}
 						}
+						const keys = Object.keys(result);
+						if(keys.length) return keys;
 					}
-					if(result.length == 0) for(var i of this.routers.list){
-						if(i.router === 'testing'){
-							for(const i of (i.buildDnsViewIP4(net, true) || [])){
-								result[i] = true;
+					{
+						for(var i of this.routers.list){
+							if(i.router === 'testing'){
+								for(const i of (i.buildDnsViewIP4(net, true) || [])){
+									result[i] = true;
+								}
 							}
 						}
+						const keys = Object.keys(result);
+						return keys.length ? keys : undefined;
 					}
-					return Object.keys(result);
 				}
 			}
 		},
@@ -931,12 +938,12 @@ const Target = f.defineClass(
 				}
 				if(modeDns === "direct"){
 					const result = this.buildDirectIP4(net);
-					if(result.length) return result;
+					if(result) return result;
 				}
 				const map = {};
 				if(modeDns === "use-wan"){
 					const result = this.buildDirectIP4(null);
-					if(result.length) return result;
+					if(result) return result;
 					if(this.location){
 						return this.location.buildDnsViewIP4(null);
 					}
