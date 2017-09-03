@@ -936,6 +936,8 @@ const Target = f.defineClass(
 					if(this.location){
 						return this.location.buildDnsViewIP4(net);
 					}
+				}
+				if(modeDns === "use-local"){
 					if(net && net.location){
 						return net.location.buildDnsViewIP4(net);
 					}
