@@ -2083,7 +2083,10 @@ const Configuration = f.defineClass(
 		},
 		"dnsViewLocal" : {
 			get : function(){
-				return this.buildDnsView(Networks.LOCAL);
+				return this.buildDnsView(this.location 
+					? this.location.lans 
+					: Networks.LOCAL
+				);
 			}
 		},
 		"dnsViewGlobal" : {
