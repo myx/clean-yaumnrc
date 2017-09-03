@@ -2247,6 +2247,8 @@ module.exports = {
 	"Routers" : Routers,
 	"Target" : Target,
 	"TargetStatic" : TargetStatic,
+	"TargetMultiple" : TargetMultiple,
+	"TargetSingle" : TargetSingle,
 	"Targets" : Targets,
 	"Routing" : Routing,
 	"Domains" : Domains,
