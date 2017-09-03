@@ -941,9 +941,11 @@ const Target = f.defineClass(
 						return undefined;
 					}
 					if(null !== net && this.config.location){
-						const view = this.config.location.buildDnsViewIP4(net);
-						if(view){
-							return view;
+						if(keys.length > 1 || net.containsIp(keys[0])){
+							const view = this.config.location.buildDnsViewIP4(net);
+							if(view){
+								return view;
+							}
 						}
 					}
 					return keys;
