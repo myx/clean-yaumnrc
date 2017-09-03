@@ -845,6 +845,7 @@ const Target = f.defineClass(
 		"endpointsToMap" : {
 			value : function(mapInitial){
 				// abstract
+				return mapInitial || {};
 			}
 		},
 		"endpointsMap" : {
