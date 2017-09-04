@@ -1142,6 +1142,18 @@ const Target = Class.create(
 					const keys = Object.keys(map);
 					if(keys.length) return keys;
 				}
+				if(forceDirect){
+					const location = (net && net.location) || (this.config.location);
+					if(location){
+						for(const t of this.endpointsList){
+							if(t.location === location){
+								(t.wan3 && (map[t.wan3] = true));
+							}
+						}
+						const keys = Object.keys(map);
+						if(keys.length) return keys;
+					}
+				}
 				{
 					for(const t of this.endpointsList){
 						(t.wan3 && (map[t.wan3] = true));
