@@ -1133,7 +1133,9 @@ const Target = Class.create(
 				if(net){
 					for(const t of this.endpointsList){
 						if(t.location === net.location){
-							const lan3 = t.lan3 && (forceDirect || net.filterIp(t.lan3, true));
+							const lan3 = forceDirect 
+								? t.lan3
+								: t.lan3 && net.filterIp(t.lan3, true);
 							(lan3 && (map[lan3] = true));
 						}
 					}
