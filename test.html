@@ -294,12 +294,23 @@
 					out('location: ' + name);
 					const view = config.makeView(name);
 					out(' Location.config', view);
-					out(' Location.location', view.location);
-					out(' Location.lans', view.location.lans);
-					out(' Location.lan3', view.location.lan3);
-					out(' Location.servers', view.location.servers);
-					out(' Location.routers', view.location.routers);
+					const location = view.location;
+					out(' Location.location', location);
+					out(' Location.lans', location.lans);
+					out(' Location.lan3', location.lan3);
+					out(' Location.servers', location.servers);
+					out(' Location.routers', location.routers);
 
+					function resolve(host){
+						out(' Location.resolveByName("'+host+'")', location.resolveByName(host));
+					}
+					resolve("l6h1.myx.ru");
+					resolve("l6h1.myx.co.nz");
+					resolve("l6o3.myx.ru");
+					resolve("l6o3.myx.co.nz");
+					resolve("mpxy-direct.myx.ru");
+					resolve("mpxy-default.myx.ru");
+					
 					if(view.location.lans) for(var lan of view.location.lans.list){
 						out(' Lan(' + lan + ').key', lan.key);
 						out(' Lan(' + lan + ').ip', lan.ip);

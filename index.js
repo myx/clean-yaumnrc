@@ -1,16 +1,57 @@
-const f = {
-	defineProperty : function(o, n, v){
-		Object.defineProperty(o, n, { value : v	});
-	},
-	defineClass : function(name, inherit, constructor, properties, statics){
-		constructor.prototype = inherit
+/**
+ * 
+ *	const config = Config.parse({
+ *		"locations" : {
+ *			"h1" : {
+ *				"name" : "h1.myx.ru",
+ *				"wan3" : "h1-wan",
+ *				"lan3" : "192.168.1.250",
+ *				"tap3" : "10.112.11.20"
+ *			},.......
+ *  
+ * 	});
+ *  
+ * 
+ * 	const view = config.makeView('l6h1.myx.ru');
+ * 
+ * 
+ *  .resolveXXX - Name Resolution (DNS) related
+ *  .provisionXXX - Envirionvemt Provisioning (DHCP) related
+ *  .proxyXXX - Level6 Proxying (NGINX/SOCKS) related
+ *  .forwardXXX - Level3 Forwarding (IPFW/NAT) related
+ *  .networkXXX - L2, L3/CIDR segment (like 192.168.3.0/24;192.168.7.0/24)
+ * 
+ * 
+ * 
+ *  .servers
+ *  .targets
+ *  .routing
+ *  .routing.domains
+ */
+
+const Class = {
+	"create" : function(name, inherit, constructor, properties, statics){
+		const prototype = constructor.prototype = inherit
 			? Object.create(inherit.prototype || inherit)
 			: {};
 		if(properties){
-			Object.defineProperties(constructor.prototype, properties);
+			for(const key in properties){
+				let desc = properties[key];
+				if('function' === typeof desc.get && desc.execute === 'once'){
+					const get = desc.get;
+					desc = Object.create(desc);
+					desc.get = function(){
+						const result = get.call(this);
+						this === prototype || Object.defineProperty(this, key, { value : result });
+						return result;
+					};
+				}
+				Object.defineProperty(prototype, key, desc);
+			}
+			// Object.defineProperties(prototype, properties);
 		}
 		if(name && !(properties && properties[name])){
-			f.defineProperty(constructor.prototype, name, constructor);
+			f.defineProperty(prototype, name, constructor);
 		}
 		if(statics){
 			Object.defineProperties(constructor, statics);
@@ -21,6 +62,14 @@ const f = {
 			});
 		}
 		return constructor;
+	}
+};
+
+
+const f = {
+	defineProperty : function(o, n, v){
+		Object.defineProperty(o, n, { value : v	});
+		return v;
 	},
 	parseNetwork : function(cidr, mac, defaultBits, key){
 		if(!cidr){
@@ -58,7 +107,7 @@ const f = {
 	}
 };
 
-const AbstractAddress = f.defineClass(
+const AbstractAddress = Class.create(
 	"AbstractAddress",
 	undefined,
 	function(){
@@ -125,7 +174,7 @@ const AbstractAddress = f.defineClass(
 	}
 );
 
-const SingleAddress = f.defineClass(
+const SingleAddress = Class.create(
 	"SingleAddress", 
 	AbstractAddress, 
 	function(ip, mac){
@@ -174,7 +223,7 @@ const SingleAddress = f.defineClass(
 );
 
 
-const NetworkAddress = f.defineClass(
+const NetworkAddress = Class.create(
 	"NetworkAddress",
 	AbstractAddress,
 	function(cidr, ip, bits, mac, key){
@@ -267,7 +316,7 @@ const NetworkAddress = f.defineClass(
 );
 
 
-const Networks = f.defineClass(
+const Networks = Class.create(
 	"Networks",
 	AbstractAddress,
 	function(cidrArray, key){
@@ -376,7 +425,7 @@ const Networks = f.defineClass(
 );
 
 
-const SourceObject = f.defineClass(
+const SourceObject = Class.create(
 	"SourceObject",
 	undefined,
 	function(source){
@@ -473,7 +522,7 @@ const SourceObject = f.defineClass(
 );
 
 
-const ListAndMap = f.defineClass(
+const ListAndMap = Class.create(
 	"ListAndMap",
 	SourceObject,
 	function(source){
@@ -538,11 +587,101 @@ const ListAndMap = f.defineClass(
 
 
 
-const Location = f.defineClass(
-	"Location",
+
+
+const ConfigObject = Class.create(
+	"ConfigObject",
 	SourceObject,
-	function(config, key, source){
+	function(config, source){
 		this.SourceObject(source);
+		Object.defineProperties(this, {
+			"config" : {
+				value : config
+			},
+		});
+		return this;
+	},{
+		"config" : {
+			// parent configuration instance
+			value : null
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc ConfigObject(" + this.config + "])]";
+			}
+		}
+	}
+);
+
+
+
+const ResolvableObject = Class.create(
+	"ResolvableObject",
+	ConfigObject,
+	function(config, source){
+		this.ConfigObject(config, source);
+		source && source.dns && Object.defineProperties(this, {
+			"resolveMode" : {
+				value : source.dns
+			},
+		});
+		return this;
+	},{
+		"resolveMode" : {
+			// null, 'use-wan', 'use-router', 'direct', 'local', 'remote', 'static'
+			value : undefined
+		},
+		"modeDns" : {
+			// OBSOLETE
+			get : function(){
+				return this.resolveMode;
+			}
+		},
+		"findLanForClient" : {
+			// OBSOLETE
+			get : function(ip){
+				return this.networkForClient;
+			}
+		},
+		"wan3smart" : {
+			// Array of external IPs for Layer3 access (length is likely 1 or 0, but could have several WAN IPs of all the routers) 
+			get : function(){
+				return this.resolveSmartIP4(null);
+			}
+		},
+		"lan3smart" : {
+			// Array of local IPs for Layer3 access (length is likely 1 or 0, but could have several LAN IPs of all the routers) 
+			get : function(){
+				return this.resolveSmartIP4(this.config.location && this.config.location.lans || null);
+			}
+		},
+		"resolveDirectIP4" : {
+			value : function(net){
+				throw new Error("Must re-implement, instance: " + this + ", net: " + net);
+			}
+		},
+		"resolveSmartIP4" : {
+			value : function(net, own, parent/*, location*/){
+				return this.resolveDirectIP4(net);
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc ResolvableObject(" + this.key + "])]";
+			}
+		}		
+	}
+);
+
+
+
+
+
+const Location = Class.create(
+	"Location",
+	ResolvableObject,
+	function(config, key, source){
+		this.ResolvableObject(config, source);
 
 		const wan3 = source.wan3;
 		const wan6 = source.wan6 || wan3;
@@ -571,9 +710,6 @@ const Location = f.defineClass(
 		}, undefined);
 
 		Object.defineProperties(this, {
-			"config" : {
-				value : config
-			},
 			"key" : {
 				value : key
 			},
@@ -637,9 +773,9 @@ const Location = f.defineClass(
 			// Array of local IPs for Layer3 access (tap to inter-cluster vpn) 
 			value : null
 		},
-		"buildDirectIP4" : {
+		"resolveDirectIP4" : {
 			value : function(net){
-				if(null !== net && this.lan3 && net.location === this){
+				if(net && this.lan3 && net.location === this){
 					const result = this.lan3.reduce(function(r,x){
 						const lan3 = net.filterIp(x);
 						lan3 && (r || (r = [])).push(lan3);
@@ -657,11 +793,11 @@ const Location = f.defineClass(
 				return undefined;
 			}
 		},
-		"buildDnsViewIP4" : {
-			value : function(net/*, location*/){
+		"resolveSmartIP4" : {
+			value : function(net, own/*, location*/){
 
 				{
-					const result = this.buildDirectIP4(net);
+					const result = this.resolveDirectIP4(net);
 					if(result) return result;
 				}
 				{
@@ -669,7 +805,7 @@ const Location = f.defineClass(
 					{
 						for(var i of this.routers.list){
 							if(i.router === 'active'){
-								for(const i of (i.buildDnsViewIP4(net, true) || [])){
+								for(const i of (i.resolveSmartIP4(net, true) || [])){
 									result[i] = true;
 								}
 							}
@@ -680,7 +816,7 @@ const Location = f.defineClass(
 					{
 						for(var i of this.routers.list){
 							if(i.router === 'testing'){
-								for(const i of (i.buildDnsViewIP4(net, true) || [])){
+								for(const i of (i.resolveSmartIP4(net, true) || [])){
 									result[i] = true;
 								}
 							}
@@ -691,16 +827,20 @@ const Location = f.defineClass(
 				}
 			}
 		},
-		"wan3smart" : {
-			// Array of external IPs for Layer3 access (length is likely 1 or 0, but could have several WAN IPs of all the routers) 
-			get : function(){
-				return this.buildDnsViewIP4(null);
+		"resolveByName" : {
+			value : function(t, net){
+				{
+					const r = this.config.targets.map[t] || this.config.servers.map[t];
+					if(r){
+						return r.resolveSmartIP4(net || this.lans || null);
+					}
+				}
+				return undefined;
 			}
 		},
 		"lan3smart" : {
-			// Array of local IPs for Layer3 access (length is likely 1 or 0, but could have several LAN IPs of all the routers) 
 			get : function(){
-				return this.buildDnsViewIP4(this.config.location && this.config.location.lans || null);
+				return this.resolveSmartIP4(this.config.location && this.config.location.lans || null);
 			}
 		},
 		"tap3smart" : {
@@ -738,7 +878,7 @@ const Location = f.defineClass(
 			// ListAndMap instance 
 			value : null
 		},
-		"findLanForClient" : {
+		"networkForClient" : {
 			value : function(ip){
 				return this.lans.networkForIp(ip);
 			}
@@ -773,16 +913,12 @@ const Location = f.defineClass(
 
 
 
-
-const Server = f.defineClass(
+const Server = Class.create(
 	"Server",
-	SourceObject,
+	ResolvableObject,
 	function(config, key, source){
-		this.SourceObject(source);
+		this.ResolvableObject(config, source);
 		Object.defineProperties(this, {
-			"config" : {
-				value : config
-			},
 			"key" : {
 				value : key
 			},
@@ -791,11 +927,6 @@ const Server = f.defineClass(
 			},
 			"lan3" : {
 				value : source.lan && source.lan.ip
-			},
-		});
-		source && source.dns && Object.defineProperties(this, {
-			"modeDns" : {
-				value : source.dns
 			},
 		});
 		return this;
@@ -813,6 +944,7 @@ const Server = f.defineClass(
 			value : null
 		},
 		"location" : {
+			execute : "once",
 			get : function(){
 				return this.config.locations.map[this.source.location];
 			}
@@ -820,21 +952,6 @@ const Server = f.defineClass(
 		"selected" : {
 			get : function(){
 				return this == this.config.server;
-			}
-		},
-		"modeDns" : {
-			// to be functionally compatible with Target objects
-			value : null
-		},
-		"wan3smart" : {
-			get : function(){
-				return this.buildDnsViewIP4(null);
-			}
-		},
-		"lan3smart" : {
-			// Array of local IPs for Layer3 access (length is likely 1 or 0, but could have several LAN IPs of all the routers) 
-			get : function(){
-				return this.buildDnsViewIP4(this.config.location && this.config.location.lans || null);
 			}
 		},
 		"endpointsToMap" : {
@@ -863,9 +980,9 @@ const Server = f.defineClass(
 				return [ new UpstreamObject() ];
 			}
 		},
-		"buildDirectIP4" : {
+		"resolveDirectIP4" : {
 			value : function(net){
-				if(null !== net){
+				if(net){
 					if(this.location === net.location){
 						const a = this.lan3 && net.filterIp(this.lan3, true) || this.wan3;
 						return a ? [ a ] : undefined;
@@ -877,17 +994,17 @@ const Server = f.defineClass(
 				}
 			}
 		},
-		"buildDnsViewIP4" : {
+		"resolveSmartIP4" : {
 			value : function(net, own, parent/*, location*/){
-				const modeDns = parent && (parent.modeDns || 'default') || this.modeDns || 'direct';
-				if(modeDns === "use-wan"){
-					const a = this.buildDirectIP4(null);
+				const resolveMode = parent && (parent.resolveMode || 'default') || this.resolveMode || 'direct';
+				if(resolveMode === "use-wan"){
+					const a = this.resolveDirectIP4(null);
 					if(a){
 						return a;
 					}
 				}
-				if(modeDns === "direct"){
-					const a = this.buildDirectIP4(net);
+				if(resolveMode === "direct"){
+					const a = this.resolveDirectIP4(net);
 					if(a){
 						return a;
 					}
@@ -896,9 +1013,9 @@ const Server = f.defineClass(
 					return undefined;
 				}
 				if(this.location){
-					return this.location.buildDnsViewIP4(net);
+					return this.location.resolveSmartIP4(net);
 				}
-				return this.config.buildDnsViewIP4(net);
+				return this.config.resolveSmartIP4(net);
 			}
 		},
 		"toSourceObject" : {
@@ -919,7 +1036,7 @@ const Server = f.defineClass(
 
 
 
-const Router = f.defineClass(
+const Router = Class.create(
 	"Router",
 	Server,
 	function(config, key, source){
@@ -959,15 +1076,12 @@ const Router = f.defineClass(
 
 
 
-const Target = f.defineClass(
+const Target = Class.create(
 	"Target",
-	SourceObject,
+	ResolvableObject,
 	function(config, key, source){
-		this.SourceObject(source);
+		this.ResolvableObject(config, source);
 		Object.defineProperties(this, {
-			"config" : {
-				value : config
-			},
 			"key" : {
 				value : key
 			},
@@ -975,20 +1089,10 @@ const Target = f.defineClass(
 				value : source.location && config.locations.map[source.location]
 			},
 		});
-		source && source.dns && Object.defineProperties(this, {
-			"modeDns" : {
-				value : source.dns
-			},
-		});
-	
 		return this;
 	}, {
 		"key" : {
 			// key of given instance 
-			value : null
-		},
-		"modeDns" : {
-			// null, 'use-wan', 'use-router', 'direct', 'local', 'remote', 'static'
 			value : null
 		},
 		"endpointsToMap" : {
@@ -1023,23 +1127,13 @@ const Target = f.defineClass(
 				return false;
 			}
 		},
-		"wan3smart" : {
-			get : function(){
-				return this.buildDnsViewIP4(null);
-			}
-		},
-		"lan3smart" : {
-			get : function(){
-				return this.buildDnsViewIP4(this.config.location && this.config.location.lans || null);
-			}
-		},
-		"buildDirectIP4" : {
-			value : function(net){
+		"resolveDirectIP4" : {
+			value : function(net, forceDirect){
 				const map = {};
-				if(null !== net){
+				if(net){
 					for(const t of this.endpointsList){
 						if(t.location === net.location){
-							const lan3 = t.lan3 && net.filterIp(t.lan3, true);
+							const lan3 = t.lan3 && (forceDirect || net.filterIp(t.lan3, true));
 							(lan3 && (map[lan3] = true));
 						}
 					}
@@ -1055,51 +1149,51 @@ const Target = f.defineClass(
 				}
 			}
 		},
-		"buildDnsViewIP4" : {
+		"resolveSmartIP4" : {
 			value : function(net, own, parent/*, location*/){
-				const modeDns = parent && parent.modeDns || this.modeDns;
-				if(modeDns === "use-router"){
+				const resolveMode = parent && parent.resolveMode || this.resolveMode;
+				if(resolveMode === "use-router"){
 					if(this.location){
-						return this.location.buildDnsViewIP4(net);
+						return this.location.resolveSmartIP4(net);
 					}
 				}
-				if(modeDns === "use-local"){
+				if(resolveMode === "use-local"){
 					if(net && net.location){
-						return net.location.buildDnsViewIP4(net);
+						return net.location.resolveSmartIP4(net);
 					}
 				}
-				if(modeDns === "direct"){
-					const result = this.buildDirectIP4(net);
+				if(resolveMode === "direct"){
+					const result = this.resolveDirectIP4(net, true);
 					if(result) return result;
 				}
 				const map = {};
-				if(modeDns === "use-wan"){
-					const result = this.buildDirectIP4(null);
+				if(resolveMode === "use-wan"){
+					const result = this.resolveDirectIP4(null);
 					if(result) return result;
 					if(this.location){
-						return this.location.buildDnsViewIP4(null);
+						return this.location.resolveSmartIP4(null);
 					}
 					for(const t of this.endpointsList){
-						for(const a of (t.buildDnsViewIP4(null, false, this) || [])){
+						for(const a of (t.resolveSmartIP4(null, false, this) || [])){
 							map[a] = true;
 						}
 					}
 					return Object.keys(map);
 				}
 				if(this.location){
-					return this.location.buildDnsViewIP4(net);
+					return this.location.resolveSmartIP4(net);
 				}
 				for(const t of this.endpointsList){
-					for(const a of (t.buildDnsViewIP4(net, false, this) || [])){
+					for(const a of (t.resolveSmartIP4(net, false, this) || [])){
 						map[a] = true;
 					}
 				}
 				{
 					const keys = Object.keys(map);
 					if(!keys.length) return undefined;
-					if(null !== net && net.location){
+					if(net && net.location){
 						if(keys.length > 1){
-							const view = net.location.buildDnsViewIP4(net);
+							const view = net.location.resolveSmartIP4(net);
 							if(view) return view;
 						}
 					}
@@ -1158,7 +1252,7 @@ const Target = f.defineClass(
 
 
 
-const TargetStatic = f.defineClass(
+const TargetStatic = Class.create(
 	"TargetStatic",
 	Target,
 	function(config, key, source, proxyHttp, proxyHttps, redirectHttp, redirectHttps){
@@ -1191,10 +1285,6 @@ const TargetStatic = f.defineClass(
 		"redirectHttps" : {
 			value : null
 		},
-		"modeDns" : {
-			// null, 'use-wan', 'use-router', 'direct', 'local', 'remote', 'static'
-			value : null
-		},
 		"endpointsToMap" : {
 			value : function(mapInitial){
 				const map = mapInitial || {};
@@ -1213,39 +1303,39 @@ const TargetStatic = f.defineClass(
 				return [ new UpstreamObject() ];
 			}
 		},
-		"buildDirectIP4" : {
+		"resolveDirectIP4" : {
 			// leads to l6routes
 			value : function(net){
 				if(this.location){
-					return this.location.buildDirectIP4(net);
+					return this.location.resolveDirectIP4(net);
 				}
-				if(null !== net){
+				if(net){
 					if(net.location){
-						return net.location.buildDirectIP4(net);
+						return net.location.resolveDirectIP4(net);
 					}
 					if(this.config.location){
-						return this.config.location.buildDirectIP4(net);
+						return this.config.location.resolveDirectIP4(net);
 					}
 				}
-				return this.config.buildDirectIP4(net);
+				return this.config.resolveDirectIP4(net);
 			}
 		},
-		"buildDnsViewIP4" : {
+		"resolveSmartIP4" : {
 			value : function(net, own, parent/*, location*/){
-				const modeDns = parent && parent.modeDns || this.modeDns;
+				const resolveMode = parent && parent.resolveMode || this.resolveMode;
 				if(own){
 					return undefined;
 				}
-				if(modeDns === "direct" || modeDns === "use-router"){
-					return this.buildDirectIP4(net);
+				if(resolveMode === "direct" || resolveMode === "use-router"){
+					return this.resolveDirectIP4(net);
 				}
-				if(!modeDns && !this.location){
-					return this.config.buildDnsViewIP4(net);
+				if(!resolveMode && !this.location){
+					return this.config.resolveSmartIP4(net);
 				}
-				if(modeDns === "use-wan"){
-					return this.buildDirectIP4(null);
+				if(resolveMode === "use-wan"){
+					return this.resolveDirectIP4(null);
 				}
-				return this.buildDirectIP4(net);
+				return this.resolveDirectIP4(net);
 			}
 		},
 		"toString" : {
@@ -1261,7 +1351,7 @@ const TargetStatic = f.defineClass(
 
 
 
-const TargetMultiple = f.defineClass(
+const TargetMultiple = Class.create(
 	"TargetMultiple",
 	Target,
 	function(config, key, source, target){
@@ -1317,7 +1407,7 @@ const TargetMultiple = f.defineClass(
 
 
 
-const TargetSingle = f.defineClass(
+const TargetSingle = Class.create(
 	"TargetSingle",
 	TargetMultiple,
 	function(config, key, source, target){
@@ -1350,7 +1440,7 @@ const TargetSingle = f.defineClass(
 
 
 
-const UpstreamObject = f.defineClass(
+const UpstreamObject = Class.create(
 	"UpstreamObject",
 	undefined,
 	function(){
@@ -1370,7 +1460,7 @@ const UpstreamObject = f.defineClass(
 
 
 
-const Locations = f.defineClass(
+const Locations = Class.create(
 	"Locations",
 	ListAndMap,
 	function(config, source){
@@ -1416,7 +1506,7 @@ const Locations = f.defineClass(
 
 
 
-const Servers = f.defineClass(
+const Servers = Class.create(
 	"Servers",
 	ListAndMap,
 	function(config, source){
@@ -1473,7 +1563,7 @@ const Servers = f.defineClass(
 
 
 
-const Routers = f.defineClass(
+const Routers = Class.create(
 	"Routers",
 	Servers,
 	function(config, source){
@@ -1523,7 +1613,7 @@ const Routers = f.defineClass(
 
 
 
-const Targets = f.defineClass(
+const Targets = Class.create(
 	"Targets",
 	ListAndMap,
 	function(config, source){
@@ -1578,7 +1668,7 @@ const Targets = f.defineClass(
 
 
 
-const Routing = f.defineClass(
+const Routing = Class.create(
 	"Routing",
 	SourceObject,
 	function(config, source){
@@ -1619,7 +1709,7 @@ const Routing = f.defineClass(
 
 
 
-const Domains = f.defineClass(
+const Domains = Class.create(
 	"Domains",
 	ListAndMap,
 	function(config, source){
@@ -1659,7 +1749,7 @@ const Domains = f.defineClass(
 );
 
 
-const Domain = f.defineClass(
+const Domain = Class.create(
 	"Domain",
 	SourceObject,
 	/* (".myx.ru"...) */
@@ -1731,7 +1821,7 @@ const Domain = f.defineClass(
 );
 
 
-const DomainStatic = f.defineClass(
+const DomainStatic = Class.create(
 	"DomainStatic",
 	Domain,
 	function(key, config, source){
@@ -1774,7 +1864,7 @@ const DomainStatic = f.defineClass(
 
 
 
-const DomainInfrastructure = f.defineClass(
+const DomainInfrastructure = Class.create(
 	"DomainInfrastructure",
 	DomainStatic,
 	function(key, config, source){
@@ -1810,7 +1900,7 @@ const DomainInfrastructure = f.defineClass(
 );
 
 
-const DomainDedicated = f.defineClass(
+const DomainDedicated = Class.create(
 	"DomainDedicated",
 	DomainStatic,
 	function(key, config, source){
@@ -1831,7 +1921,7 @@ const DomainDedicated = f.defineClass(
 );
 
 
-const DomainDeletaged = f.defineClass(
+const DomainDeletaged = Class.create(
 	"DomainDelegated",
 	Domain,
 	function(key, config, source){
@@ -1865,7 +1955,7 @@ const DomainDeletaged = f.defineClass(
 	}
 );
 
-const DomainSlave = f.defineClass(
+const DomainSlave = Class.create(
 	"DomainSlave",
 	Domain,
 	function(key, config, source){
@@ -1900,7 +1990,7 @@ const DomainSlave = f.defineClass(
 );
 
 
-const DnsStatic = f.defineClass(
+const DnsStatic = Class.create(
 	"DnsStatic",
 	ListAndMap,
 	function(config, source){
@@ -1939,7 +2029,7 @@ const DnsStatic = f.defineClass(
 	}
 );
 
-const DnsTypeStatic = f.defineClass(
+const DnsTypeStatic = Class.create(
 	"DnsTypeStatic",
 	ListAndMap,
 	function(key, config, source){
@@ -1977,7 +2067,7 @@ const DnsTypeStatic = f.defineClass(
 
 
 
-const DnsRecordStatic = f.defineClass(
+const DnsRecordStatic = Class.create(
 	"DnsRecordStatic",
 	undefined,
 	function(key, value){
@@ -2014,11 +2104,11 @@ const DnsRecordStatic = f.defineClass(
 
 
 
-const Configuration = f.defineClass(
+const Configuration = Class.create(
 	"Configuration",
-	SourceObject,
+	ResolvableObject,
 	function(source){
-		this.SourceObject(source);
+		this.ResolvableObject(this, source);
 		Object.defineProperties(this, {
 			"locations" : {
 				value : new Locations(this, source.locations)
@@ -2083,25 +2173,13 @@ const Configuration = f.defineClass(
 			// ListAndMap instance 
 			value : null
 		},
-		"wan3smart" : {
-			// Array of external IPs for Layer3 access (length is likely 1 or 0, but could have several WAN IPs of all the routers) 
-			get : function(){
-				return this.buildDnsViewIP4(null);
-			}
-		},
-		"lan3smart" : {
-			// Array of local IPs for Layer3 access (length is likely 1 or 0, but could have several LAN IPs of all the routers) 
-			get : function(){
-				return this.buildDnsViewIP4(this.location && this.location.lans || null);
-			}
-		},
-		"buildDirectIP4" : {
+		"resolveDirectIP4" : {
 			// leads to l6routes
 			value : function(net){
 				const result = {};
 				for(var l of this.locations.list){
 					if(l.routers.list.some(function(x){ return x.router === 'active'; })){
-						const ips = l.buildDirectIP4(net);
+						const ips = l.resolveDirectIP4(net);
 						for(const ip of (ips || [])){
 							result[ip] = true;
 						}
@@ -2109,7 +2187,7 @@ const Configuration = f.defineClass(
 					}
 					for(var i of l.routers.list){
 						if(i.router === 'active' && i.wan3){
-							const ips = i.buildDirectIP4(net);
+							const ips = i.resolveDirectIP4(net);
 							for(const ip of (ips || [])){
 								result[ip] = true;
 							}
@@ -2121,13 +2199,14 @@ const Configuration = f.defineClass(
 				return keys.length ? keys : undefined;
 			}
 		},
-		"buildDnsViewIP4" : {
+		"resolveSmartIP4" : {
 			value : function(net){
 				{
-					const result = this.buildDirectIP4(net);
+					const result = this.resolveDirectIP4(net);
 					if(result) return result;
 				}
 				{
+					const result = [];
 					for(var l of this.locations.list){
 						for(var i of this.routers.list){
 							if(i.router === 'testing' && i.wan3){
@@ -2137,6 +2216,20 @@ const Configuration = f.defineClass(
 					}
 					return Object.keys(result);
 				}
+			}
+		},
+		"resolveByName" : {
+			value : function(t, net){
+				if(this.location){
+					return this.location.resolveByName(t, net);
+				}
+				{
+					const r = this.config.targets.map[t] || this.config.servers.map[t];
+					if(r){
+						return r.resolveSmartIP4(net || null);
+					}
+				}
+				return undefined;
 			}
 		},
 		"view" : {
@@ -2169,9 +2262,9 @@ const Configuration = f.defineClass(
 				return Object.values(map);
 			}
 		},
-		"findLanForClient" : {
+		"networkForClient" : {
 			value : function(ip){
-				return this.location && this.location.findLanForClient(ip) || undefined;
+				return this.location && this.location.networkForClient(ip) || undefined;
 			}
 		},
 		"dnsViewLocal" : {
@@ -2204,7 +2297,7 @@ const Configuration = f.defineClass(
 					}
 					const name = domain.filterName(i.key);
 					if(name){
-						const a = i.buildDnsViewIP4(net);
+						const a = i.resolveSmartIP4(net);
 						if(a){
 							arecds.put(name, new DnsRecordStatic(name, a));
 						}
