@@ -1980,40 +1980,39 @@ const DomainDedicated = Class.create(
 			value : function(net){
 				const result = new DomainStatic(this.key, this.config, this.source);
 
-				const arecds = result.dnsTypeA;
-				const nrecds = result.dnsTypeNS;
+				const recsA = result.dnsTypeA;
+				const recsN = result.dnsTypeNS;
 
 				for(let i of this.config.targetListDns){
-					if(arecds.map[i.key]) continue;
+					if(recsA.map[i.key]) continue;
 					const name = this.filterName(i.key);
 					if(name){
 						const a = i.resolveSmartIP4(net);
-						a && arecds.put(name, new DnsRecordStatic(name, a, 'target-' + i));
+						a && recsA.put(name, new DnsRecordStatic(name, a, 'target-' + i));
 					}
 				}
-				if(!arecds.map["*"] || !arecds.map["@"]){
+				if(!recsA.map["*"] || !recsA.map["@"]){
 					const a = this.config.resolveSmartIP4(net);
-					arecds.map["*"] || arecds.put("*", new DnsRecordStatic("*", a, 'config'));
-					arecds.map["@"] || arecds.put("@", new DnsRecordStatic("@", a, 'config'));
+					recsA.map["*"] || recsA.put("*", new DnsRecordStatic("*", a, 'config'));
+					recsA.map["@"] || recsA.put("@", new DnsRecordStatic("@", a, 'config'));
 					this.config.locations.list.forEach(function(v){
 						const name = this.filterName(v.key);
-						if(name && !arecds.map[name]){
+						if(name && !recsA.map[name]){
 							const a = v.resolveSmartIP4(net);
 							if(a && a.length){
-								arecds.put(name, new DnsRecordStatic(name, a, 'location'));
+								recsA.put(name, new DnsRecordStatic(name, a, 'location'));
 							} 
 						}
 					}, this);
 				}
 
-
-				if(!nrecds.map["@"]){
+				if(!recsN.map["@"]){
 					const map = {};
 					this.config.locations.list.forEach(function(v){
 						/**
 						const a = v.resolveSmartIP4(net);
 						if(a && a.length){
-							arecds.put(name, new DnsRecordStatic(name, a, 'location'));
+							recsA.put(name, new DnsRecordStatic(name, a, 'location'));
 							return;
 						} 
 						*/
@@ -2032,11 +2031,11 @@ const DomainDedicated = Class.create(
 							});
 						}
 					});
-					nrecds.put("@", new DnsRecordStatic("@", Object.keys(map), 'config'));
+					recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config'));
 				}
 
-				arecds.sort(DnsRecordStatic.compare);
-				nrecds.sort(DnsRecordStatic.compare);
+				recsA.sort(DnsRecordStatic.compare);
+				recsN.sort(DnsRecordStatic.compare);
 				
 				return result;
 			},
