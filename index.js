@@ -2010,6 +2010,13 @@ const DomainDedicated = Class.create(
 				if(!nrecds.map["@"]){
 					const map = {};
 					this.config.locations.list.forEach(function(v){
+						/**
+						const a = v.resolveSmartIP4(net);
+						if(a && a.length){
+							arecds.put(name, new DnsRecordStatic(name, a, 'location'));
+							return;
+						} 
+						*/
 						const a = v.resolveDirectIP4(net);
 						if(a && a.length){
 							for(const i of a){
@@ -2017,7 +2024,7 @@ const DomainDedicated = Class.create(
 							}
 						}else{
 							v.routers.list.forEach(function(v){
-								if(v.router === 'active' || v.router ==='testing'){
+								if(v.router === 'active' /*|| v.router ==='testing'*/){
 									for(const i of (v.resolveDirectIP4(net) || [])){
 										map[i] = true;
 									}
