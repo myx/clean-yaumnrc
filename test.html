@@ -285,10 +285,25 @@
 					output.appendChild(d);
 				}
 				
-				out('Config', config);
-				out('Locations', config.locations);
-				out('Servers', config.servers);
-				out('Routers', config.routers);
+				{
+					out('Config' + config);
+					out('Locations', config.locations);
+					out('Servers', config.servers);
+					out('Routers', config.routers);
+
+					function resolve(host){
+						out(' Config.resolveForHost("'+host+'")', config.resolveForHost(host));
+					}
+					resolve("l6h1.myx.ru");
+					resolve("l6h1.myx.co.nz");
+					resolve("l6o3.myx.ru");
+					resolve("l6o3.myx.co.nz");
+					resolve("mpxy-direct.myx.ru");
+					resolve("mpxy-default.myx.ru");
+					resolve("mpxy-direct.myx.co.nz");
+					resolve("mpxy-default.myx.co.nz");
+
+				}
 
 				function dumpLocation(name){
 					out('location: ' + name);

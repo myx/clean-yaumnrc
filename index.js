@@ -22,7 +22,7 @@
  *  .networkXXX - L2, L3/CIDR segment (like 192.168.3.0/24;192.168.7.0/24)
  * 
  * 
- * 
+ *  .locations
  *  .servers
  *  .targets
  *  .routing
@@ -425,13 +425,92 @@ const Networks = Class.create(
 );
 
 
+
+const ListAndMap = Class.create(
+	"ListAndMap",
+	undefined,
+	function(){
+		Object.defineProperties(this, {
+			"list" : {
+				value : []
+			},
+			"map" : {
+				value : {}
+			},
+			"idx" : {
+				value : {}
+			},
+		});
+		return this;
+	}, {
+		"isEmpty" : {
+			value : function(){
+				return this.list.length == 0;
+			}
+		},
+		"list" : {
+			// instance list (items accessible by index, Array)
+			value : null
+		},
+		"map" : {
+			// instance map (items accessible by key, Object)
+			value : null
+		},
+		"keys" : {
+			// returns array of all map keys, Array
+			get : function(){
+				return Object.keys(this.map);
+			}
+		},
+		"idx" : {
+			// instance map (item array index by key, Object)
+			value : null
+		},
+		"put" : {
+			value : function(key, value){
+				const idx = this.idx[key];
+				if('number' === typeof idx){
+					this.list[idx] = value;
+					this.map[key] = value;
+					return;
+				}
+				this.idx[key] = this.list.length;
+				this.map[key] = value;
+				this.list.push(value);
+				return;
+			}
+		},
+		"sort" : {
+			value : function(compare){
+				this.list.sort(compare);
+				this.list.forEach(function(value, idx) {
+					for(const key in this.map){
+						if(this.map[key] === value){
+							this.idx[key] = idx;
+							return;
+						}
+					}
+					throw new Error("Can't find key for idx: " + idx + ", value: " + value);
+				}, this);
+				return this;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc ListAndMap(" + this.list.length + ", [" + Object.keys(this.idx) + "])]";
+			}
+		}
+	}
+);
+
+
+
+
 const SourceObject = Class.create(
 	"SourceObject",
 	undefined,
 	function(source){
-		if(undefined !== source){
-			f.defineProperty(this, 'source', source);
-		}
+		(undefined !== source) && f.defineProperty(this, 'source', source);
 		return this;
 	},{
 		"source" : {
@@ -522,79 +601,6 @@ const SourceObject = Class.create(
 );
 
 
-const ListAndMap = Class.create(
-	"ListAndMap",
-	SourceObject,
-	function(source){
-		this.SourceObject(source);
-		Object.defineProperties(this, {
-			"list" : {
-				value : []
-			},
-			"map" : {
-				value : {}
-			},
-			"idx" : {
-				value : {}
-			},
-		});
-		return this;
-	}, {
-		"isEmpty" : {
-			value : function(){
-				return this.list.length == 0;
-			}
-		},
-		"list" : {
-			// instance list (items accessible by index, Array)
-			value : null
-		},
-		"map" : {
-			// instance map (items accessible by key, Object)
-			value : null
-		},
-		"keys" : {
-			// returns array of all map keys, Array
-			get : function(){
-				return Object.keys(this.map);
-			}
-		},
-		"idx" : {
-			// instance map (item array index by key, Object)
-			value : null
-		},
-		"put" : {
-			value : function(key, value){
-				const idx = this.idx[key];
-				if('number' === typeof idx){
-					this.list[idx] = value;
-					this.map[key] = value;
-					return;
-				}
-				this.idx[key] = this.list.length;
-				this.map[key] = value;
-				this.list.push(value);
-				return;
-			}
-		},
-		"toSourceObject" : {
-			value : function(){
-				return this.list.reduce(function(r, x){
-					r[x.key] = x.toSourceObject();
-					return r;
-				}, {});
-			}
-		},
-		"toString" : {
-			value : function(){
-				return "[yamnrc ListAndMap(" + this.list.length + ", [" + Object.keys(this.idx) + "])]";
-			}
-		}
-	}
-);
-
-
-
 
 
 const ConfigObject = Class.create(
@@ -602,7 +608,7 @@ const ConfigObject = Class.create(
 	SourceObject,
 	function(config, source){
 		this.SourceObject(source);
-		f.defineProperty(this, "config", config);
+		(undefined !== config) && f.defineProperty(this, "config", config);
 		return this;
 	},{
 		"config" : {
@@ -612,29 +618,6 @@ const ConfigObject = Class.create(
 		"toString" : {
 			value : function(){
 				return "[yamnrc ConfigObject(" + this.config + "])]";
-			}
-		}
-	}
-);
-
-
-
-// ConfigObject that is ListAndMap of SourceObjects
-const ConfigListAndMap = Class.create(
-	"ConfigListAndMap",
-	ListAndMap,
-	function(config, source){
-		this.ListAndMap(source);
-		f.defineProperty(this, "config", config);
-		return this;
-	},{
-		"config" : {
-			// parent configuration instance
-			value : null
-		},
-		"toString" : {
-			value : function(){
-				return "[yamnrc ConfigListAndMap(" + this.config + "])]";
 			}
 		}
 	}
@@ -1493,6 +1476,60 @@ const UpstreamObject = Class.create(
 
 
 
+// ConfigObject that is ListAndMap of SourceObjects
+const ConfigListAndMap = Class.create(
+	"ConfigListAndMap",
+	ListAndMap,
+	function(config, source){
+		this.ListAndMap();
+		this.ConfigObject(config, source);
+		return this;
+	},{
+		"config" : {
+			// parent configuration instance
+			value : null
+		},
+		"source" : {
+			// the source 'settings' object, from which this object was constructed
+			value : null
+		},
+		"SourceObject" : {
+			value : SourceObject
+		},
+		"ConfigObject" : {
+			value : ConfigObject
+		},
+		"toSourceNonSecure" : {
+			value : SourceObject.prototype.toSourceNonSecure
+		},
+		"toSource" : {
+			value : SourceObject.prototype.toSource
+		},
+		"toSourceObjectNonSecure" : {
+			value : SourceObject.prototype.toSourceObjectNonSecure
+		},
+		"toSourceObject" : {
+			value : function(){
+				return this.list.reduce(function(r, x){
+					r[x.key] = x.toSourceObject ? x.toSourceObject() : x;
+					return r;
+				}, {});
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc ConfigListAndMap(" + this.config + ", " + this.list.length + ", [" + Object.keys(this.idx) + "])]";
+			}
+		}
+	}
+);
+
+
+
+
+
+
+
 
 
 const Locations = Class.create(
@@ -1867,35 +1904,14 @@ const DomainStatic = Class.create(
 		"DnsStatic" : {
 			value : Class.create(
 				"DnsStatic",
-				ListAndMap,
+				ConfigListAndMap,
 				function(config, source){
-					this.ListAndMap(source || {});
-					Object.defineProperties(this, {
-						"config" : {
-							value : config
-						},
-						"types" : {
-							value : []
-						}
-					});
-					if(source){
-						for(let key in source){
-							this.put(key, new DnsTypeStatic(key, source[key]));
-						}
+					this.ConfigListAndMap(config, source || {});
+					if(source) for(let key in source){
+						this.put(key, new DnsTypeStatic(key, config, source[key]));
 					}
 					return this;
 				},{
-					"toSourceObject" : {
-						value : function(){
-							return this.isEmpty()
-								? undefined
-								: this.list.reduce(function(r, x){
-									r[x.key] = x.toSourceObject();
-									return r;
-								}, {})
-							;
-						}
-					},
 					"toString" : {
 						value : function(){
 							return "[yamnrc DnsStatic()]";
@@ -1918,7 +1934,7 @@ const DomainStatic = Class.create(
 			get : function(){
 				var records = this.dns.map["A"];
 				if(!records) {
-					records = new DnsTypeStatic("A", {});
+					records = new DnsTypeStatic("A", this.config);
 					this.dns.put('A', records);
 				}
 				return records;
@@ -1990,6 +2006,12 @@ const DomainInfrastructure = Class.create(
 						const a = i.resolveSmartIP4(net);
 						a && arecds.put(name, new DnsRecordStatic(name, a, 'target-' + i));
 					}
+				}
+				if(!arecds.map["*"] || !arecds.map["@"]){
+					const a = this.config.resolveSmartIP4(net);
+					arecds.map["*"] || arecds.put("*", new DnsRecordStatic("*", a, 'config'));
+					arecds.map["@"] || arecds.put("@", new DnsRecordStatic("@", a, 'config'));
+					arecds.sort(DnsRecordStatic.compare);
 				}
 				return result;
 			},
@@ -2129,14 +2151,10 @@ const DomainSlave = Class.create(
 
 const DnsTypeStatic = Class.create(
 	"DnsTypeStatic",
-	ListAndMap,
-	function(key, source){
-		this.ListAndMap(source || {});
-		Object.defineProperties(this, {
-			"key" : {
-				value : key
-			}
-		});
+	ConfigListAndMap,
+	function(key, config, source){
+		this.ConfigListAndMap(config, source || {});
+		f.defineProperty(this, "key", key);
 		if(source){
 			for(let key in source){
 				this.put(key, new DnsRecordStatic(key, source[key], 'static'));
@@ -2188,6 +2206,17 @@ const DnsRecordStatic = Class.create(
 		"toString" : {
 			value : function(){
 				return "[yamnrc DnsRecordStatic("+this.key+")]";
+			}
+		}
+	},{
+		"compare" : {
+			value : function(a, b){
+				return a.key < b.key
+					? -1
+					: a.key === b.key
+						? 0
+						: 1
+				;
 			}
 		}
 	}
