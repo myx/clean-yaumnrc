@@ -1980,7 +1980,33 @@ const DomainDedicated = Class.create(
 			value : function(net){
 				const result = new DomainStatic(this.key, this.config, this.source);
 
+				const arecds = result.dnsTypeA;
 				const nrecds = result.dnsTypeNS;
+
+				for(let i of this.config.targetListDns){
+					if(arecds.map[i.key]) continue;
+					const name = this.filterName(i.key);
+					if(name){
+						const a = i.resolveSmartIP4(net);
+						a && arecds.put(name, new DnsRecordStatic(name, a, 'target-' + i));
+					}
+				}
+				if(!arecds.map["*"] || !arecds.map["@"]){
+					const a = this.config.resolveSmartIP4(net);
+					arecds.map["*"] || arecds.put("*", new DnsRecordStatic("*", a, 'config'));
+					arecds.map["@"] || arecds.put("@", new DnsRecordStatic("@", a, 'config'));
+					this.config.locations.list.forEach(function(v){
+						const name = this.filterName(v.key);
+						if(name && !arecds.map[name]){
+							const a = v.resolveSmartIP4(net);
+							if(a && a.length){
+								arecds.put(name, new DnsRecordStatic(name, a, 'location'));
+							} 
+						}
+					}, this);
+				}
+
+
 				if(!nrecds.map["@"]){
 					const map = {};
 					this.config.locations.list.forEach(function(v){
@@ -2002,23 +2028,8 @@ const DomainDedicated = Class.create(
 					nrecds.put("@", new DnsRecordStatic("@", Object.keys(map), 'config'));
 				}
 
-				const arecds = result.dnsTypeA;
-				for(let i of this.config.targetListDns){
-					if(arecds.map[i.key]){
-						continue;
-					}
-					const name = this.filterName(i.key);
-					if(name){
-						const a = i.resolveSmartIP4(net);
-						a && arecds.put(name, new DnsRecordStatic(name, a, 'target-' + i));
-					}
-				}
-				if(!arecds.map["*"] || !arecds.map["@"]){
-					const a = this.config.resolveSmartIP4(net);
-					arecds.map["*"] || arecds.put("*", new DnsRecordStatic("*", a, 'config'));
-					arecds.map["@"] || arecds.put("@", new DnsRecordStatic("@", a, 'config'));
-				}
 				arecds.sort(DnsRecordStatic.compare);
+				nrecds.sort(DnsRecordStatic.compare);
 				
 				return result;
 			},
