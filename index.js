@@ -1995,29 +1995,31 @@ const DomainDedicated = Class.create(
 					const a = this.config.resolveSmartIP4(net);
 					recsA.map["*"] || recsA.put("*", new DnsRecordStatic("*", a, 'config'));
 					recsA.map["@"] || recsA.put("@", new DnsRecordStatic("@", a, 'config'));
-					this.config.locations.list.forEach(function(v){
-						const name = this.filterName(v.key);
-						if(name && !recsA.map[name]){
-							const a = v.resolveSmartIP4(net);
-							if(a && a.length){
-								recsA.put(name, new DnsRecordStatic(name, a, 'location'));
-							} 
-						}
-					}, this);
 				}
+				this.config.locations.list.forEach(function(v){
+					const name = this.filterName(v.key);
+					if(name && !recsA.map[name]){
+						const a = v.resolveSmartIP4(net);
+						if(a && a.length){
+							recsA.put(name, new DnsRecordStatic(name, a, 'location'));
+						} 
+					}
+				}, this);
+
 
 				if(!recsN.map["@"]){
 					const map = {};
 					this.config.locations.list.forEach(function(l){
-						/**
 						const a = l.resolveSmartIP4(net);
 						if(a && a.length){
-							recsA.put(name, new DnsRecordStatic(name, a, 'location'));
+							for(const i of a){
+								map[i] = true;
+							}
 							return;
 						} 
-						*/
+						/*
 						for(const r of l.routers.list){
-							if(r.router === 'active' /*|| r.router ==='testing'*/){
+							if(r.router === 'active' || r.router ==='testing'){
 								// return location, not router
 								for(const i of (l.resolveSmartIP4(net) || [])){
 									map[i] = true;
@@ -2025,6 +2027,7 @@ const DomainDedicated = Class.create(
 								}
 							}
 						}
+						*/
 					});
 					recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config'));
 				}
