@@ -2008,27 +2008,22 @@ const DomainDedicated = Class.create(
 
 				if(!recsN.map["@"]){
 					const map = {};
-					this.config.locations.list.forEach(function(v){
+					this.config.locations.list.forEach(function(l){
 						/**
-						const a = v.resolveSmartIP4(net);
+						const a = l.resolveSmartIP4(net);
 						if(a && a.length){
 							recsA.put(name, new DnsRecordStatic(name, a, 'location'));
 							return;
 						} 
 						*/
-						const a = v.resolveDirectIP4(net);
-						if(a && a.length){
-							for(const i of a){
-								map[i] = true;
-							}
-						}else{
-							v.routers.list.forEach(function(v){
-								if(v.router === 'active' /*|| v.router ==='testing'*/){
-									for(const i of (v.resolveDirectIP4(net) || [])){
-										map[i] = true;
-									}
+						for(const r of l.routers.list){
+							if(r.router === 'active' /*|| r.router ==='testing'*/){
+								// return location, not router
+								for(const i of (l.resolveSmartIP4(net) || [])){
+									map[i] = true;
+									return;
 								}
-							});
+							}
 						}
 					});
 					recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config'));
