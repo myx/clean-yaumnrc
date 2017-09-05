@@ -857,15 +857,9 @@ const Location = Class.create(
 				}
 			}
 		},
-		"resolveByName" : {
+		"resolveForHost" : {
 			value : function(t, net){
-				{
-					const r = this.config.targets.map[t] || this.config.servers.map[t];
-					if(r){
-						return r.resolveSmartIP4(net || this.lans || null);
-					}
-				}
-				return undefined;
+				return this.config.resolveForHost(t, net || this.lans || null);
 			}
 		},
 		"tap3smart" : {
@@ -1727,6 +1721,27 @@ const Domains = Class.create(
 				}
 			}
 		},
+		"domainForHost" : {
+			value : function(host){
+				var l = 0, r = undefined;
+				for(const d of this.list){
+					if(host.endsWith(d.key) && d.key.length > l){
+						l = d.key.length;
+						r = d;
+					}
+				}
+				return r;
+			}
+		},
+		"resolveForHost" : {
+			value : function(host, net){
+				const domain = this.domainForHost(host);
+				return domain && domain.resolveForHost
+					? domain.resolveForHost(host, net)
+					: undefined
+				;
+			}
+		},
 		"staticViewWan" : {
 			execute : "once",
 			get : function(){
@@ -1903,10 +1918,18 @@ const DomainStatic = Class.create(
 			get : function(){
 				var records = this.dns.map["A"];
 				if(!records) {
-					records = new DnsTypeStatic("A", []);
+					records = new DnsTypeStatic("A", {});
 					this.dns.put('A', records);
 				}
 				return records;
+			}
+		},
+		"resolveForHost" : {
+			value : function(host, net){
+				const records = this.dns.map["A"];
+				if(!records) return undefined;
+				const record = records.map[host+'.'];
+				return record && record.value || undefined;
 			}
 		},
 		"toSourceObject" : {
@@ -2288,18 +2311,21 @@ const Configuration = Class.create(
 				}
 			}
 		},
-		"resolveByName" : {
-			value : function(t, net){
-				if(this.location){
-					return this.location.resolveByName(t, net);
-				}
+		"resolveForHost" : {
+			value : function(host, net){
+				const n = net || this.location && this.location.lans || null;
 				{
-					const r = this.config.targets.map[t] || this.config.servers.map[t];
-					if(r){
-						return r.resolveSmartIP4(net || null);
-					}
+					const r = this.routing.domains.makeStaticView(net).resolveForHost(host, n);
+					if(r) return r;
 				}
-				return undefined;
+				if(false){
+					const r = this.routing.domains.resolveForHost(host, n);
+					if(r) return r;
+				} 
+				{
+					const target = this.targets.map[host] || this.servers.map[host];
+					return target && target.resolveSmartIP4(n) || undefined;
+				}
 			}
 		},
 		"view" : {
@@ -2342,9 +2368,9 @@ const Configuration = Class.create(
 		"dnsViewLocal" : {
 			execute : "once",
 			get : function(){
-				return this.routing.domains.makeStaticView(this.location 
-					? this.location.lans 
-					: Networks.LOCAL
+				return this.routing.domains.makeStaticView(
+					this.location && this.location.lans || null
+					/* Networks.LOCAL */
 				);
 			}
 		},

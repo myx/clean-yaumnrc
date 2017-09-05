@@ -302,7 +302,7 @@
 					out(' Location.routers', location.routers);
 
 					function resolve(host){
-						out(' Location.resolveByName("'+host+'")', location.resolveByName(host));
+						out(' Location.resolveForHost("'+host+'")', location.resolveForHost(host));
 					}
 					resolve("l6h1.myx.ru");
 					resolve("l6h1.myx.co.nz");
@@ -310,6 +310,8 @@
 					resolve("l6o3.myx.co.nz");
 					resolve("mpxy-direct.myx.ru");
 					resolve("mpxy-default.myx.ru");
+					resolve("mpxy-direct.myx.co.nz");
+					resolve("mpxy-default.myx.co.nz");
 					
 					if(view.location.lans) for(var lan of view.location.lans.list){
 						out(' Lan(' + lan + ').key', lan.key);
