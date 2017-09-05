@@ -2007,6 +2007,23 @@ const DomainDedicated = Class.create(
 		"mode" : {
 			value : "dedicated"
 		},
+		"makeStaticView" : {
+			value : function(net){
+				const result = new DomainStatic(this.key, this.config, this.source);
+				const arecds = result.dnsTypeA;
+				for(let i of this.config.targetListDns){
+					if(arecds.map[i.key]){
+						continue;
+					}
+					const name = this.filterName(i.key);
+					if(name){
+						const a = i.resolveSmartIP4(net);
+						a && arecds.put(name, new DnsRecordStatic(name, a, 'target-' + i));
+					}
+				}
+				return result;
+			},
+		},
 		"toString" : {
 			value : function(){
 				return "[yamnrc DomainDedicated("+this.key+")]";
