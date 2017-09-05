@@ -655,15 +655,13 @@ const ResolvableObject = Class.create(
 		},
 		"wan3smart" : {
 			// Array of external IPs for Layer3 access (length is likely 1 or 0, but could have several WAN IPs of all the routers) 
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				return this.resolveSmartIP4(null);
 			}
 		},
 		"lan3smart" : {
 			// Array of local IPs for Layer3 access (length is likely 1 or 0, but could have several LAN IPs of all the routers) 
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				return this.resolveSmartIP4(this.config.location && this.config.location.lans || null);
 			}
 		},
@@ -707,9 +705,7 @@ const Location = Class.create(
 				const lan = f.parseNetwork(x, undefined, 24);
 				if(lan){
 					f.defineProperty(lan, 'location', self);
-					if(!r){
-						return lan;
-					}
+					if(!r) return lan;
 					if(r.Networks){
 						r.addNetwork(lan);
 					}else{
@@ -737,12 +733,6 @@ const Location = Class.create(
 			"tap3" : {
 				value : tap3
 			},
-			"name" : {
-				value : source.name || key
-			},
-			"title" : {
-				value : source.title || source.name || key
-			},
 			"servers" : {
 				value : new ListAndMap()
 			},
@@ -766,8 +756,7 @@ const Location = Class.create(
 		},
 		"lan3" : {
 			// Array of local IPs for Layer3 access (gateway, dns-server) 
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				if(this.lans){
 					if(this.lans.list){
 						return this.lans.list.reduce(function(r, x){ 
@@ -866,11 +855,15 @@ const Location = Class.create(
 		},
 		"name" : {
 			// name or key of given instance 
-			value : null
+			execute : "once", get : function(){
+				return this.source && this.source.name || this.key;
+			}
 		},
 		"title" : {
 			// title, name or key of given instance 
-			value : null
+			execute : "once", get : function(){
+				return this.source && this.source.title || this.name;
+			}
 		},
 		"servers" : {
 			// ListAndMap instance 
@@ -920,17 +913,7 @@ const Server = Class.create(
 	ResolvableObject,
 	function(config, key, source){
 		this.ResolvableObject(config, source);
-		Object.defineProperties(this, {
-			"key" : {
-				value : key
-			},
-			"wan3" : {
-				value : source.wan && source.wan.ip
-			},
-			"lan3" : {
-				value : source.lan && source.lan.ip
-			},
-		});
+		f.defineProperty(this, "key", key);
 		return this;
 	}, {
 		"key" : {
@@ -939,20 +922,24 @@ const Server = Class.create(
 		},
 		"wan3" : {
 			// null or Array of external IPs for Layer3 access 
-			value : null
+			execute : "once", get : function(){
+				return this.source.wan && this.source.wan.ip;
+			}
 		},
 		"lan3" : {
 			// null or Array of local network IPs for Layer3 access 
-			value : null
+			execute : "once", get : function(){
+				return this.source.lan && this.source.lan.ip;
+			}
 		},
 		"location" : {
-			get : function(){
+			execute : "once", get : function(){
 				return this.config.locations.map[this.source.location];
 			}
 		},
 		"selected" : {
 			get : function(){
-				return this == this.config.server;
+				return this === this.config.server;
 			}
 		},
 		"endpointsToMap" : {
@@ -965,8 +952,7 @@ const Server = Class.create(
 		},
 		"endpointsMap" : {
 			// to be functionally compatible with Target objects
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				return this.endpointsToMap({});
 			}
 		},
@@ -1043,14 +1029,7 @@ const Router = Class.create(
 	Server,
 	function(config, key, source){
 		this.Server(config, key, source);
-		Object.defineProperties(this, {
-			"router" : {
-				value : source.router
-			},
-			"tap3" : {
-				value : source.tap && source.tap.ip
-			},
-		});
+		f.defineProperty(this, "router", source.router);
 		return this;
 	}, {
 		"router" : {
@@ -1059,7 +1038,9 @@ const Router = Class.create(
 		},
 		"tap3" : {
 			// null or Array of tinc-tap network IPs for Layer3 access 
-			value : null
+			execute : "once", get : function(){
+				return this.source.tap && this.source.tap.ip;
+			}
 		},
 		"toString" : {
 			value : function(){
@@ -1083,19 +1064,17 @@ const Target = Class.create(
 	ResolvableObject,
 	function(config, key, source){
 		this.ResolvableObject(config, source);
-		Object.defineProperties(this, {
-			"key" : {
-				value : key
-			},
-			"location" : {
-				value : source.location && config.locations.map[source.location]
-			},
-		});
+		f.defineProperty(this, "key", key);
 		return this;
 	}, {
 		"key" : {
 			// key of given instance 
 			value : null
+		},
+		"location" : {
+			execute : "once", get : function(){
+				return this.source.location && this.config.locations.map[this.source.location];
+			}
 		},
 		"endpointsToMap" : {
 			value : function(mapInitial){
@@ -1104,8 +1083,7 @@ const Target = Class.create(
 			}
 		},
 		"endpointsMap" : {
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				return this.endpointsToMap({});
 			}
 		},
@@ -1121,8 +1099,7 @@ const Target = Class.create(
 			}
 		},
 		"hasLocalEndpoints" : {
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				for(const target of this.endpointsList){
 					if(!target.location || target.location === this.config.location){
 						return true;
@@ -1780,14 +1757,12 @@ const Domains = Class.create(
 			}
 		},
 		"staticViewWan" : {
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				return this.makeStaticView(null);
 			}
 		},
 		"staticViewLan" : {
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				const l = this.config.location;
 				return this.makeStaticView(l && l.lans || null);
 			}
@@ -1930,12 +1905,22 @@ const DomainStatic = Class.create(
 			value : undefined
 		},
 		"dnsTypeA" : {
-			execute : "once",
-			get : function(){
-				var records = this.dns.map["A"];
+			execute : "once", get : function(){
+				return this.ensureDnsTypeByName("A");
+			}
+		},
+		"dnsTypeNS" : {
+			execute : "once", get : function(){
+				return this.ensureDnsTypeByName("NS");
+			}
+		},
+		"ensureDnsTypeByName" : {
+			// Uppercase letters, like: A, AAAA, NS, MX, TXT
+			value : function(typeName){
+				var records = this.dns.map[typeName];
 				if(!records) {
-					records = new DnsTypeStatic("A", this.config);
-					this.dns.put('A', records);
+					records = new DnsTypeStatic(typeName, this.config);
+					this.dns.put(typeName, records);
 				}
 				return records;
 			}
@@ -1970,25 +1955,23 @@ const DomainStatic = Class.create(
 
 
 
-const DomainInfrastructure = Class.create(
-	"DomainInfrastructure",
+const DomainDedicated = Class.create(
+	"DomainDedicated",
 	DomainStatic,
 	function(key, config, source){
 		this.DomainStatic(key, config, source);
 		return this;
 	}, {
 		"mode" : {
-			value : "infrastructure"
+			value : "dedicated"
 		},
 		"staticViewWan" : {
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				return this.makeStaticView(null);
 			}
 		},
 		"staticViewLan" : {
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				const l = this.config.location;
 				return this.makeStaticView(l && l.lans || null);
 			}
@@ -1996,6 +1979,29 @@ const DomainInfrastructure = Class.create(
 		"makeStaticView" : {
 			value : function(net){
 				const result = new DomainStatic(this.key, this.config, this.source);
+
+				const nrecds = result.dnsTypeNS;
+				if(!nrecds.map["@"]){
+					const map = {};
+					this.config.locations.list.forEach(function(v){
+						const a = v.resolveDirectIP4(net);
+						if(a && a.length){
+							for(const i of a){
+								map[i] = true;
+							}
+						}else{
+							v.routers.list.forEach(function(v){
+								if(v.router === 'active' || v.router ==='testing'){
+									for(const i of (v.resolveDirectIP4(net) || [])){
+										map[i] = true;
+									}
+								}
+							});
+						}
+					});
+					nrecds.put("@", new DnsRecordStatic("@", Object.keys(map), 'config'));
+				}
+
 				const arecds = result.dnsTypeA;
 				for(let i of this.config.targetListDns){
 					if(arecds.map[i.key]){
@@ -2011,10 +2017,36 @@ const DomainInfrastructure = Class.create(
 					const a = this.config.resolveSmartIP4(net);
 					arecds.map["*"] || arecds.put("*", new DnsRecordStatic("*", a, 'config'));
 					arecds.map["@"] || arecds.put("@", new DnsRecordStatic("@", a, 'config'));
-					arecds.sort(DnsRecordStatic.compare);
 				}
+				arecds.sort(DnsRecordStatic.compare);
+				
 				return result;
 			},
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc DomainDedicated("+this.key+")]";
+			}
+		}
+	}, {
+		
+	}
+);
+
+
+
+
+
+
+const DomainInfrastructure = Class.create(
+	"DomainInfrastructure",
+	DomainDedicated,
+	function(key, config, source){
+		this.DomainDedicated(key, config, source);
+		return this;
+	}, {
+		"mode" : {
+			value : "infrastructure"
 		},
 		"filterName" : {
 			value : function(x){
@@ -2042,45 +2074,12 @@ const DomainInfrastructure = Class.create(
 );
 
 
-const DomainDedicated = Class.create(
-	"DomainDedicated",
-	DomainStatic,
-	function(key, config, source){
-		this.DomainStatic(key, config, source);
-		return this;
-	}, {
-		"mode" : {
-			value : "dedicated"
-		},
-		"makeStaticView" : {
-			value : function(net){
-				const result = new DomainStatic(this.key, this.config, this.source);
-				const arecds = result.dnsTypeA;
-				for(let i of this.config.targetListDns){
-					if(arecds.map[i.key]){
-						continue;
-					}
-					const name = this.filterName(i.key);
-					if(name){
-						const a = i.resolveSmartIP4(net);
-						a && arecds.put(name, new DnsRecordStatic(name, a, 'target-' + i));
-					}
-				}
-				return result;
-			},
-		},
-		"toString" : {
-			value : function(){
-				return "[yamnrc DomainDedicated("+this.key+")]";
-			}
-		}
-	}, {
-		
-	}
-);
 
 
-const DomainDeletaged = Class.create(
+
+
+
+const DomainDelegated = Class.create(
 	"DomainDelegated",
 	Domain,
 	function(key, config, source){
@@ -2363,8 +2362,7 @@ const Configuration = Class.create(
 		},
 		"targetListDns" : {
 			// all servers and targets related to DNS
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				const map = {};
 				for(const t of this.servers.list){
 					map[t.key] = t;
@@ -2377,8 +2375,7 @@ const Configuration = Class.create(
 		},
 		"targetListWeb" : {
 			// all servers and targets related to DNS
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				const map = {};
 				for(const target of this.targets.list){
 					map[target.key] = target;
@@ -2395,8 +2392,7 @@ const Configuration = Class.create(
 			}
 		},
 		"dnsViewLocal" : {
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				return this.routing.domains.makeStaticView(
 					this.location && this.location.lans || null
 					/* Networks.LOCAL */
@@ -2404,8 +2400,7 @@ const Configuration = Class.create(
 			}
 		},
 		"dnsViewGlobal" : {
-			execute : "once",
-			get : function(){
+			execute : "once", get : function(){
 				return this.routing.domains.makeStaticView(null /*NetworkAddress.GLOBAL*/);
 			}
 		},

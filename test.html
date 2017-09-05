@@ -136,6 +136,9 @@
 					"routing" : {
 						"domains" : {
 							".myx.co.nz" : {
+								"mode" : "infrastructure"
+							},
+							".myx.ru" : {
 								"mode" : "infrastructure",
 								"dns" : {
 									"A" : {
@@ -147,11 +150,20 @@
 									}
 								}
 							},
-							".myx.ru" : {
-								"mode" : "infrastructure"
+							".ded.myx.ru" : {
+								"mode" : "dedicated",
+								"dns" : {
+									"A" : {
+										"*" : "5.9.34.107",
+										"@" : "5.9.100.81"
+									},
+									"CNAME" : {
+										"cgit.myx.co.nz." : "yandex.googlehosted.com."
+									}
+								}
 							},
 							".del.myx.ru" : {
-								"mode" : "dedicated",
+								"mode" : "delegated",
 								"servers" : [
 									"ns1.keen.com", 
 									"ns2.keen.com"
