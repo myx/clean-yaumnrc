@@ -114,10 +114,15 @@ const AbstractAddress = Class.create(
 		return this;
 	}, {
 		"ip" : {
-			value : null
+			value : undefined
 		},
 		"mac" : {
-			value : null
+			// optional
+			value : undefined
+		},
+		"comment" : {
+			// optional
+			value : undefined
 		},
 		"intIPv4" : {
 			get : function(){
@@ -177,15 +182,10 @@ const AbstractAddress = Class.create(
 const SingleAddress = Class.create(
 	"SingleAddress", 
 	AbstractAddress, 
-	function(ip, mac){
-		Object.defineProperties(this, {
-			"ip" : {
-				value : ip
-			},
-			"mac" : {
-				value : mac
-			}
-		});
+	function(ip, mac, comment){
+		f.defineProperty(this, "ip", ip);
+		mac && f.defineProperty(this, "mac", mac);
+		comment && f.defineProperty(this, "comment", comment);
 		return this;
 	}, {
 		"key" : {
@@ -215,7 +215,9 @@ const SingleAddress = Class.create(
 			configurable : true,
 			get : function(){
 				return SingleAddress.LOCALHOST = new SingleAddress(
-					"127.0.0.1"
+					"127.0.0.1",
+					undefined,
+					"Global LOCALHOST"
 				);
 			}
 		}
@@ -423,6 +425,10 @@ const Networks = Class.create(
 		}
 	}
 );
+
+
+
+
 
 
 
@@ -806,7 +812,7 @@ const Location = Class.create(
 					const result = {};
 					{
 						for(var i of this.routers.list){
-							if(i.router === 'active'){
+							if(i.isActive){
 								for(const i of (i.resolveSmartIP4(net, true) || [])){
 									result[i] = true;
 								}
@@ -817,7 +823,7 @@ const Location = Class.create(
 					}
 					{
 						for(var i of this.routers.list){
-							if(i.router === 'testing'){
+							if(i.isTesting){
 								for(const i of (i.resolveSmartIP4(net, true) || [])){
 									result[i] = true;
 								}
@@ -842,7 +848,7 @@ const Location = Class.create(
 				}
 				const result = [];
 				for(var i of this.routers.list){
-					if((i.router === 'active' || i.router === 'testing') && i.tap3){
+					if(i.isActiveOrTesting && i.tap3){
 						result.push(i.tap3);
 					}
 				}
@@ -1042,9 +1048,43 @@ const Router = Class.create(
 				return this.source.tap && this.source.tap.ip;
 			}
 		},
+		"isActive" : {
+			get : function(){
+				return this.router === 'active';
+			}
+		},
+		"isTesting" : {
+			get : function(){
+				return this.router === 'testing';
+			}
+		},
+		"isActiveOrTesting" : {
+			get : function(){
+				return this.isActive || this.isTesting;
+			}
+		},
 		"toString" : {
 			value : function(){
 				return "[yamnrc Router(" + this.key + ")]";
+			}
+		}
+	},{
+		"isActive" : {
+			// universal - ignores non-Router argument
+			value : function(x){
+				return x && x.router === 'active';
+			}
+		},
+		"isTesting" : {
+			// universal - ignores non-Router argument
+			value : function(x){
+				return x && x.router === 'testing';
+			}
+		},
+		"isActiveOrTesting" : {
+			// universal - ignores non-Router argument
+			value : function(x){
+				return x && (x.router === 'active' || x.router === 'testing');
 			}
 		}
 	}
@@ -1623,9 +1663,7 @@ const Routers = Class.create(
 		}
 	},{
 		"FILTER_ACTIVE" : {
-			value : function(x){
-				return x && x.router === 'active';
-			}
+			value : Router.isActive
 		}
 	}
 );
@@ -2019,7 +2057,7 @@ const DomainDedicated = Class.create(
 						} 
 						/*
 						for(const r of l.routers.list){
-							if(r.router === 'active' || r.router ==='testing'){
+							if(r.isActiveOrTesting){
 								// return location, not router
 								for(const i of (l.resolveSmartIP4(net) || [])){
 									map[i] = true;
@@ -2191,16 +2229,10 @@ const DnsRecordStatic = Class.create(
 	undefined,
 	function(key, value, comment){
 		Object.defineProperties(this, {
-			"key" : {
-				value : key
-			},
-			"value" : {
-				value : value
-			}
+			"key" : { value : key },
+			"value" : {	value : value }
 		});
-		if(comment){
-			f.defineProperty(this, "comment", comment);
-		}
+		comment && Object.defineProperty(this, "comment", { value : comment });
 		return this;
 	},{
 		"key" : {
@@ -2219,7 +2251,14 @@ const DnsRecordStatic = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DnsRecordStatic("+this.key+")]";
+				return "[yamnrc DnsRecordStatic("
+					+ this.key
+					+ (this.comment 
+						? ", comment: " + this.comment 
+						: ""
+					) 
+					+ ")]"
+				;
 			}
 		}
 	},{
@@ -2235,6 +2274,46 @@ const DnsRecordStatic = Class.create(
 		}
 	}
 );
+
+
+
+const DnsValueStatic = Class.create(
+	"DnsValueStatic",
+	undefined,
+	function(value, comment){
+		Object.defineProperty(this, "value", { value : value });
+		comment && Object.defineProperty(this, "comment", { value : comment });
+		return this;
+	},{
+		"value" : {
+			value : undefined
+		},
+		"comment" : {
+			value : undefined
+		},
+		"toSourceObject" : {
+			value : function(){
+				if(this.comment){
+					return { 
+						"value" : this.value, 
+						"comment" : this.comment 
+					};
+				}
+				return this.value;
+			}
+		},
+		"toString" : {
+			value : function(){
+				if(this.comment){
+					return this.value + " ; " + this.comment;
+				}
+				return this.value;
+			}
+		}
+	}
+);
+
+
 
 
 
@@ -2314,7 +2393,7 @@ const Configuration = Class.create(
 			value : function(net){
 				const result = {};
 				for(var l of this.locations.list){
-					if(l.routers.list.some(function(x){ return x.router === 'active'; })){
+					if(l.routers.list.some(Router.isActive)){
 						const ips = l.resolveDirectIP4(net);
 						for(const ip of (ips || [])){
 							result[ip] = true;
@@ -2322,7 +2401,7 @@ const Configuration = Class.create(
 						continue;
 					}
 					for(var i of l.routers.list){
-						if(i.router === 'active' && i.wan3){
+						if(i.isActive && i.wan3){
 							const ips = i.resolveDirectIP4(net);
 							for(const ip of (ips || [])){
 								result[ip] = true;
@@ -2344,8 +2423,8 @@ const Configuration = Class.create(
 				{
 					const result = [];
 					for(var l of this.locations.list){
-						for(var i of this.routers.list){
-							if(i.router === 'testing' && i.wan3){
+						for(var i of l.routers.list){
+							if(i.isTesting && i.wan3){
 								result[i.wan3] = true;
 							}
 						}
