@@ -2347,6 +2347,11 @@ const DhcpView = Class.create(
 		location && f.defineProperty(this, "location", location);
 		return this;
 	},{
+		"lans" : {
+			get : function(){
+				return this.location && this.location.lans || this.config && this.config.location && this.config.location.lans;
+			}
+		},
 		"addRecord" : {
 			value : function(key, mac, host, ip, network){
 				const record = new DhcpHost(this.config, key, mac, host, ip, network);
