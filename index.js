@@ -2073,12 +2073,10 @@ const DomainDedicated = Class.create(
 						const a = l.resolveSmartIP4(net);
 						if(a && a.length){
 							const name = l.key + this.key;
-							if(name){
-								if(!recsA.map[name]){
-									recsA.put(name, new DnsRecordStatic(name, a, 'location'));
-								}
-								map[name] = true;
+							if(!recsA.map[name]){
+								recsA.put(name, new DnsRecordStatic(name, a, 'location'));
 							}
+							map[name] = true;
 							return;
 						} 
 						/*
