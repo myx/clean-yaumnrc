@@ -2072,8 +2072,12 @@ const DomainDedicated = Class.create(
 					this.config.locations.list.forEach(function(l){
 						const a = l.resolveSmartIP4(net);
 						if(a && a.length){
-							for(const i of a){
-								map[i] = true;
+							const name = l.key + this.key;
+							if(name){
+								if(!recsA.map[name]){
+									recsA.put(name, new DnsRecordStatic(name, a, 'location'));
+								}
+								map[name] = true;
 							}
 							return;
 						} 
@@ -2088,7 +2092,7 @@ const DomainDedicated = Class.create(
 							}
 						}
 						*/
-					});
+					}, this);
 					recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config'));
 				}
 
