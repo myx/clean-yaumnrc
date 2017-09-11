@@ -840,6 +840,15 @@ const Location = Class.create(
 				return this.config.resolveForHost(t, net || this.lans || null);
 			}
 		},
+		"provisionView" : {
+			execute : "once", get : function(){
+				const result = new DhcpView(this.config, this);
+				for(var i of this.servers.list){
+					i.provisionFill(result);
+				}
+				return result;
+			}
+		},
 		"tap3smart" : {
 			// Array of local IPs for internal VPN access (length is likely 1 or 0, but could have several TAP IPs of all the routers) 
 			get : function(){
@@ -1010,6 +1019,19 @@ const Server = Class.create(
 					return this.location.resolveSmartIP4(net);
 				}
 				return this.config.resolveSmartIP4(net);
+			}
+		},
+		"provisionFill" : {
+			value : function(dhcpView){
+				const lan = this.source.lan;
+				if(lan && lan.mac && lan.ip){
+					const network = this.location.networkForClient(lan.ip);
+					dhcpView.addRecord(this.key + "_lan", lan.mac, this.key, lan.ip, network);
+				}
+				const wan = this.source.wan;
+				if(wan && wan.mac && wan.ip){
+					dhcpView.addRecord(this.key + "_wan", wan.mac, this.key, wan.ip);
+				}
 			}
 		},
 		"toSourceObject" : {
@@ -2315,7 +2337,126 @@ const DnsValueStatic = Class.create(
 
 
 
+const DhcpView = Class.create(
+	"DhcpView",
+	ConfigListAndMap,
+	function(config, location){
+		this.ConfigListAndMap(config);
+		location && f.defineProperty(this, "location", location);
+		return this;
+	},{
+		"addRecord" : {
+			value : function(key, mac, host, ip, network){
+				const record = new DhcpHost(this.config, key, mac, host, ip, network);
+				this.put(record.key, record);
+				return record;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc DhcpView(" + this.location + ", size: " + this.list.length + ")]";
+			}
+		}
+	}
+);
 
+const DhcpHost = Class.create(
+	"DhcpHost",
+	ConfigObject,
+	function(config, key, mac, host, ip, network){
+		this.ConfigObject(config);
+		if(!mac){
+			throw new Error("DhcpHost requires 'mac'-address!");
+		}
+		if(!host){
+			throw new Error("DhcpHost requires 'host'-name!");
+		}
+		if(!ip){
+			throw new Error("DhcpHost requires 'ip'-address!");
+		}
+		Object.defineProperties(this, {
+			"mac" : {
+				value : mac
+			},
+			"host" : {
+				value : host
+			},
+			"ip" : {
+				value : ip
+			}
+		});
+		if(key){
+			f.defineProperty(this, "key", key);
+		}else{
+			f.defineProperty(this, "key", host + '_' + mac.replace(/\:/g, ''));
+		}
+		network && f.defineProperty(this, "network", network);
+		return this;
+	},{
+		"key" : {
+			value : undefined
+		},
+		"host" : {
+			value : undefined
+		},
+		"mac" : {
+			value : undefined
+		},
+		"ip" : {
+			value : undefined
+		},
+		"gateway" : {
+			execute : "once", get : function(){
+				return this.network && this.network.ip || undefined;
+			}
+		},
+		"networkIp" : {
+			get : function(){
+				return this.network.network;
+			}
+		},
+		"networkInt" : {
+			get : function(){
+				return this.network.networkInt;
+			}
+		},
+		"networkMask" : {
+			get : function(){
+				return this.network.mask;
+			}
+		},
+		"networkBits" : {
+			get : function(){
+				return this.network.bits;
+			}
+		},
+		"networkCidr" : {
+			get : function(){
+				return this.network.networkCidr;
+			}
+		},
+		"network" : {
+			value : undefined
+		},
+		"routes" : {
+
+		},
+		"toSourceObject" : {
+			value : function(){
+				return {
+					"mac" : this.mac,
+					"ip" : this.ip,
+					"host" : this.host
+				};
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc DhcpHost(" + this.host + ", " + this.mac + ", " + this.ip + ")]";
+			}
+		}
+	}
+);
 
 
 

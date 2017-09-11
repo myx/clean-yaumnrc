@@ -64,6 +64,7 @@
 								"ip" : "l6h1-wan"
 							},
 							"lan" : {
+								"mac" : "AA:BB:CC:DD:EE:FF",
 								"ip" : "192.168.1.254"
 							},
 							"tap" : { 
@@ -340,7 +341,7 @@
 					resolve("mpxy-direct.myx.co.nz");
 					resolve("mpxy-default.myx.co.nz");
 					
-					if(view.location.lans) for(var lan of view.location.lans.list){
+					if(location.lans) for(var lan of location.lans.list){
 						out(' Lan(' + lan + ').key', lan.key);
 						out(' Lan(' + lan + ').ip', lan.ip);
 						out(' Lan(' + lan + ').intIPv4', lan.intIPv4);
@@ -352,6 +353,9 @@
 						out(' Lan(' + lan + ').networkCidr', lan.networkCidr);
 						out(' Lan(' + lan + ').location', lan.location);
 					}
+					
+					out("Provisioning", JSON.stringify(location.provisionView.toSourceObject(), null, 4), 'textarea');
+
 
 					out('');
 				}
@@ -450,7 +454,26 @@
 				dumpDns(config);
 				dumpDns(viewS);
 				dumpDns(config.makeView('l6o3.myx.ru'));
-				
+			
+				function dumpDhcpView(view){
+					out("DHCP, " + view);
+
+					for(var host of view.list){
+						const mac = host.mac
+						out(' Host(' + mac + ').key', host.key);
+						out(' Host(' + mac + ').mac', host.mac);
+						out(' Host(' + mac + ').ip', host.ip);
+						out(' Host(' + mac + ').host', host.host);
+						out(' Host(' + mac + ').gateway', host.gateway);
+						out(' Host(' + mac + ').network', host.network);
+						out(' Host(' + mac + ').networkIp', host.networkIp);
+						out(' Host(' + mac + ').networkMask', host.networkMask);
+						out(' Host(' + mac + ').networkBits', host.networkBits);
+						out(' Host(' + mac + ').networkCidr', host.networkCidr);
+					}
+				}
+
+				dumpDhcpView(viewS.location.provisionView);
 			}
 		</script>
 	</head>
