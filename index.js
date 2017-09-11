@@ -2072,7 +2072,7 @@ const DomainDedicated = Class.create(
 					this.config.locations.list.forEach(function(l){
 						const a = l.resolveSmartIP4(net);
 						if(a && a.length){
-							const name = l.key + this.key;
+							const name = DomainInfrastructure.prototype.filterName.call(this, l.key) || (l.key + this.key);
 							if(!recsA.map[name]){
 								recsA.put(name, new DnsRecordStatic(name, a, 'location'));
 							}
