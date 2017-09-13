@@ -11,6 +11,10 @@
 					font: monospaced;
 					vertical-align: top;
 				}
+				blockquote {
+					font-size: 90%;
+					line-height: 1em;
+				}
 		</style>		
 		<script>
 			function test(){
@@ -115,6 +119,22 @@
 						},
 						"ae3.myx.ru" : {
 							"location" : "h1"
+						},
+						"www-h1.myx.ru" : {
+							"location" : "h1",
+							"net" : "www",
+							"lan" : {
+								"mac" : "AA:BB:CC:00:01:01",
+								"ip" : "192.168.1.77"
+							}
+						},
+						"www-o3.myx.ru" : {
+							"location" : "o3",
+							"net" : "www",
+							"lan" : {
+								"mac" : "AA:BB:CC:03:01:01",
+								"ip" : "192.168.3.77"
+							}
 						},
 						"mpxy1.myx.ru" : {
 							"location" : "h1",
@@ -238,6 +258,12 @@
 								"stdalone3-h1.myx.ru"
 							]
 						},
+						"www.myx.ru" : {
+							"target" : [
+								"www-h1.myx.ru",
+								"www-o3.myx.ru"
+							]
+						},
 						"web.myx.ru" : {
 							"target" : "l6.myx.ru"
 						},
@@ -269,16 +295,41 @@
 								"https://canandcap.ru"
 							]
 						},
-						"zyxel.myx.ru" : {
+						"bcp-h1.myx.ru" : {
+							"location" : "h1",
+							"proxyHttp" : "http://maersk.myx.ru:5001", 
+							"proxyHttps" : "http://maersk.myx.ru:5001",
+							"ssl" : "ndm-strong-VG"
+						},
+
+						"bcp-aw.myx.ru" : {
+							"proxyHttp" : "http://buildproxy-env.eu-central-1.elasticbeanstalk.com", 
+							"proxyHttps" : "http://buildproxy-env.eu-central-1.elasticbeanstalk.com",
+							"ssl" : "ndm-strong-VG"
+						},
+
+
+						"bcp-o3.myx.ru" : {
+							"location" : "o3",
+							"proxyHttp" : "http://sovtransavto.myx.ru:5001", 
+							"proxyHttps" : "http://sovtransavto.myx.ru:5001",
+							"ssl" : "ndm-strong-VG"
+						},
+
+						"bcp.myx.ru" : {
 							"target" : [
-								"http://zyxel.ru",
-								"https://zyxel.ru"
+								"bcp-h1.myx.ru",
+								"bcp-o3.myx.ru",
+								"bcp-aw.myx.ru"
 							]
-						}
+						},
 					},
 				});
 				
 				const output = document.getElementById('output');
+
+				let target = output;
+
 				function out(t,x,e,d){
 					switch(arguments.length){
 						case 0:
@@ -295,10 +346,29 @@
 							e.innerHTML = x;
 							d.appendChild(e);
 					}
-					output.appendChild(d);
+					target.appendChild(d);
+				}
+
+				function push(title){
+					let e, t = target;
+					title && (e = document.createElement('h2'), e.innerHTML = title, t.appendChild(e));
+					t = document.createElement('blockquote');
+					t.parent = target;
+					target.appendChild(t);
+					target = t;
+				}
+
+				function pop(){
+					target = target.parent || output;
+				}
+
+				function nest(title, f){
+					push(title);
+					f();
+					pop();
 				}
 				
-				{
+				nest("Basics", function(){
 					out('Config' + config);
 					out('Locations', config.locations);
 					out('Servers', config.servers);
@@ -315,8 +385,7 @@
 					resolve("mpxy-default.myx.ru");
 					resolve("mpxy-direct.myx.co.nz");
 					resolve("mpxy-default.myx.co.nz");
-
-				}
+				});
 
 				function dumpLocation(name){
 					out('location: ' + name);
@@ -360,120 +429,140 @@
 					out('');
 				}
 
-				dumpLocation('h1');
-				dumpLocation('g1');
-				dumpLocation('o3');
+				nest('Locations', function(){
+					dumpLocation('h1');
+					dumpLocation('g1');
+					dumpLocation('o3');
+				});
 				
-				function dumpServer(name){
-					out('server: ' + name);
-					const viewS = config.makeView(name);
-					
-					out('Config', viewS);
-					out('Location', viewS.location);
-					out('Server', viewS.server);
-					out('Router', viewS.router);
-
-					// temp array - it is not array for now
-					for(let lan of ([viewS.server.lan3] || [])){
-						out('Gateway(for '+lan+') ', viewS.location.findGatewayForClient(lan));
+				
+				nest('Servers', function(){
+					function dumpServer(name){
+						out('server: ' + name);
+						const viewS = config.makeView(name);
+						
+						out('Config', viewS);
+						out('Location', viewS.location);
+						out('Server', viewS.server);
+						out('Router', viewS.router);
+	
+						// temp array - it is not array for now
+						for(let lan of ([viewS.server.lan3] || [])){
+							out('Gateway(for '+lan+') ', viewS.location.findGatewayForClient(lan));
+						}
+		
+						out('Location.lans', viewS.location.lans);
+						out('Location.servers', viewS.location.servers);
+						out('Location.routers', viewS.location.routers);
+		
+						out('Location.wan3', viewS.location.wan3);
+						out('Location.lan3', viewS.location.lan3);
+		
+						out('Router.wan3', viewS.router.wan3);
+						out('Router.lan3', viewS.router.lan3);
+		
+						out('Router.location', viewS.router.location);
 					}
-	
-					out('Location.lans', viewS.location.lans);
-					out('Location.servers', viewS.location.servers);
-					out('Location.routers', viewS.location.routers);
-	
-					out('Location.wan3', viewS.location.wan3);
-					out('Location.lan3', viewS.location.lan3);
-	
-					out('Router.wan3', viewS.router.wan3);
-					out('Router.lan3', viewS.router.lan3);
-	
-					out('Router.location', viewS.router.location);
-				}
-
-				dumpServer('l6h1.myx.ru');
+					dumpServer('l6h1.myx.ru');
+				});
 				
 
-				out('Config');
-				out('Config.Source', config.toSource(), 'textarea');
-				out('Config.SourceNonSecure', config.toSourceNonSecure(), 'textarea');
+				nest('Config (sources)', function(){
+					out('Config.Source', config.toSource(), 'textarea');
+					out('Config.SourceNonSecure', config.toSourceNonSecure(), 'textarea');
+				});
 				
 
-				out('Looking from: l6h1.myx.ru');
-				const viewS = config.makeView('l6h1.myx.ru');
-				
-				out('Config.servers["l6h1.myx.ru"].selected', config.servers.map["l6h1.myx.ru"].selected);
-				out('Server.selected', viewS.server.selected);
-
-				out('targetListDns', viewS.targetListDns);
-				out('Config.wan3smart', viewS.wan3smart);
-				out('Location.wan3smart', viewS.location.wan3smart);
-				out('Server.wan3smart', viewS.server.wan3smart);
-
-				out('Config.lan3smart', viewS.lan3smart);
-				out('Location.lan3smart', viewS.location.lan3smart);
-				out('Server.lan3smart', viewS.server.lan3smart);
-
-				function dumpTarget(name){
-					out('target: ' + name);
-					const target = viewS.targets.map[name] || viewS.servers.map[name];
-					const global = config.targets.map[name] || config.servers.map[name];
-					out(' Global', global);
-					out(' Target', target);
-					out(' Target.location', target.location);
-					out(' Target.modeDns', target.modeDns);
-					out(' Target.wan3smart', target.wan3smart);
-					out(' Global.endpointsList', global.endpointsList);
-					out(' Target.endpointsList', target.endpointsList);
-					out('');
-				}
-
-				dumpTarget('l6.myx.ru');
-				dumpTarget('l6h1.myx.ru');
-				dumpTarget('l6o3.myx.ru');
-				dumpTarget('o3.myx.ru');
-				dumpTarget('zyxel.myx.ru');
-				dumpTarget('web.myx.ru');
-				dumpTarget('mpxy1.myx.ru');
-				dumpTarget('mpxy3.myx.ru');
-				dumpTarget('mpxy-direct.myx.ru');
-				dumpTarget('mpxy-default.myx.ru');
-				dumpTarget('mpxy-def-h1l.myx.ru');
-				
-
-				function dumpDns(view){
-					out("DNS, " + view);
-					out("DNS-WAN", JSON.stringify(view.buildDnsView(null).toSourceObject(), null, 4), 'textarea');
-					out("DNS-LAN", JSON.stringify(view.buildDnsView(Config.Networks.LOCAL).toSourceObject(), null, 4), 'textarea');
-					if(view.location){
-						out("DNS-LOC lans", view.location.lans);
-						out("DNS-LOC", JSON.stringify(view.buildDnsView(view.location.lans).toSourceObject(), null, 4), 'textarea');
-					}
-				}
-
-				dumpDns(config);
-				dumpDns(viewS);
-				dumpDns(config.makeView('l6o3.myx.ru'));
+				nest('Config Views', function(){
+					function configView(x){
+						nest('Looking from: ' + x, function(){
+							const viewS = config.makeView(x);
+							
+							out('Config.servers["'+x+'"].selected', config.servers.map[x].selected);
+							out('Server.selected', viewS.server.selected);
 			
-				function dumpDhcpView(view){
-					out("DHCP, " + view);
+							out('targetListDns', viewS.targetListDns);
+							out('Config.wan3smart', viewS.wan3smart);
+							out('Location.wan3smart', viewS.location.wan3smart);
+							out('Server.wan3smart', viewS.server.wan3smart);
+			
+							out('Config.lan3smart', viewS.lan3smart);
+							out('Location.lan3smart', viewS.location.lan3smart);
+							out('Server.lan3smart', viewS.server.lan3smart);
+			
+							function dumpTarget(name){
+								out('target: ' + name);
+								const target = viewS.targets.map[name] || viewS.servers.map[name];
+								const global = config.targets.map[name] || config.servers.map[name];
+								out(' Global', global);
+								out(' Target', target);
+								out(' Target.location', target.location);
+								out(' Target.modeDns', target.modeDns);
+								out(' Target.wan3smart', target.wan3smart);
+								out(' Global.endpointsList', global.endpointsList);
+								out(' Target.endpointsList', target.endpointsList);
+								out('');
+							}
+			
+							dumpTarget('l6.myx.ru');
+							dumpTarget('l6h1.myx.ru');
+							dumpTarget('l6o3.myx.ru');
+							dumpTarget('o3.myx.ru');
+							dumpTarget('zyxel.myx.ru');
+							dumpTarget('web.myx.ru');
+							dumpTarget('mpxy1.myx.ru');
+							dumpTarget('mpxy3.myx.ru');
+							dumpTarget('mpxy-direct.myx.ru');
+							dumpTarget('mpxy-default.myx.ru');
+							dumpTarget('mpxy-def-h1l.myx.ru');
+							dumpTarget('bcp.myx.ru');
+							
+							nest('DNS', function(){
+								function dumpDns(view){
+									out("DNS, " + view);
+									out("DNS-WAN", JSON.stringify(view.buildDnsView(null).toSourceObject(), null, 4), 'textarea');
+									out("DNS-LAN", JSON.stringify(view.buildDnsView(Config.Networks.LOCAL).toSourceObject(), null, 4), 'textarea');
+									if(view.location){
+										out("DNS-LOC lans", view.location.lans);
+										out("DNS-LOC", JSON.stringify(view.buildDnsView(view.location.lans).toSourceObject(), null, 4), 'textarea');
+									}
+								}
 
-					for(var host of view.list){
-						const mac = host.mac;
-						out(' Host(' + mac + ').key', host.key);
-						out(' Host(' + mac + ').mac', host.mac);
-						out(' Host(' + mac + ').ip', host.ip);
-						out(' Host(' + mac + ').host', host.host);
-						out(' Host(' + mac + ').gateway', host.gateway);
-						out(' Host(' + mac + ').network', host.network);
-						out(' Host(' + mac + ').networkIp', host.networkIp);
-						out(' Host(' + mac + ').networkMask', host.networkMask);
-						out(' Host(' + mac + ').networkBits', host.networkBits);
-						out(' Host(' + mac + ').networkCidr', host.networkCidr);
+								dumpDns(config);
+								dumpDns(viewS);
+								dumpDns(config.makeView('l6o3.myx.ru'));
+							});
+						
+							nest('DHCP', function(){
+								function dumpDhcpView(view){
+									nest("DHCP, " + view, function(){
+										for(var host of view.list){
+											nest('Host: ' + host, function(){
+												const mac = host.mac;
+												out(' Host(' + mac + ').key', host.key);
+												out(' Host(' + mac + ').mac', host.mac);
+												out(' Host(' + mac + ').ip', host.ip);
+												out(' Host(' + mac + ').host', host.host);
+												out(' Host(' + mac + ').gateway', host.gateway);
+												out(' Host(' + mac + ').network', host.network);
+												out(' Host(' + mac + ').networkIp', host.networkIp);
+												out(' Host(' + mac + ').networkMask', host.networkMask);
+												out(' Host(' + mac + ').networkBits', host.networkBits);
+												out(' Host(' + mac + ').networkCidr', host.networkCidr);
+											});
+										}
+									});
+								}
+				
+								dumpDhcpView(viewS.location.provisionView);
+							});
+						});
 					}
-				}
-
-				dumpDhcpView(viewS.location.provisionView);
+	
+					configView('l6h1.myx.ru');
+					configView('l6o3.myx.ru');
+				});
+				
 			}
 		</script>
 	</head>
