@@ -341,7 +341,7 @@
 							break;
 						default:
 							d = document.createElement('div');
-							d.innerHTML = t + ": ";
+							t && (d.innerHTML = t + ": ");
 							e = document.createElement(e || 'pre')
 							e.innerHTML = x;
 							d.appendChild(e);
@@ -539,16 +539,21 @@
 										for(var host of view.list){
 											nest('Host: ' + host, function(){
 												const mac = host.mac;
-												out(' Host(' + mac + ').key', host.key);
-												out(' Host(' + mac + ').mac', host.mac);
-												out(' Host(' + mac + ').ip', host.ip);
-												out(' Host(' + mac + ').host', host.host);
-												out(' Host(' + mac + ').gateway', host.gateway);
-												out(' Host(' + mac + ').network', host.network);
-												out(' Host(' + mac + ').networkIp', host.networkIp);
-												out(' Host(' + mac + ').networkMask', host.networkMask);
-												out(' Host(' + mac + ').networkBits', host.networkBits);
-												out(' Host(' + mac + ').networkCidr', host.networkCidr);
+												out('Host(' + mac + ').key', host.key);
+												out('Host(' + mac + ').mac', host.mac);
+												out('Host(' + mac + ').ip', host.ip);
+												out('Host(' + mac + ').host', host.host);
+												out('Host(' + mac + ').gateway', host.gateway);
+												out('Host(' + mac + ').network', host.network);
+												out('Host(' + mac + ').networkIp', host.networkIp);
+												out('Host(' + mac + ').networkMask', host.networkMask);
+												out('Host(' + mac + ').networkBits', host.networkBits);
+												out('Host(' + mac + ').networkCidr', host.networkCidr);
+												nest('Host(' + mac + ').routes', function(){
+													for(var r of (host.routes || [])){
+														out(null, r);
+													}
+												});
 											});
 										}
 									});

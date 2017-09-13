@@ -266,6 +266,12 @@ const NetworkAddress = Class.create(
 				return this.network = AbstractAddress.intToIPv4(this.networkInt);
 			}
 		},
+		"networkObject" : {
+			get : function(){
+				const networkIp = this.network;
+				return networkIp === this.ip ? this : new NetworkAddress(this.networkCidr, networkIp, this.bits, this.mac, this.key);
+			}
+		},
 		"networkCidr" : {
 			get : function(){
 				return this.network + '/' + this.bits;
@@ -508,6 +514,42 @@ const ListAndMap = Class.create(
 		}
 	}
 );
+
+
+const IpRoute = Class.create(
+	"IpRoute",
+	undefined,
+	function(dst, via, type){
+		Object.defineProperties(this, {
+			"dst" : {
+				value : dst
+			},
+			"via" : {
+				value : via
+			},
+			"type" : {
+				value : type
+			}
+		});
+		return this;
+	},{
+		"dst" : {
+			value : undefined
+		},
+		"via" : {
+			value : undefined
+		},
+		"type" : {
+			value : undefined
+		},
+		"toString" : {
+			value : function(){
+				return "[yamnrc IpRoute(" + this.dst + ", " + this.via + ", " + this.type + ")]";
+			}
+		}
+	}
+);
+
 
 
 
@@ -957,6 +999,24 @@ const Server = Class.create(
 				return this === this.config.server;
 			}
 		},
+		"groups" : {
+			get : function(){
+				const net = this.source.net;
+				return net ? [].concat(net) : undefined;
+			}
+		},
+		"hasGroups" : {
+			value : function(groups){
+				for(var g1 of (groups || [])){
+					for(var g2 of (this.groups || [])){
+						if(g1 === g2){
+							return true;
+						}
+					}
+				}
+				return false;
+			}
+		},
 		"endpointsToMap" : {
 			// to be functionally compatible with Target objects
 			value : function(mapInitial){
@@ -1026,7 +1086,7 @@ const Server = Class.create(
 				const lan = this.source.lan;
 				if(lan && lan.mac && lan.ip){
 					const network = this.location.networkForClient(lan.ip);
-					dhcpView.addRecord(this.key + "_lan", lan.mac, this.key, lan.ip, network);
+					dhcpView.addRecord(this.key + "_lan", lan.mac, this.key, lan.ip, network, this.groups);
 				}
 				const wan = this.source.wan;
 				if(wan && wan.mac && wan.ip){
@@ -2353,8 +2413,8 @@ const DhcpView = Class.create(
 			}
 		},
 		"addRecord" : {
-			value : function(key, mac, host, ip, network){
-				const record = new DhcpHost(this.config, key, mac, host, ip, network);
+			value : function(key, mac, host, ip, network, groups){
+				const record = new DhcpHost(this.config, this, key, mac, host, ip, network, groups);
 				this.put(record.key, record);
 				return record;
 			}
@@ -2370,7 +2430,7 @@ const DhcpView = Class.create(
 const DhcpHost = Class.create(
 	"DhcpHost",
 	ConfigObject,
-	function(config, key, mac, host, ip, network){
+	function(config, view, key, mac, host, ip, network, groups){
 		this.ConfigObject(config);
 		if(!mac){
 			throw new Error("DhcpHost requires 'mac'-address!");
@@ -2390,6 +2450,12 @@ const DhcpHost = Class.create(
 			},
 			"ip" : {
 				value : ip
+			},
+			"view" : {
+				value : view
+			},
+			"groups" : {
+				value : groups && groups.length && groups || undefined
 			}
 		});
 		if(key){
@@ -2445,8 +2511,59 @@ const DhcpHost = Class.create(
 		"network" : {
 			value : undefined
 		},
+		"routeLocal" : {
+			get : function(){
+				const route = new IpRoute(this.network.networkObject, undefined, 'local');
+				route.local = true;
+				return route;
+			}
+		},
+		"routeGlobal" : {
+			get : function(){
+				const route = new IpRoute(NetworkAddress.GLOBAL, this.gateway, 'default');
+				route.global = true;
+				return route;
+			}
+		},
 		"routes" : {
+			execute : "once", get : function(){
+				const location = this.view.location || this.network && this.network.location || this.config.location;
+				if(!location){
+					return undefined;
+				}
+				const network = this.network || location.networkForClient(this.ip);
+				if(!network){
+					return undefined;
+				}
+				const result = [];
+				result.push(this.routeLocal);
 
+				const groups = this.groups;
+				if(groups){
+					// add tap neighbours
+					for(var s of this.config.servers.list){
+						if(s.location !== location && s.lan3 && s.hasGroups(groups)){
+							result.push(new IpRoute(f.parseNetwork(s.lan3), this.gateway, "foreign"));
+						}
+					}
+
+					const networks = {};
+					// add other networks
+					for(var s of location.servers.list){
+						if(s.location === location && s.lan3 && s.hasGroups(groups) && !network.containsIp(s.lan3)){
+							const net = location.networkForClient(s.lan3);
+							net && (networks[net.networkCidr] = true);
+						}
+					}
+					for(var destination in networks){
+						result.push(new IpRoute(f.parseNetwork(destination), this.gateway, "groups"));
+					}
+				}
+
+
+				result.push(this.routeGlobal);
+				return result;
+			}
 		},
 		"toSourceObject" : {
 			value : function(){
@@ -2464,7 +2581,6 @@ const DhcpHost = Class.create(
 		}
 	}
 );
-
 
 
 const Configuration = Class.create(
