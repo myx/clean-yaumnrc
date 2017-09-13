@@ -5,6 +5,16 @@
 		</script>
 		<script src="index.js"></script>
 		<style>
+				HTML, BODY {
+					position: absolute;
+					left: 0;
+					top: 0;
+					width: 100%;
+					height: 100%;
+					overflow: hidden;
+					padding: 0;
+					margin: 0;
+				}
 				TEXTAREA {
 					width: 50%;
 					height: 100pt;
@@ -14,6 +24,30 @@
 				blockquote {
 					font-size: 90%;
 					line-height: 1em;
+				}
+				#lpanel {
+					position: absolute;
+					left: 0;
+					top: 0;
+					height: calc(100% - 1em);
+					width: 15em;
+					line-height: 1.31em;
+					overflow: auto;
+					padding: 0.5em;
+				}
+				.lpanelItem {
+					display: block;
+				}
+				#output {
+					position: absolute;
+					left: 0;
+					top: 0;
+					width: calc(100% - 15em - 3em);
+					height: calc(100% - 2em);
+					margin-left: 16em;
+					overflow: scroll;
+					line-height: 1.1em;
+					padding: 1em;
 				}
 		</style>		
 		<script>
@@ -327,6 +361,7 @@
 				});
 				
 				const output = document.getElementById('output');
+				const lpanel = document.getElementById('lpanel');
 
 				let target = output;
 
@@ -349,21 +384,46 @@
 					target.appendChild(d);
 				}
 
-				function push(title){
+				var stackLevel = 0;
+
+				function push(title, id){
 					let e, t = target;
 					title && (e = document.createElement('h2'), e.innerHTML = title, t.appendChild(e));
+					id && (e.id = id);
 					t = document.createElement('blockquote');
 					t.parent = target;
 					target.appendChild(t);
 					target = t;
+					++stackLevel;
 				}
 
 				function pop(){
 					target = target.parent || output;
+					--stackLevel;
 				}
 
+
+				var bmIndex = 0;
+
 				function nest(title, f){
-					push(title);
+					const index = ++bmIndex;
+					if(stackLevel < 5){
+						{
+							const item = document.createElement("a");
+							item.className = "lpanelItem";
+							item.href = "#bm" + index;
+							item.style.paddingLeft = stackLevel + "em";
+							item.innerHTML = title;
+							lpanel.appendChild(item);
+						}
+						{
+							const item = document.createElement("span");
+							item.innerHTML = "<a id=bm" + index + "/>";
+							//target.appendChild(item);
+						}
+					}
+
+					push(title, 'bm' + index);
 					f();
 					pop();
 				}
@@ -387,89 +447,115 @@
 					resolve("mpxy-default.myx.co.nz");
 				});
 
-				function dumpLocation(name){
-					out('location: ' + name);
-					const view = config.makeView(name);
-					out(' Location.config', view);
-					const location = view.location;
-					out(' Location.location', location);
-					out(' Location.lans', location.lans);
-					out(' Location.lan3', location.lan3);
-					out(' Location.servers', location.servers);
-					out(' Location.routers', location.routers);
-
-					function resolve(host){
-						out(' Location.resolveForHost("'+host+'")', location.resolveForHost(host));
-					}
-					resolve("l6h1.myx.ru");
-					resolve("l6h1.myx.co.nz");
-					resolve("l6o3.myx.ru");
-					resolve("l6o3.myx.co.nz");
-					resolve("mpxy-direct.myx.ru");
-					resolve("mpxy-default.myx.ru");
-					resolve("mpxy-direct.myx.co.nz");
-					resolve("mpxy-default.myx.co.nz");
-					
-					if(location.lans) for(var lan of location.lans.list){
-						out(' Lan(' + lan + ').key', lan.key);
-						out(' Lan(' + lan + ').ip', lan.ip);
-						out(' Lan(' + lan + ').intIPv4', lan.intIPv4);
-						out(' Lan(' + lan + ').strIPv4', lan.strIPv4);
-						out(' Lan(' + lan + ').bits', lan.bits);
-						out(' Lan(' + lan + ').mask', lan.mask);
-						out(' Lan(' + lan + ').network', lan.network);
-						out(' Lan(' + lan + ').networkInt', lan.networkInt);
-						out(' Lan(' + lan + ').networkCidr', lan.networkCidr);
-						out(' Lan(' + lan + ').location', lan.location);
-					}
-					
-					out("Provisioning", JSON.stringify(location.provisionView.toSourceObject(), null, 4), 'textarea');
-
-
-					out('');
-				}
-
 				nest('Locations', function(){
-					dumpLocation('h1');
-					dumpLocation('g1');
-					dumpLocation('o3');
+
+					for(var l of config.locations.list){
+						const name = l.key;
+						nest(name, function(){
+							out('Location', l);
+							const view = config.makeView(name);
+							out(' Location.config', view);
+							const location = view.location;
+							out(' Location.location', location);
+							out(' Location.lans', location.lans);
+							out(' Location.lan3', location.lan3);
+							out(' Location.servers', location.servers);
+							out(' Location.routers', location.routers);
+		
+							function resolve(host){
+								out(' Location.resolveForHost("'+host+'")', location.resolveForHost(host));
+							}
+							resolve("l6h1.myx.ru");
+							resolve("l6h1.myx.co.nz");
+							resolve("l6o3.myx.ru");
+							resolve("l6o3.myx.co.nz");
+							resolve("mpxy-direct.myx.ru");
+							resolve("mpxy-default.myx.ru");
+							resolve("mpxy-direct.myx.co.nz");
+							resolve("mpxy-default.myx.co.nz");
+							
+							if(location.lans) for(var lan of location.lans.list){
+								out(' Lan(' + lan + ').key', lan.key);
+								out(' Lan(' + lan + ').ip', lan.ip);
+								out(' Lan(' + lan + ').intIPv4', lan.intIPv4);
+								out(' Lan(' + lan + ').strIPv4', lan.strIPv4);
+								out(' Lan(' + lan + ').bits', lan.bits);
+								out(' Lan(' + lan + ').mask', lan.mask);
+								out(' Lan(' + lan + ').network', lan.network);
+								out(' Lan(' + lan + ').networkInt', lan.networkInt);
+								out(' Lan(' + lan + ').networkCidr', lan.networkCidr);
+								out(' Lan(' + lan + ').location', lan.location);
+							}
+							
+							out(".provisionView.toSource()", location.provisionView.toSource(), 'textarea');
+		
+							out(".toSource()", location.toSource(), 'pre');
+		
+							out();
+						});
+					}
 				});
 				
 				
-				nest('Servers', function(){
-					function dumpServer(name){
-						out('server: ' + name);
-						const viewS = config.makeView(name);
-						
-						out('Config', viewS);
-						out('Location', viewS.location);
-						out('Server', viewS.server);
-						out('Router', viewS.router);
-	
+				function dumpServer(server){
+					const name = server.key;
+					nest(name, function(){
+						out('Server', server);
+						out('.location', server.location);
+						out('.wan3', server.wan3);
+						out('.lan3', server.lan3);
+						out('.wan3smart', server.wan3smart);
+						out('.lan3smart', server.lan3smart);
+		
 						// temp array - it is not array for now
-						for(let lan of ([viewS.server.lan3] || [])){
-							out('Gateway(for '+lan+') ', viewS.location.findGatewayForClient(lan));
+						for(let lan of [].concat(server.lan3)){
+							lan && out('Gateway(for '+lan+') ', server.location.networkForClient(lan));
 						}
-		
-						out('Location.lans', viewS.location.lans);
-						out('Location.servers', viewS.location.servers);
-						out('Location.routers', viewS.location.routers);
-		
-						out('Location.wan3', viewS.location.wan3);
-						out('Location.lan3', viewS.location.lan3);
-		
-						out('Router.wan3', viewS.router.wan3);
-						out('Router.lan3', viewS.router.lan3);
-		
-						out('Router.location', viewS.router.location);
+
+						out(' .toSource()', server.toSource());
+						out();
+					});
+				}
+				
+
+				nest('Routers', function(){
+					for(let s of config.routers.list){
+						dumpServer(s);
 					}
-					dumpServer('l6h1.myx.ru');
+				});
+				
+
+				nest('Servers', function(){
+					for(let s of config.servers.list){
+						dumpServer(s);
+					}
+				});
+				
+
+				function dumpDomains(view){
+					out("Domains", view);
+					out(".toSource()", view.toSource(), 'textarea');
+					for(var d of view.list){
+						nest(d.key, function(){
+							out(".toSource()", d.toSource(), 'pre');
+						});
+					}
+				}
+
+				nest('WAN DNS', function(){
+					dumpDomains(config.buildDnsView(null));
 				});
 				
 
 				nest('Config (sources)', function(){
-					out('Config.Source', config.toSource(), 'textarea');
-					out('Config.SourceNonSecure', config.toSourceNonSecure(), 'textarea');
+					nest('Config.Source', function(){
+						out('', config.toSource(), 'textarea');
+						out('', config.toSource(), 'pre');
+					});
+					nest('Config.SourceNonSecure', function(){
+						out('', config.toSourceNonSecure(), 'textarea');
+						out('', config.toSourceNonSecure(), 'pre');
+					});
 				});
 				
 
@@ -489,67 +575,70 @@
 							out('Config.lan3smart', viewS.lan3smart);
 							out('Location.lan3smart', viewS.location.lan3smart);
 							out('Server.lan3smart', viewS.server.lan3smart);
-			
-							function dumpTarget(name){
-								out('target: ' + name);
-								const target = viewS.targets.map[name] || viewS.servers.map[name];
-								const global = config.targets.map[name] || config.servers.map[name];
-								out(' Global', global);
-								out(' Target', target);
-								out(' Target.location', target.location);
-								out(' Target.modeDns', target.modeDns);
-								out(' Target.wan3smart', target.wan3smart);
-								out(' Global.endpointsList', global.endpointsList);
-								out(' Target.endpointsList', target.endpointsList);
-								out('');
-							}
-			
-							dumpTarget('l6.myx.ru');
-							dumpTarget('l6h1.myx.ru');
-							dumpTarget('l6o3.myx.ru');
-							dumpTarget('o3.myx.ru');
-							dumpTarget('zyxel.myx.ru');
-							dumpTarget('web.myx.ru');
-							dumpTarget('mpxy1.myx.ru');
-							dumpTarget('mpxy3.myx.ru');
-							dumpTarget('mpxy-direct.myx.ru');
-							dumpTarget('mpxy-default.myx.ru');
-							dumpTarget('mpxy-def-h1l.myx.ru');
-							dumpTarget('bcp.myx.ru');
-							
-							nest('DNS', function(){
-								function dumpDns(view){
-									out("DNS, " + view);
-									out("DNS-WAN", JSON.stringify(view.buildDnsView(null).toSourceObject(), null, 4), 'textarea');
-									out("DNS-LAN", JSON.stringify(view.buildDnsView(Config.Networks.LOCAL).toSourceObject(), null, 4), 'textarea');
-									if(view.location){
-										out("DNS-LOC lans", view.location.lans);
-										out("DNS-LOC", JSON.stringify(view.buildDnsView(view.location.lans).toSourceObject(), null, 4), 'textarea');
-									}
-								}
 
-								dumpDns(config);
-								dumpDns(viewS);
-								dumpDns(config.makeView('l6o3.myx.ru'));
+							function dumpTarget(target){
+								const name = target.key;
+								nest(name, function(){
+									out('Target', target);
+									out(' .location', target.location);
+									out(' .modeDns', target.modeDns);
+									out(' .wan3smart', target.wan3smart);
+									out(' .endpointsList', target.endpointsList);
+									out(' .toSource()', target.toSource());
+									out();
+								});
+							}
+
+							nest('Routers', function(){
+								for(let target of viewS.routers.list){
+									dumpTarget(target);
+								}
 							});
-						
+
+							nest('Servers', function(){
+								for(let target of viewS.servers.list){
+									dumpTarget(target);
+								}
+							});
+
+							nest('Targets', function(){
+								for(let target of viewS.targetListDns){
+									dumpTarget(target);
+								}
+							});
+
+							nest('WAN DNS', function(){
+								dumpDomains(viewS.buildDnsView(null));
+							});
+
+							nest('LAN DNS', function(){
+								dumpDomains(viewS.buildDnsView(Config.Networks.LOCAL));
+							});
+
+							nest('LOC DNS', function(){
+								dumpDomains(viewS.buildDnsView(viewS.location.lans));
+							});
+
+							
 							nest('DHCP', function(){
 								function dumpDhcpView(view){
-									nest("DHCP, " + view, function(){
+									nest("View: " + view.location.key, function(){
+										out('DhcpView', view);
 										for(var host of view.list){
-											nest('Host: ' + host, function(){
+											nest('Host: ' + host.key, function(){
 												const mac = host.mac;
-												out('Host(' + mac + ').key', host.key);
-												out('Host(' + mac + ').mac', host.mac);
-												out('Host(' + mac + ').ip', host.ip);
-												out('Host(' + mac + ').host', host.host);
-												out('Host(' + mac + ').gateway', host.gateway);
-												out('Host(' + mac + ').network', host.network);
-												out('Host(' + mac + ').networkIp', host.networkIp);
-												out('Host(' + mac + ').networkMask', host.networkMask);
-												out('Host(' + mac + ').networkBits', host.networkBits);
-												out('Host(' + mac + ').networkCidr', host.networkCidr);
-												nest('Host(' + mac + ').routes', function(){
+												out('DhcpHost', host);
+												out('.key', host.key);
+												out('.mac', host.mac);
+												out('.ip', host.ip);
+												out('.host', host.host);
+												out('.gateway', host.gateway);
+												out('.network', host.network);
+												out('.networkIp', host.networkIp);
+												out('.networkMask', host.networkMask);
+												out('.networkBits', host.networkBits);
+												out('.networkCidr', host.networkCidr);
+												nest('.routes', function(){
 													for(var r of (host.routes || [])){
 														out(null, r);
 													}
@@ -564,14 +653,17 @@
 						});
 					}
 	
-					configView('l6h1.myx.ru');
-					configView('l6o3.myx.ru');
+					for(let router of config.routers.list){
+						configView(router.key);
+					}
 				});
 				
 			}
 		</script>
 	</head>
 	<body onload="test()">
+		<div id="lpanel">
+		</div>
 		<div id="output">
 		</div>
 	</body>
