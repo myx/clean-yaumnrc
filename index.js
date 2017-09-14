@@ -1078,14 +1078,13 @@ const Server = Class.create(
 		},
 		"groups" : {
 			get : function(){
-				const net = this.source.net;
-				return net ? [].concat(net) : undefined;
+				return [].concat(this.source.net);
 			}
 		},
 		"hasGroups" : {
 			value : function(groups){
 				for(var g1 of (groups || [])){
-					for(var g2 of (this.groups || [])){
+					for(var g2 of (this.groups)){
 						if(g1 === g2){
 							return true;
 						}
@@ -2609,23 +2608,25 @@ const DhcpHost = Class.create(
 
 				const groups = this.groups;
 				if(groups){
-					// add tap neighbours
-					for(var s of this.config.servers.list){
-						if(s.location !== location && s.lan3 && s.hasGroups(groups)){
+					const networks = {};
+					for(var s of location.servers.list){
+						if(!s.lan3 || !s.hasGroups(groups)){
+							continue;
+						}
+						// taps: same network / different location
+						if(s.location !== location && network.containsIp(s.lan3)){
 							result.push(new IpRoute(f.parseNetwork(s.lan3), this.gateway, "remote"));
+							continue;
+						}
+						// lans: different but related network
+						if(!network.containsIp(s.lan3)){
+							const net = location.networkForClient(s.lan3);
+							net && (networks[net.networkCidr] = net);
 						}
 					}
 
-					const networks = {};
-					// add other networks
-					for(var s of location.servers.list){
-						if(s.location === location && s.lan3 && s.hasGroups(groups) && !network.containsIp(s.lan3)){
-							const net = location.networkForClient(s.lan3);
-							net && (networks[net.networkCidr] = true);
-						}
-					}
-					for(var destination in networks){
-						result.push(new IpRoute(f.parseNetwork(destination), this.gateway, "local3"));
+					for(var destination of Object.values(networks)){
+						result.push(new IpRoute(destination, this.gateway, "local3"));
 					}
 				}
 
