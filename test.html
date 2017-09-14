@@ -604,8 +604,14 @@
 								}
 							});
 
-							nest('Targets', function(){
+							nest('TargetsListDns', function(){
 								for(let target of viewS.targetListDns){
+									dumpTarget(target);
+								}
+							});
+
+							nest('TargetsListWeb', function(){
+								for(let target of viewS.targetListWeb){
 									dumpTarget(target);
 								}
 							});
