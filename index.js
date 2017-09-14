@@ -1223,7 +1223,17 @@ const Target = Class.create(
 		"hasLocalEndpoints" : {
 			execute : "once", get : function(){
 				for(const target of this.endpointsList){
-					if(!target.location || target.location === this.config.location){
+					if(target.location === this.config.location){
+						return true;
+					}
+				}
+				return false;
+			}
+		},
+		"hasRemoteEndpoints" : {
+			execute : "once", get : function(){
+				for(const target of this.endpointsList){
+					if(target.location !== this.config.location){
 						return true;
 					}
 				}
@@ -2513,7 +2523,7 @@ const DhcpHost = Class.create(
 		},
 		"routeLocal" : {
 			get : function(){
-				const route = new IpRoute(this.network.networkObject, undefined, 'local');
+				const route = new IpRoute(this.network.networkObject, undefined, 'local2');
 				route.local = true;
 				return route;
 			}
@@ -2543,7 +2553,7 @@ const DhcpHost = Class.create(
 					// add tap neighbours
 					for(var s of this.config.servers.list){
 						if(s.location !== location && s.lan3 && s.hasGroups(groups)){
-							result.push(new IpRoute(f.parseNetwork(s.lan3), this.gateway, "foreign"));
+							result.push(new IpRoute(f.parseNetwork(s.lan3), this.gateway, "remote"));
 						}
 					}
 
@@ -2556,7 +2566,7 @@ const DhcpHost = Class.create(
 						}
 					}
 					for(var destination in networks){
-						result.push(new IpRoute(f.parseNetwork(destination), this.gateway, "groups"));
+						result.push(new IpRoute(f.parseNetwork(destination), this.gateway, "local3"));
 					}
 				}
 
