@@ -967,6 +967,16 @@ const Location = Class.create(
 				return lan && lan.ip || undefined;
 			}
 		},
+		"hasLocalEndpoints" : {
+			get : function(){
+				return this === this.config.location;
+			}
+		},
+		"hasRemoteEndpoints" : {
+			get : function(){
+				return this !== this.config.location;
+			}
+		},
 		"toSourceObject" : {
 			value : function(){
 				return {

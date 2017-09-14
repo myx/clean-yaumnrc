@@ -506,13 +506,13 @@
 						out('.lan3', server.lan3);
 						out('.wan3smart', server.wan3smart);
 						out('.lan3smart', server.lan3smart);
-		
+
 						// temp array - it is not array for now
 						for(let lan of [].concat(server.lan3)){
 							lan && out('Gateway(for '+lan+') ', server.location.networkForClient(lan));
 						}
 
-						out(' .toSource()', server.toSource());
+						out(' .toSourceNonSecure()', server.toSourceNonSecure());
 						out();
 					});
 				}
@@ -583,14 +583,16 @@
 									out(' .location', target.location);
 									out(' .modeDns', target.modeDns);
 									out(' .wan3smart', target.wan3smart);
+									out(' .hasLocalEndpoints', target.hasLocalEndpoints);
+									out(' .hasRemoteEndpoints', target.hasRemoteEndpoints);
 									out(' .endpointsList', target.endpointsList);
 									out(' .toSource()', target.toSource());
 									out();
 								});
 							}
 
-							nest('Routers', function(){
-								for(let target of viewS.routers.list){
+							nest('Routers (filtered)', function(){
+								for(let target of viewS.location.routers.list){
 									dumpTarget(target);
 								}
 							});
