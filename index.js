@@ -1134,12 +1134,13 @@ const Server = Class.create(
 		"provisionFill" : {
 			value : function(dhcpView){
 				const lan = this.source.lan;
-				if(lan && lan.mac && lan.ip){
+				const isMacAddress = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
+				if(lan && lan.mac && isMacAddress.exec(lan.mac) && lan.ip){
 					const network = this.location.networkForClient(lan.ip);
 					dhcpView.addRecord(this.key + "_lan", lan.mac, this.key, lan.ip, network, this.groups);
 				}
 				const wan = this.source.wan;
-				if(wan && wan.mac && wan.ip){
+				if(wan && wan.mac && isMacAddress.exec(wan.mac) && wan.ip){
 					dhcpView.addRecord(this.key + "_wan", wan.mac, this.key, wan.ip);
 				}
 			}
