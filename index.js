@@ -729,6 +729,16 @@ const ResolvableObject = Class.create(
 				return [ this ];
 			}
 		},
+		"isLocal" : {
+			get : function(){
+				return this.config.location && this.location === this.config.location;
+			}
+		},
+		"isRemote" : {
+			get : function(){
+				return !this.location || this.location !== this.config.location;
+			}
+		},
 		"hasLocalEndpoints" : {
 			execute : "once", get : function(){
 				for(const target of this.endpointsList){
@@ -965,6 +975,16 @@ const Location = Class.create(
 			value : function(ip){
 				const lan = this.lans.networkForIp(ip);
 				return lan && lan.ip || undefined;
+			}
+		},
+		"isLocal" : {
+			get : function(){
+				return this === this.config.location;
+			}
+		},
+		"isRemote" : {
+			get : function(){
+				return this !== this.config.location;
 			}
 		},
 		"hasLocalEndpoints" : {

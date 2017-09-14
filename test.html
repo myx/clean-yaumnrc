@@ -324,10 +324,8 @@
 							"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru"]
 						},
 						"capandcap.ru" : {
-							"target" : [
-								"http://capandcap.ru",
-								"https://canandcap.ru"
-							]
+							"proxyHttp" : "http://capandcap.ru",
+							"proxyHttps" : "https://canandcap.ru"
 						},
 						"bcp-h1.myx.ru" : {
 							"location" : "h1",
@@ -581,8 +579,11 @@
 								nest(name, function(){
 									out('Target', target);
 									out(' .location', target.location);
+									out(' .config.location', target.config.location);
 									out(' .modeDns', target.modeDns);
 									out(' .wan3smart', target.wan3smart);
+									out(' .isLocal', target.isLocal);
+									out(' .isRemote', target.isRemote);
 									out(' .hasLocalEndpoints', target.hasLocalEndpoints);
 									out(' .hasRemoteEndpoints', target.hasRemoteEndpoints);
 									out(' .endpointsList', target.endpointsList);
