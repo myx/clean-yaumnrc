@@ -170,6 +170,14 @@
 								"ip" : "192.168.3.77"
 							}
 						},
+						"www-2-o3.myx.ru" : {
+							"location" : "o3",
+							"net" : "www",
+							"lan" : {
+								"mac" : "AA:BB:10:03:01:01",
+								"ip" : "10.3.2.77"
+							}
+						},
 						"mpxy1.myx.ru" : {
 							"location" : "h1",
 							"net" : "monitoring",
@@ -182,8 +190,9 @@
 						},
 						"mpxy3.myx.ru" : {
 							"location" : "o3",
-							"net" : "monitoring",
+							"net" : [ "monitoring", "www" ],
 							"lan" : {
+								"mac" : "AA:BB:CC:03:07:07",
 								"ip" : "192.168.3.27"
 							}
 						}
