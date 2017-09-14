@@ -723,6 +723,32 @@ const ResolvableObject = Class.create(
 				return this.resolveDirectIP4(net);
 			}
 		},
+		"endpointsList" : {
+			// to be functionally compatible with Target objects
+			get : function(){
+				return [ this ];
+			}
+		},
+		"hasLocalEndpoints" : {
+			execute : "once", get : function(){
+				for(const target of this.endpointsList){
+					if(target.location === this.config.location){
+						return true;
+					}
+				}
+				return false;
+			}
+		},
+		"hasRemoteEndpoints" : {
+			execute : "once", get : function(){
+				for(const target of this.endpointsList){
+					if(target.location !== this.config.location){
+						return true;
+					}
+				}
+				return false;
+			}
+		},
 		"toString" : {
 			value : function(){
 				return "[yamnrc ResolvableObject(" + this.key + "])]";
@@ -1031,12 +1057,6 @@ const Server = Class.create(
 				return this.endpointsToMap({});
 			}
 		},
-		"endpointsList" : {
-			// to be functionally compatible with Target objects
-			get : function(){
-				return [ this ];
-			}
-		},
 		"upstreamList" : {
 			// to be functionnally compatible with Target objects
 			get : function(){
@@ -1218,26 +1238,6 @@ const Target = Class.create(
 			// to be functionnally compatible with Target objects
 			get : function(){
 				return [ new UpstreamObject() ];
-			}
-		},
-		"hasLocalEndpoints" : {
-			execute : "once", get : function(){
-				for(const target of this.endpointsList){
-					if(target.location === this.config.location){
-						return true;
-					}
-				}
-				return false;
-			}
-		},
-		"hasRemoteEndpoints" : {
-			execute : "once", get : function(){
-				for(const target of this.endpointsList){
-					if(target.location !== this.config.location){
-						return true;
-					}
-				}
-				return false;
 			}
 		},
 		"resolveDirectIP4" : {
