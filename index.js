@@ -1078,7 +1078,8 @@ const Server = Class.create(
 		},
 		"groups" : {
 			get : function(){
-				return [].concat(this.source.net);
+				const net = this.source.net;
+				return net && [].concat(net) || [];
 			}
 		},
 		"hasGroups" : {
@@ -2609,24 +2610,29 @@ const DhcpHost = Class.create(
 				const groups = this.groups;
 				if(groups){
 					const networks = new Set();
-					for(var s of location.servers.list){
+					for(var s of location.config.servers.list){
 						if(!s.lan3 || !s.hasGroups(groups)){
 							// not related
 							continue;
 						}
+						console.warn(">>>>>000 " + s.key + " >>> " + s.groups + ">>>" + this.key + " >>> " + groups);
 						const level2 = network.containsIp(s.lan3);
 						if(s.location === location && level2){
 							// Level2 accessible
 							continue;
 						}
+						console.warn(">>>>>001 " + s.key + " >>> " + s.groups + ">>>" + this.key + " >>> " + groups);
 						// lans: different but related network
 						if(!level2){
 							const net = location.networkForClient(s.lan3);
-							net && networks.add(net);
-							continue;
+							if(net){
+								networks.add(net);
+								continue;
+							}
 						}
 						// taps: same network / different location
 						{
+							console.warn(">>>>>002 " + f.parseNetwork(s.lan3) + " >>> ");
 							result.push(new IpRoute(f.parseNetwork(s.lan3), this.gateway, "remote"));
 							continue;
 						}
