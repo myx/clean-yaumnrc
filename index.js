@@ -2608,24 +2608,31 @@ const DhcpHost = Class.create(
 
 				const groups = this.groups;
 				if(groups){
-					const networks = {};
+					const networks = new Set();
 					for(var s of location.servers.list){
 						if(!s.lan3 || !s.hasGroups(groups)){
+							// not related
 							continue;
 						}
-						// taps: same network / different location
-						if(s.location !== location && network.containsIp(s.lan3)){
-							result.push(new IpRoute(f.parseNetwork(s.lan3), this.gateway, "remote"));
+						const level2 = network.containsIp(s.lan3);
+						if(s.location === location && level2){
+							// Level2 accessible
 							continue;
 						}
 						// lans: different but related network
-						if(!network.containsIp(s.lan3)){
+						if(!level2){
 							const net = location.networkForClient(s.lan3);
-							net && (networks[net.networkCidr] = net);
+							net && networks.add(net);
+							continue;
+						}
+						// taps: same network / different location
+						{
+							result.push(new IpRoute(f.parseNetwork(s.lan3), this.gateway, "remote"));
+							continue;
 						}
 					}
 
-					for(var destination of Object.values(networks)){
+					for(var destination of networks.values()){
 						result.push(new IpRoute(destination, this.gateway, "local3"));
 					}
 				}
