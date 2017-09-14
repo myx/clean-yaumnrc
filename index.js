@@ -2552,27 +2552,27 @@ const DhcpHost = Class.create(
 		},
 		"networkIp" : {
 			get : function(){
-				return this.network.network;
+				return this.network && this.network.network;
 			}
 		},
 		"networkInt" : {
 			get : function(){
-				return this.network.networkInt;
+				return this.network && this.network.networkInt;
 			}
 		},
 		"networkMask" : {
 			get : function(){
-				return this.network.mask;
+				return this.network && this.network.mask;
 			}
 		},
 		"networkBits" : {
 			get : function(){
-				return this.network.bits;
+				return this.network && this.network.bits;
 			}
 		},
 		"networkCidr" : {
 			get : function(){
-				return this.network.networkCidr;
+				return this.network && this.network.networkCidr;
 			}
 		},
 		"network" : {
@@ -2580,6 +2580,9 @@ const DhcpHost = Class.create(
 		},
 		"routeLocal" : {
 			get : function(){
+				if(!this.network){
+					return undefined;
+				}
 				const route = new IpRoute(this.network.networkObject, undefined, 'local2');
 				route.local = true;
 				return route;
@@ -2602,8 +2605,7 @@ const DhcpHost = Class.create(
 				if(!network){
 					return undefined;
 				}
-				const result = [];
-				result.push(this.routeLocal);
+				const result = [].concat(this.routeLocal);
 
 				const groups = this.groups;
 				if(groups){
@@ -2634,7 +2636,7 @@ const DhcpHost = Class.create(
 		},
 		"routesAsClasslessString" : {
 			get : function(){
-				return this.routes.reduce(function(r, x){
+				return this.routes && this.routes.reduce(function(r, x){
 					const fragment = x.asClasslessStringFragment;
 					return fragment 
 						? r	

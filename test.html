@@ -51,9 +51,9 @@
 				}
 		</style>		
 		<script>
-			function test(){
+			function test(src){
 				const Config = module.exports;
-				const config = Config.parse({
+				const config = Config.parse(src ? JSON.parse(src) : {
 					"locations" : {
 						"h1" : {
 							"name" : "h1.myx.ru",
@@ -370,6 +370,9 @@
 				const output = document.getElementById('output');
 				const lpanel = document.getElementById('lpanel');
 
+				output.innerHTML = '';
+				lpanel.innerHTML = '';
+
 				let target = output;
 
 				function out(t,x,e,d){
@@ -652,13 +655,15 @@
 												out('.host', host.host);
 												out('.gateway', host.gateway);
 												out('.network', host.network);
-												out('.networkIp', host.networkIp);
-												out('.networkMask', host.networkMask);
-												out('.networkBits', host.networkBits);
-												out('.networkCidr', host.networkCidr);
+												if(host.network){
+													out('.networkIp', host.networkIp);
+													out('.networkMask', host.networkMask);
+													out('.networkBits', host.networkBits);
+													out('.networkCidr', host.networkCidr);
+												}
 												out('.routesAsClasslessString', host.routesAsClasslessString);
 												nest('.routes', function(){
-													for(var r of (host.routes)){
+													for(var r of (host.routes || [])){
 														out(null, r);
 													}
 												});
@@ -680,7 +685,7 @@
 			}
 		</script>
 	</head>
-	<body onload="test()">
+	<body onload="test()" ondblclick="test(prompt('Upload config'))">
 		<div id="lpanel">
 		</div>
 		<div id="output">
