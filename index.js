@@ -2635,7 +2635,7 @@ const DhcpHost = Class.create(
 			}
 		},
 		"routesAsClasslessString" : {
-			get : function(){
+			execute : "once", get : function(){
 				return this.routes && this.routes.reduce(function(r, x){
 					const fragment = x.asClasslessStringFragment;
 					return fragment 
