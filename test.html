@@ -647,8 +647,9 @@
 												out('.networkMask', host.networkMask);
 												out('.networkBits', host.networkBits);
 												out('.networkCidr', host.networkCidr);
+												out('.routesAsClasslessString', host.routesAsClasslessString);
 												nest('.routes', function(){
-													for(var r of (host.routes || [])){
+													for(var r of (host.routes)){
 														out(null, r);
 													}
 												});

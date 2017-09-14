@@ -193,6 +193,9 @@ const SingleAddress = Class.create(
 				return this.AbstractAddress.intForIPv4(ip);
 			}
 		},
+		"bits" : {
+			value : 32
+		},
 		"networkCidr" : {
 			get : function(){
 				return this.ip + '/32';
@@ -541,6 +544,24 @@ const IpRoute = Class.create(
 		},
 		"type" : {
 			value : undefined
+		},
+		"asClasslessStringFragment" : {
+			get : function(){
+				if(this.local || !this.via){
+					return "";
+				}
+				const dst = this.dst;
+				if(dst.bits === 0){
+					return "0,  " + this.via.replace(/\./gi, ',');
+				}
+				{
+					let net = dst.ip;
+					(dst.bits <= 24) && (net = net.substr(0, net.lastIndexOf('.')));
+					(dst.bits <= 16) && (net = net.substr(0, net.lastIndexOf('.')));
+					(dst.bits <= 8 ) && (net = net.substr(0, net.lastIndexOf('.')));
+					return dst.bits + ", " + net.replace(/\./gi, ',') + ",  " + this.via.replace(/\./gi, ',');
+				}
+			}
 		},
 		"toString" : {
 			value : function(){
@@ -1134,13 +1155,18 @@ const Server = Class.create(
 		"provisionFill" : {
 			value : function(dhcpView){
 				const lan = this.source.lan;
+				const wan = this.source.wan;
+
 				const isMacAddress = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
+
+				const doWan = wan && wan.mac && isMacAddress.exec(wan.mac) && wan.ip;
+
 				if(lan && lan.mac && isMacAddress.exec(lan.mac) && lan.ip){
+					// TODO: dont do gateway if doWan
 					const network = this.location.networkForClient(lan.ip);
 					dhcpView.addRecord(this.key + "_lan", lan.mac, this.key, lan.ip, network, this.groups);
 				}
-				const wan = this.source.wan;
-				if(wan && wan.mac && isMacAddress.exec(wan.mac) && wan.ip){
+				if(doWan){
 					dhcpView.addRecord(this.key + "_wan", wan.mac, this.key, wan.ip);
 				}
 			}
@@ -2604,6 +2630,18 @@ const DhcpHost = Class.create(
 
 				result.push(this.routeGlobal);
 				return result;
+			}
+		},
+		"routesAsClasslessString" : {
+			get : function(){
+				return this.routes.reduce(function(r, x){
+					const fragment = x.asClasslessStringFragment;
+					return fragment 
+						? r	
+							? r + ",   " + fragment
+							: fragment
+						: r;
+				}, '');
 			}
 		},
 		"toSourceObject" : {
