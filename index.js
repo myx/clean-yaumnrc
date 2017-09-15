@@ -2615,13 +2615,11 @@ const DhcpHost = Class.create(
 							// not related
 							continue;
 						}
-						console.warn(">>>>>000 " + s.key + " >>> " + s.groups + ">>>" + this.key + " >>> " + groups);
 						const level2 = network.containsIp(s.lan3);
 						if(s.location === location && level2){
 							// Level2 accessible
 							continue;
 						}
-						console.warn(">>>>>001 " + s.key + " >>> " + s.groups + ">>>" + this.key + " >>> " + groups);
 						// lans: different but related network
 						if(!level2){
 							const net = location.networkForClient(s.lan3);
@@ -2632,7 +2630,6 @@ const DhcpHost = Class.create(
 						}
 						// taps: same network / different location
 						{
-							console.warn(">>>>>002 " + f.parseNetwork(s.lan3) + " >>> ");
 							result.push(new IpRoute(f.parseNetwork(s.lan3), this.gateway, "remote"));
 							continue;
 						}
