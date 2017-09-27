@@ -31,34 +31,39 @@
 
 const Class = {
 	"create" : function(name, inherit, constructor, properties, statics){
-		const prototype = constructor.prototype = inherit
+		const p = constructor.prototype = inherit
 			? Object.create(inherit.prototype || inherit)
 			: {};
 		if(properties){
-			for(const key in properties){
-				let desc = properties[key];
-				if('function' === typeof desc.get && desc.execute === 'once'){
-					const get = desc.get;
-					desc = Object.create(desc);
-					desc.get = function(){
+			var k, d;
+			for(k in properties){
+				d = properties[k];
+				if(d.execute === 'once' && 'function' === typeof d.get){
+					const get = d.get;
+					const key = k;
+					d = Object.create(d);
+					d.get = function(){
 						const result = get.call(this);
-						this === prototype || Object.defineProperty(this, key, { value : result });
+						this === p || Object.defineProperty(this, key, { value : result });
+						// console.log("createClass: >>>>>> once: " + name + ", " + key);
 						return result;
 					};
 				}
-				Object.defineProperty(prototype, key, desc);
+				Object.defineProperty(p, k, d);
 			}
-			// Object.defineProperties(prototype, properties);
+			// Object.defineProperties(p, properties);
 		}
 		if(name && !(properties && properties[name])){
-			f.defineProperty(prototype, name, constructor);
+			Object.defineProperty(p, name, { value : constructor });
 		}
 		if(statics){
 			Object.defineProperties(constructor, statics);
 		}
-		if(name && !(statics && statics["toString"])){
-			f.defineProperty(constructor, "toString", function(){
-				return "[class " + name + "]";
+		if(name && !(statics && statics.toString)){
+			Object.defineProperty(constructor, "toString", {
+				value : function(){
+					return "[class " + name + "]";
+				}
 			});
 		}
 		return constructor;
