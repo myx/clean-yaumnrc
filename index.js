@@ -2864,6 +2864,27 @@ const Configuration = Class.create(
 				return this.routing.domains.makeStaticView(net);
 			}
 		},
+		"buildHostsView" : {
+			value : function(net){
+				const entries = {};
+				const source = this.buildDnsView(
+					net || this.location && this.location.lans || null
+				).toSourceObject();
+				for (const [domainKey, domain] of Object.entries(source)) {
+					for (const [host, ip] of Object.entries((domain.dns || {}).A || {})) {
+						let fqdn = host.endsWith('.') ? host.slice(0, -1) : host + domainKey;
+						fqdn.startsWith("@.") && (fqdn = fqdn.substr(2));
+						fqdn.startsWith("*.") || ip.forEach((ip) => {
+							(entries[fqdn] || (entries[fqdn] = {}))[ip] = true;
+						});
+					}
+				}
+				for (const [key, map] of Object.entries(entries)) {
+					entries[key] = Object.keys(map);
+				}
+				return entries;
+			}
+		},
 		"makeViewForLocation" : {
 			value : function(location){
 				if(!location){

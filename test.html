@@ -640,6 +640,12 @@
 								dumpDomains(viewS.buildDnsView(viewS.location.lans));
 							});
 
+							nest('HOSTS', function(){
+								const view = viewS.buildHostsView();
+								for(const [key, value] of Object.entries(view)){
+									out(key, value, 'pre');
+								}
+							});
 							
 							nest('DHCP', function(){
 								function dumpDhcpView(view){
