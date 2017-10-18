@@ -1167,9 +1167,8 @@ const Server = Class.create(
 				const doWan = wan && wan.mac && isMacAddress.exec(wan.mac) && wan.ip;
 
 				if(lan && lan.mac && isMacAddress.exec(lan.mac) && lan.ip){
-					// TODO: dont do gateway if doWan
 					const network = this.location.networkForClient(lan.ip);
-					dhcpView.addRecord(this.key + "_lan", lan.mac, this.key, lan.ip, network, this.groups);
+					dhcpView.addRecord(this.key + "_lan", lan.mac, this.key, lan.ip, network, this.groups, !doWan || this.source.gateway === 'local');
 				}
 				if(doWan){
 					dhcpView.addRecord(this.key + "_wan", wan.mac, this.key, wan.ip);
@@ -2485,8 +2484,8 @@ const DhcpView = Class.create(
 			}
 		},
 		"addRecord" : {
-			value : function(key, mac, host, ip, network, groups){
-				const record = new DhcpHost(this.config, this, key, mac, host, ip, network, groups);
+			value : function(key, mac, host, ip, network, groups, hasGateway){
+				const record = new DhcpHost(this.config, this, key, mac, host, ip, network, groups, hasGateway);
 				this.put(record.key, record);
 				return record;
 			}
@@ -2502,7 +2501,7 @@ const DhcpView = Class.create(
 const DhcpHost = Class.create(
 	"DhcpHost",
 	ConfigObject,
-	function(config, view, key, mac, host, ip, network, groups){
+	function(config, view, key, mac, host, ip, network, groups, hasGateway){
 		this.ConfigObject(config);
 		if(!mac){
 			throw new Error("DhcpHost requires 'mac'-address!");
@@ -2528,6 +2527,9 @@ const DhcpHost = Class.create(
 			},
 			"groups" : {
 				value : groups && groups.length && groups || undefined
+			},
+			"hasGateway" : {
+				value : hasGateway
 			}
 		});
 		if(key){
@@ -2552,7 +2554,7 @@ const DhcpHost = Class.create(
 		},
 		"gateway" : {
 			execute : "once", get : function(){
-				return this.network && this.network.ip || undefined;
+				return this.hasGateway && this.network && this.network.ip || undefined;
 			}
 		},
 		"resolver" : {
@@ -2600,7 +2602,11 @@ const DhcpHost = Class.create(
 		},
 		"routeGlobal" : {
 			get : function(){
-				const route = new IpRoute(NetworkAddress.GLOBAL, this.gateway, 'default');
+				const gateway = this.gateway;
+				if(!gateway){
+					return undefined;
+				}
+				const route = new IpRoute(NetworkAddress.GLOBAL, gateway, 'default');
 				route.global = true;
 				return route;
 			}
@@ -2651,7 +2657,8 @@ const DhcpHost = Class.create(
 				}
 
 
-				result.push(this.routeGlobal);
+				const global = this.routeGlobal;
+				global && result.push(global);
 				return result;
 			}
 		},
