@@ -2489,7 +2489,7 @@ const DhcpView = Class.create(
 		},
 		"addRecord" : {
 			value : function(key, mac, host, ip, network, groups, defaultGateway){
-				const record = new DhcpHost(this.config, this, key, mac, host, ip, network, groups, deafultGateway);
+				const record = new DhcpHost(this.config, this, key, mac, host, ip, network, groups, defaultGateway);
 				this.put(record.key, record);
 				return record;
 			}
