@@ -2555,9 +2555,14 @@ const DhcpHost = Class.create(
 				return this.network && this.network.ip || undefined;
 			}
 		},
+		"resolver" : {
+			execute : "once", get : function(){
+				return this.network && this.network.ip || undefined;
+			}
+		},
 		"networkIp" : {
 			get : function(){
-				return this.network && this.network.network;
+				return this.network && this.network.network || undefined;
 			}
 		},
 		"networkInt" : {
