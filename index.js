@@ -1168,7 +1168,11 @@ const Server = Class.create(
 
 				if(lan && lan.mac && isMacAddress.exec(lan.mac) && lan.ip){
 					const network = this.location.networkForClient(lan.ip);
-					dhcpView.addRecord(this.key + "_lan", lan.mac, this.key, lan.ip, network, this.groups, !doWan || this.source.gateway === 'local');
+					const gateway = doWan
+						? this.source.gateway || undefined
+						: this.source.gateway || network && network.ip || undefined
+					;
+					dhcpView.addRecord(this.key + "_lan", lan.mac, this.key, lan.ip, network, this.groups, gateway);
 				}
 				if(doWan){
 					dhcpView.addRecord(this.key + "_wan", wan.mac, this.key, wan.ip);
@@ -2484,8 +2488,8 @@ const DhcpView = Class.create(
 			}
 		},
 		"addRecord" : {
-			value : function(key, mac, host, ip, network, groups, hasGateway){
-				const record = new DhcpHost(this.config, this, key, mac, host, ip, network, groups, hasGateway);
+			value : function(key, mac, host, ip, network, groups, defaultGateway){
+				const record = new DhcpHost(this.config, this, key, mac, host, ip, network, groups, deafultGateway);
 				this.put(record.key, record);
 				return record;
 			}
@@ -2501,7 +2505,7 @@ const DhcpView = Class.create(
 const DhcpHost = Class.create(
 	"DhcpHost",
 	ConfigObject,
-	function(config, view, key, mac, host, ip, network, groups, hasGateway){
+	function(config, view, key, mac, host, ip, network, groups, defaultGateway){
 		this.ConfigObject(config);
 		if(!mac){
 			throw new Error("DhcpHost requires 'mac'-address!");
@@ -2528,8 +2532,8 @@ const DhcpHost = Class.create(
 			"groups" : {
 				value : groups && groups.length && groups || undefined
 			},
-			"hasGateway" : {
-				value : hasGateway
+			"gateway" : {
+				value : defaultGateway
 			}
 		});
 		if(key){
@@ -2551,11 +2555,6 @@ const DhcpHost = Class.create(
 		},
 		"ip" : {
 			value : undefined
-		},
-		"gateway" : {
-			execute : "once", get : function(){
-				return this.hasGateway && this.network && this.network.ip || undefined;
-			}
 		},
 		"resolver" : {
 			execute : "once", get : function(){
@@ -2659,7 +2658,7 @@ const DhcpHost = Class.create(
 
 				const global = this.routeGlobal;
 				global && result.push(global);
-				
+
 				return result;
 			}
 		},
