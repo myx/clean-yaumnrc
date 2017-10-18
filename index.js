@@ -2621,10 +2621,11 @@ const DhcpHost = Class.create(
 				if(!network){
 					return undefined;
 				}
-				const result = [].concat(this.routeLocal);
+				const result = [ this.routeLocal ];
 
 				const groups = this.groups;
 				if(groups){
+					const localGw = network.ip;
 					const networks = new Set();
 					for(var s of location.config.servers.list){
 						if(!s.lan3 || !s.hasGroups(groups)){
@@ -2646,19 +2647,19 @@ const DhcpHost = Class.create(
 						}
 						// taps: same network / different location
 						{
-							result.push(new IpRoute(f.parseNetwork(s.lan3), this.gateway, "remote"));
+							result.push(new IpRoute(f.parseNetwork(s.lan3), localGw, "remote"));
 							continue;
 						}
 					}
 
 					for(var destination of networks.values()){
-						result.push(new IpRoute(destination, this.gateway, "local3"));
+						result.push(new IpRoute(destination, localGw, "local3"));
 					}
 				}
 
-
 				const global = this.routeGlobal;
 				global && result.push(global);
+				
 				return result;
 			}
 		},
