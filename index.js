@@ -1175,7 +1175,7 @@ const Server = Class.create(
 					dhcpView.addRecord(this.key + "_lan", lan.mac, this.key, lan.ip, network, this.groups, gateway);
 				}
 				if(doWan){
-					dhcpView.addRecord(this.key + "_wan", wan.mac, this.key, wan.ip);
+					dhcpView.addRecord(this.key + "_wan", wan.mac, this.key, wan.ip, undefined, undefined, this.source.gateway || undefined);
 				}
 			}
 		},
