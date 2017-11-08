@@ -915,9 +915,9 @@ const Location = Class.create(
 				{
 					const result = {};
 					{
-						for(var i of this.routers.list){
-							if(i.isActive){
-								for(const i of (i.resolveSmartIP4(net, true) || [])){
+						for(const r of this.routers.list){
+							if(r.isActive){
+								for(const i of (r.resolveSmartIP4(net, true) || [])){
 									result[i] = true;
 								}
 							}
@@ -926,9 +926,9 @@ const Location = Class.create(
 						if(keys.length) return keys;
 					}
 					{
-						for(var i of this.routers.list){
-							if(i.isTesting){
-								for(const i of (i.resolveSmartIP4(net, true) || [])){
+						for(const r of this.routers.list){
+							if(r.isTesting){
+								for(const i of (r.resolveSmartIP4(net, true) || [])){
 									result[i] = true;
 								}
 							}
