@@ -915,22 +915,18 @@ const Location = Class.create(
 				{
 					const result = {};
 					{
-						for(const r of this.routers.list){
-							if(r.isActive){
-								for(const i of (r.resolveSmartIP4(net, true) || [])){
-									result[i] = true;
-								}
+						for(const r of this.routers.list.filter(Router.isActive)){
+							for(const i of (r.resolveSmartIP4(net, true) || [])){
+								result[i] = true;
 							}
 						}
 						const keys = Object.keys(result);
 						if(keys.length) return keys;
 					}
 					{
-						for(const r of this.routers.list){
-							if(r.isTesting){
-								for(const i of (r.resolveSmartIP4(net, true) || [])){
-									result[i] = true;
-								}
+						for(const r of this.routers.list.filter(Router.isTesting)){
+							for(const i of (r.resolveSmartIP4(net, true) || [])){
+								result[i] = true;
 							}
 						}
 						const keys = Object.keys(result);
