@@ -2688,6 +2688,54 @@ const DhcpHost = Class.create(
 );
 
 
+
+
+
+
+const SshAccessTable = Class.create(
+	"SshAccessTable",
+	SourceObject,
+	function(){
+		Object.defineProperties(this, {
+			"rows" : {
+				value : []
+			}
+		});
+		return this;
+	},{
+		"columns" : {
+			value : [
+				{
+					id : "name",
+					title : "Server"
+				},
+				{
+					id : "ssh",
+					title : "command",
+					cssClass : "code"
+				}
+			]
+		},
+		"rows" : {
+			// array of maps
+			value : null
+		},
+		"toSourceObject" : {
+			value : function(){
+				return {
+					columns : this.columns,
+					rows : this.rows
+				};
+			}
+		}
+	}
+);
+
+
+
+
+
+
 const Configuration = Class.create(
 	"Configuration",
 	ResolvableObject,
@@ -2967,6 +3015,39 @@ const Configuration = Class.create(
 					return this.makeViewForLocation(x);
 				}
 				return undefined;
+			}
+		},
+		"makeSshAccessTable" : {
+			value : function(){
+				const table = new SshAccessTable();
+				const rows = table.rows;
+
+				servers: for(let s of this.servers.list){
+					if(s.wan3){
+						rows.push({
+							name : s.key,
+							ssh : "ssh " + s.key
+						});
+						continue servers;
+					}
+					const type = ((this.source.routing||{}).types||{})[s.source.type || 'default'];
+					if(type){
+						for(let nat in (type.level3||{})){
+							const tgt = Number(type.level3[nat]||-1);
+							if(nat == "22" || nat == "22/tcp" || tgt == 22){
+								const nport = Number(nat.split('/')[0]||-1);
+								const shift = Number(s.source.tcpShift||0) || 0;
+								rows.push({
+									name : s.key,
+									ssh : "ssh " + s.key + " -p " + (shift + nport)
+								});
+								continue servers;
+							}
+						}
+					}
+				}
+
+				return table;
 			}
 		},
 		"makeNonSecure" : {

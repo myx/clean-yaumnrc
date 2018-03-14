@@ -160,7 +160,9 @@
 							"lan" : {
 								"mac" : "AA:BB:CC:00:01:01",
 								"ip" : "192.168.1.77"
-							}
+							},
+							"tcpShift" : 3000,
+							"type" : "ae3bsd"
 						},
 						"www-o3.myx.ru" : {
 							"location" : "o3",
@@ -168,7 +170,9 @@
 							"lan" : {
 								"mac" : "AA:BB:CC:03:01:01",
 								"ip" : "192.168.3.77"
-							}
+							},
+							"tcpShift" : 3000,
+							"type" : "ae3bsd"
 						},
 						"www-2-o3.myx.ru" : {
 							"location" : "o3",
@@ -176,7 +180,9 @@
 							"lan" : {
 								"mac" : "AA:BB:10:03:01:01",
 								"ip" : "10.3.2.77"
-							}
+							},
+							"tcpShift" : 3000,
+							"type" : "unix"
 						},
 						"mpxy1.myx.ru" : {
 							"location" : "h1",
@@ -198,6 +204,63 @@
 						}
 					},
 					"routing" : {
+						"types" : {
+							"default" : {
+								"level3" : {},
+								"level6" : {}
+							},
+							"ae3bsd" : {
+								"level3" : {
+									"22/tcp"  : 22,
+									"53"      : 53,
+									"44"      : 4044,
+									"45"      : 17045,
+									"47"      : 17047,
+									"80/tcp"  : 17080,
+									"122/tcp" : 17022,
+									"443/tcp" : 17443
+								},
+								"level6" : {
+									"plain"  : 17080,
+									"secure" : 17081
+								}
+							},
+							"maersk" : {
+								"level3" : {
+									"21/tcp"   : 22,
+									"22/tcp"   : 10022,
+									"81/tcp"   : 10080,
+									"83/tcp"   : 10443,
+									"11/tcp"   : 41011,
+									"12/tcp"   : 18012,
+									"13/tcp"   : 23013,
+									"14/tcp"   : 18014,
+									"15/tcp"   : 41015,
+									"16/tcp"   : 23016,
+									"23/tcp"   : 18023,
+									"222/tcp"  : 23222,
+									"5000/tcp" : 5000,
+									"5001/tcp" : 5001
+								},
+								"level6" : {
+									"plain"  : 10000,
+									"secure" : 10080
+								}
+							},
+							"unix" : {
+								"level3" : {
+									"22/tcp"  : 22,
+									"53"      : 53,
+									"80/tcp"  : 80,
+									"82"      : 82,
+									"443/tcp" : 443
+								},
+								"level6" : {
+									"plain"  : 80,
+									"secure" : 80
+								}
+							},
+						},
 						"domains" : {
 							".myx.co.nz" : {
 								"mode" : "infrastructure"
@@ -447,6 +510,9 @@
 					function resolve(host){
 						out(' Config.resolveForHost("'+host+'")', config.resolveForHost(host));
 					}
+					resolve("keenetic.com");
+					resolve("bcp.ndm9.xyz");
+					resolve("bcp-h2.ndm9.xyz");
 					resolve("l6h1.myx.ru");
 					resolve("l6h1.myx.co.nz");
 					resolve("l6o3.myx.ru");
@@ -456,6 +522,21 @@
 					resolve("mpxy-direct.myx.co.nz");
 					resolve("mpxy-default.myx.co.nz");
 				});
+
+				nest('Access', function(){
+					const sshTable = config.makeSshAccessTable();
+					if(sshTable && sshTable.rows) {
+						nest('SSH Access', function(){
+							
+							for(let row of sshTable.rows){
+								out(row.name, row.ssh);
+							}
+
+						});
+						out(".toSource()", sshTable.toSource(), 'textarea');
+					}
+				});
+
 
 				nest('Locations', function(){
 
