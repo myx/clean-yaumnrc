@@ -12,7 +12,7 @@ function makeExplainer(div, config){
         const btn = document.createElement("button");
         btn.innerHTML = name;
         btn.onclick = function(){
-            output.innetHTML = '';
+            output.innerHTML = '';
             explainer(output);
         };
         header.appendChild(btn);
