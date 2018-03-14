@@ -12,7 +12,7 @@ module.exports = {
         const div = document.createElement("div");
         div.cssText = "position:absolute;left:0;right:0;width:100%;height:100%;margin:0;padding:0;background-color:#fff;color:#000";
         this.makeExplainer(div, config);
-        document.appendChild(div);
+        document.body.appendChild(div);
     },
     "makeExplainer" : makeExplainer
 };
