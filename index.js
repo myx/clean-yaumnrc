@@ -2692,8 +2692,8 @@ const DhcpHost = Class.create(
 
 
 
-const SshAccessTable = Class.create(
-	"SshAccessTable",
+const AbstractTable = Class.create(
+	"AbstractTable",
 	SourceObject,
 	function(){
 		Object.defineProperties(this, {
@@ -2727,6 +2727,63 @@ const SshAccessTable = Class.create(
 					rows : this.rows
 				};
 			}
+		}
+	}
+);
+
+
+
+
+const SshAccessTable = Class.create(
+	"SshAccessTable",
+	AbstractTable,
+	function(){
+		this.AbstractTable();
+		return this;
+	},{
+		"columns" : {
+			value : [
+				{
+					id : "name",
+					title : "Server"
+				},
+				{
+					id : "ssh",
+					title : "command",
+					cssClass : "code"
+				}
+			]
+		}
+	}
+);
+
+
+const ContactsTable = Class.create(
+	"ContactsTable",
+	AbstractTable,
+	function(){
+		this.AbstractTable();
+		return this;
+	},{
+		"columns" : {
+			value : [
+				{
+					id : "key",
+					title : "Key"
+				},
+				{
+					id : "name",
+					title : "Name"
+				},
+				{
+					id : "type",
+					title : "Type"
+				},
+				{
+					id : "contact",
+					title : "Contact"
+				}
+			]
 		}
 	}
 );
@@ -3015,6 +3072,25 @@ const Configuration = Class.create(
 					return this.makeViewForLocation(x);
 				}
 				return undefined;
+			}
+		},
+		"makeContactsTable" : {
+			value : function(){
+				const table = new ContactsTable();
+				const rows = table.rows;
+
+				const contacts = this.source.monitoring.notify;
+				for(let key in contacts){
+					const contact = contacts[key];
+					rows.push({
+						key : key,
+						name : contact.name,
+						type : contact.type,
+						contact : contact.email || contact.phone || contact.redirect || (contact.list && contact.list.join(", "))
+					});
+				}
+
+				return table;
 			}
 		},
 		"makeSshAccessTable" : {

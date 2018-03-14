@@ -52,6 +52,10 @@ function makeExplainer(div, config){
     btn("SSH ACCESS", function(output){
         table(output, config.makeSshAccessTable());
     });
+
+    btn("CONTACTS", function(output){
+        table(output, config.makeContactsTable());
+    });
 }
 
 module.exports = {
