@@ -3093,7 +3093,8 @@ module.exports = {
 	"Routing" : Routing,
 	"Domains" : Domains,
 	"Domain" : Domain,
-	
+
+	"SshAccessTable" : SshAccessTable,
 
 	// returns Configuration	
     "parse" : function (config) {
