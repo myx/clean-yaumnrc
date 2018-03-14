@@ -529,7 +529,7 @@
 						nest('SSH Access', function(){
 							
 							for(let row of sshTable.rows){
-								out(row.name, row.ssh);
+								out('', row.name + ': <b>' + row.ssh + '</b>');
 							}
 
 						});
