@@ -49,7 +49,7 @@ function makeExplainer(div, config){
         output.appendChild(table);
     }
 
-    btn("SSH ACCESS", function(output){
+    btn("SSH", function(output){
         table(output, config.makeSshAccessTable());
     });
 
