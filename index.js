@@ -3116,10 +3116,8 @@ const Configuration = Class.create(
 
 				const dns = this.buildDnsView(null);
 				for(let d of dns.list){
-					console.log(">>> d " + d);
 					if(d.dns && d.dns.list) for(let t of d.dns.list){
 						if(t && t.list) for(let r of t.list){
-							console.log(">>> r " + r);
 							rows.push({
 								domain : d.key,
 								name : r.key,
