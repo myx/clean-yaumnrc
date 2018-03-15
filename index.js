@@ -2749,7 +2749,7 @@ const SshAccessTable = Class.create(
 				},
 				{
 					id : "ssh",
-					title : "command",
+					title : "Command",
 					cssClass : "code"
 				}
 			]
@@ -2788,6 +2788,41 @@ const ContactsTable = Class.create(
 	}
 );
 
+
+
+const DnsTable = Class.create(
+	"DnsTable",
+	AbstractTable,
+	function(){
+		this.AbstractTable();
+		return this;
+	},{
+		"columns" : {
+			value : [
+				{
+					id : "domain",
+					title : "Domain"
+				},
+				{
+					id : "name",
+					title : "Name"
+				},
+				{
+					id : "type",
+					title : "Type"
+				},
+				{
+					id : "value",
+					title : "Record Value"
+				},
+				{
+					id : "comment",
+					title : "Comment"
+				}
+			]
+		}
+	}
+);
 
 
 
@@ -3074,6 +3109,31 @@ const Configuration = Class.create(
 				return undefined;
 			}
 		},
+		"makeDnsTable" : {
+			value : function(){
+				const table = new DnsTable();
+				const rows = table.rows;
+
+				const dns = this.buildDnsView(null);
+				for(let d of dns.list){
+					console.log(">>> d " + d);
+					if(d.dns && d.dns.list) for(let t of d.dns.list){
+						if(t && t.list) for(let r of t.list){
+							console.log(">>> r " + r);
+							rows.push({
+								domain : d.key,
+								name : r.key,
+								type : t.key,
+								value : r.value || '',
+								comment : r.comment || '',
+							});
+						}
+					}
+				}
+
+				return table;
+			}
+		},
 		"makeContactsTable" : {
 			value : function(){
 				const table = new ContactsTable();
@@ -3170,6 +3230,7 @@ module.exports = {
 	"Domains" : Domains,
 	"Domain" : Domain,
 
+	"AbstractTable" : AbstractTable,
 	"SshAccessTable" : SshAccessTable,
 
 	// returns Configuration	

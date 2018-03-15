@@ -56,6 +56,10 @@ function makeExplainer(div, config){
     btn("CONTACTS", function(output){
         table(output, config.makeContactsTable());
     });
+
+    btn("DNS", function(output){
+        table(output, config.makeDnsTable());
+    });
 }
 
 module.exports = {
