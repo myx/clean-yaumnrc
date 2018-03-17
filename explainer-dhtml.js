@@ -2,8 +2,8 @@ function makeExplainer(div, config){
     const output = document.createElement("div");
     const header = document.createElement("div");
 
-    output.style = "position:absolute;left:0;top:0;width:100%;height:100%;background-color:#efe;color:#000";
-    header.style = "position:fixed;left:0;top:0;width:100%;height:1.1em;background-color:#eff;color:#000;overflow:auto";
+    output.style = "position:absolute;padding-top:1.8em;left:0;top:0;width:100%;height:100%;background-color:#efe;color:#000;overflow:auto";
+    header.style = "position:fixed;left:0;top:0;width:100%;height:1.8em;background-color:#eff;color:#000";
 
     div.appendChild(output);
     div.appendChild(header);
