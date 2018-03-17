@@ -2790,6 +2790,41 @@ const ContactsTable = Class.create(
 
 
 
+const LocationsTable = Class.create(
+	"LocationsTable",
+	AbstractTable,
+	function(){
+		this.AbstractTable();
+		return this;
+	},{
+		"columns" : {
+			value : [
+				{
+					id : "location",
+					titleShort : "ID",
+					title : "Location"
+				},
+				{
+					id : "name",
+					title : "Name"
+				},
+				{
+					id : "wan3",
+					title : "WAN3"
+				},
+				{
+					id : "comment",
+					title : "Comment"
+				}
+			]
+		}
+	}
+);
+
+
+
+
+
 const DnsTable = Class.create(
 	"DnsTable",
 	AbstractTable,
@@ -3107,6 +3142,26 @@ const Configuration = Class.create(
 					return this.makeViewForLocation(x);
 				}
 				return undefined;
+			}
+		},
+		"makeLocationsTable" : {
+			value : function(){
+				const table = new LocationsTable();
+				const rows = table.rows;
+
+				for(let l of this.locations.list){
+					if(l.key) {
+						rows.push({
+							location : l.key,
+							name : l.name || l.key,
+							title : l.title || l.description || l.key,
+							wan3 : l.wan3,
+							comment : l.toSource(),
+						});
+					}
+				}
+
+				return table;
 			}
 		},
 		"makeDnsTable" : {

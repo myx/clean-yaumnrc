@@ -13,6 +13,8 @@ function makeExplainer(div, config){
         btn.innerHTML = name;
         btn.onclick = function(){
             output.innerHTML = '';
+            output.scrollTop = 0;
+            output.scrollLeft = 0;
             explainer(output);
         };
         header.appendChild(btn);
@@ -56,6 +58,10 @@ function makeExplainer(div, config){
 
     btn("CONTACTS", function(output){
         table(output, config.makeContactsTable());
+    });
+
+    btn("LOCATIONS", function(output){
+        table(output, config.makeLocationsTable());
     });
 
     btn("DNS", function(output){
