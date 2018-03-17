@@ -2809,6 +2809,10 @@ const LocationsTable = Class.create(
 					title : "Name"
 				},
 				{
+					id : "title",
+					title : "Title"
+				},
+				{
 					id : "wan3",
 					title : "WAN3"
 				},
