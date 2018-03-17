@@ -1,12 +1,12 @@
 function makeExplainer(div, config){
-    const header = document.createElement("div");
     const output = document.createElement("div");
+    const header = document.createElement("div");
 
-    header.style = "position:absolute;left:0;top:0;width:100%;height:2em;background-color:#eff;color:#000";
-    output.style = "position:absolute;left:0;top:2em;width:100%;height:calc(100%-2em);background-color:#efe;color:#000";
+    output.style = "position:absolute;left:0;top:0;width:100%;height:100%;background-color:#efe;color:#000";
+    header.style = "position:fixed;left:0;top:0;width:100%;height:1.1em;background-color:#eff;color:#000;overflow:auto";
 
-    div.appendChild(header);
     div.appendChild(output);
+    div.appendChild(header);
 
     function btn(name, explainer){
         const btn = document.createElement("button");
