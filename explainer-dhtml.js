@@ -25,7 +25,8 @@ function makeExplainer(div, config){
     function table(output, layout){
         const table = document.createElement("table");
         table.border = "1px";
-        table.cellPadding = "0.3em";
+        table.cellPadding = "3";
+        table.cellPadding = "2";
         const columns = [];
         {
             const tr = document.createElement("tr");
