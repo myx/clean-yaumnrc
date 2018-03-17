@@ -2748,6 +2748,10 @@ const SshAccessTable = Class.create(
 					title : "Server"
 				},
 				{
+					id : "location",
+					title : "Location"
+				},
+				{
 					id : "ssh",
 					title : "Command",
 					cssClass : "code"
@@ -3157,9 +3161,9 @@ const Configuration = Class.create(
 					if(l.key) {
 						rows.push({
 							location : l.key,
-							name : l.name || l.key,
-							title : l.title || l.description || l.key,
-							wan3 : l.wan3,
+							name : l.name || l.key || '',
+							title : l.title || l.description || l.key || '',
+							wan3 : l.wan3 || '',
 							comment : l.toSource(),
 						});
 					}
@@ -3219,6 +3223,7 @@ const Configuration = Class.create(
 					if(s.wan3){
 						rows.push({
 							name : s.key,
+							location : s.location && s.location.key,
 							ssh : "ssh " + s.key
 						});
 						continue servers;
@@ -3232,7 +3237,8 @@ const Configuration = Class.create(
 								const shift = Number(s.source.tcpShift||0) || 0;
 								rows.push({
 									name : s.key,
-									ssh : "ssh " + s.key + " -p " + (shift + nport)
+									location : s.location && s.location.key,
+									ssh : "ssh " + s.key + " -p " + (shift + nport),
 								});
 								continue servers;
 							}
