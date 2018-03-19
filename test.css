@@ -1,0 +1,67 @@
+HTML, BODY {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+}
+TEXTAREA {
+    width: 50%;
+    height: 100pt;
+    font: monospaced;
+    vertical-align: top;
+}
+blockquote {
+    font-size: 90%;
+    line-height: 1em;
+}
+.explainer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    color: #000;
+}
+#lpanel {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: calc(100% - 1em);
+    width: 15em;
+    line-height: 1.31em;
+    overflow: auto;
+    padding: 0.5em;
+    background-color: #fef;
+    color: #000;
+}
+#epanel {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 2em;
+    width: 2em;
+    line-height: 1.31em;
+    overflow: hidden;
+    padding: 0.5em;
+    background-color: #ff7;
+    color: #000;
+}
+.lpanelItem {
+    display: block;
+}
+#output {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: calc(100% - 15em - 3em);
+    height: calc(100% - 2em);
+    margin-left: 16em;
+    overflow: scroll;
+    line-height: 1.1em;
+    padding: 1em;
+}
