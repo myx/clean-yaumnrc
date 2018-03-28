@@ -2,7 +2,7 @@ function makeExplainer(div, config){
     const output = document.createElement("div");
     const header = document.createElement("div");
 
-    output.style = "position:absolute;padding-top:1.8em;left:0;top:0;width:100%;height:100%;background-color:#efe;color:#000;overflow:auto";
+    output.style = "position:absolute;left:0;top:0;width:100%;height:100%;background-color:#efe;color:#000;overflow:auto";
     header.style = "position:fixed;left:0;top:0;width:100%;height:1.8em;background-color:#eff;color:#000";
 
     div.appendChild(output);
@@ -26,6 +26,7 @@ function makeExplainer(div, config){
 
     function table(output, layout){
         const table = document.createElement("table");
+        table.style = "margin:2em 0;";
         table.border = "1px";
         table.cellPadding = "3";
         table.cellPadding = "2";
