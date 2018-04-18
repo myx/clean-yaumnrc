@@ -2006,8 +2006,21 @@ const Domain = Class.create(
 		},
 		"filterName" : {
 			value : function(x){
-				if(x.endsWith(this.key)){
+				if(x == this.key){
+					return "@";
 					return x + '.';
+				}
+				if(x.endsWith('.' + this.key)){
+					return x.substr(0, -this.key.length - 1);
+					return x + '.';
+				}
+				if(x == this.key + '.'){
+					return "@";
+					return x;
+				}
+				if(x.endsWith('.' + this.key + '.')){
+					return x.substr(0, -this.key.length - 2);
+					return x;
 				}
 				return undefined;
 			}
@@ -2258,16 +2271,38 @@ const DomainInfrastructure = Class.create(
 		},
 		"filterName" : {
 			value : function(x){
-				if(x.endsWith(this.key)){
+				if(x == this.key){
+					return "@";
 					return x + '.';
 				}
+				if(x.endsWith('.' + this.key)){
+					return x.substr(0, -this.key.length - 1);
+					return x + '.';
+				}
+				if(x == this.key + '.'){
+					return "@";
+					return x;
+				}
+				if(x.endsWith('.' + this.key + '.')){
+					return x.substr(0, -this.key.length - 2);
+					return x;
+				}
+
 				for(let d of this.config.routing.domains.list){
-					if(x.endsWith(d.key)){
-						return d.DomainInfrastructure
-							? x.substr(0, x.length-d.key.length) + this.key + '.'
-							: undefined;
+					if(x.endsWith('.' + d.key)){
+						if(!d.DomainInfrastructure){
+							return undefined;
+						}
+						return x.substr(0, -d.key.length - 1);
+						return x.substr(0, -d.key.length - 1) + this.key + '.';
 					}
 				}
+
+				if(x.endsWith('.')){
+					return x;
+				}
+
+				return x;
 				return x + this.key + '.';
 			}
 		},
