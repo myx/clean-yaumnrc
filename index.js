@@ -2004,22 +2004,59 @@ const Domain = Class.create(
 		"mode" : {
 			value : undefined
 		},
+		"staticName" : {
+			value : function(x){
+				if(x.endsWith('.')){
+					if('.' + x == this.key + '.'){
+						return "@";
+						return x;
+					}
+					if(x.endsWith(this.key + '.')){
+						return x.substr(0, -this.key.length - 1);
+						return x;
+					}
+					return undefined;
+				}
+				{
+					if(x === "@"){
+						return "@";
+						return x + this.key + '.';
+						// return this.key.substr(1) + '.';
+					}
+					if(x === "*"){
+						return "*";
+						return x + this.key + '.';
+					}
+					if('.' + x == this.key){
+						return "@";
+						return x + '.';
+					}
+					if(x.endsWith(this.key)){
+						return x.substr(0, -this.key.length);
+						return x + '.';
+					}
+					
+					return x;
+					return x + this.key + '.';
+				}
+			}
+		},
 		"filterName" : {
 			value : function(x){
-				if(x == this.key){
+				if('.' + x == this.key){
 					return "@";
+					// return x + '.'; // always short
+				}
+				if(x.endsWith(this.key)){
+					return x.substr(0, -this.key.length);
 					return x + '.';
 				}
-				if(x.endsWith('.' + this.key)){
+				if('.' + x == this.key + '.'){
+					return "@";
+					// return x; // always short
+				}
+				if(x.endsWith(this.key + '.')){
 					return x.substr(0, -this.key.length - 1);
-					return x + '.';
-				}
-				if(x == this.key + '.'){
-					return "@";
-					return x;
-				}
-				if(x.endsWith('.' + this.key + '.')){
-					return x.substr(0, -this.key.length - 2);
 					return x;
 				}
 				return undefined;
@@ -2071,7 +2108,7 @@ const DomainStatic = Class.create(
 		this.Domain(key, config, source);
 		Object.defineProperties(this, {
 			"dns" : {
-				value : new this.DnsStatic(config, source && source.dns)
+				value : new this.DnsStatic(this, config, source && source.dns)
 			}
 		});
 		return this;
@@ -2084,10 +2121,11 @@ const DomainStatic = Class.create(
 			value : Class.create(
 				"DnsStatic",
 				ConfigListAndMap,
-				function(config, source){
+				function(domain, config, source){
 					this.ConfigListAndMap(config, source || {});
 					if(source) for(let key in source){
-						this.put(key, new DnsTypeStatic(key, config, source[key]));
+						const name = domain.staticName(key);
+						name && this.put(name, new DnsTypeStatic(name, config, source[key]));
 					}
 					return this;
 				},{
@@ -2188,11 +2226,14 @@ const DomainDedicated = Class.create(
 				const recsN = result.dnsTypeNS;
 
 				for(let i of this.config.targetListDns){
-					if(recsA.map[i.key]) continue;
-					const name = this.filterName(i.key);
+					let name = this.filterName(i.key);
 					if(name){
 						const a = i.resolveSmartIP4(net);
-						a && recsA.put(name, new DnsRecordStatic(name, a, 'target-' + i));
+						if(a && a.length){
+							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a, 'target-' + i));
+							name = "*." + name;
+							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a, 'target-' + i));
+						}
 					}
 				}
 				if(!recsA.map["*"] || !recsA.map["@"]){
@@ -2201,11 +2242,13 @@ const DomainDedicated = Class.create(
 					recsA.map["@"] || recsA.put("@", new DnsRecordStatic("@", a, 'config'));
 				}
 				this.config.locations.list.forEach(function(v){
-					const name = this.filterName(v.key);
-					if(name && !recsA.map[name]){
+					let name = this.filterName(v.key);
+					if(name){
 						const a = v.resolveSmartIP4(net);
 						if(a && a.length){
-							recsA.put(name, new DnsRecordStatic(name, a, 'location'));
+							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a, 'location'));
+							name = "*." + name;
+							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a, 'location'));
 						} 
 					}
 				}, this);
@@ -2271,30 +2314,22 @@ const DomainInfrastructure = Class.create(
 		},
 		"filterName" : {
 			value : function(x){
-				if(x == this.key){
+				if('.' + x == this.key){
 					return "@";
+					// return x + '.'; // always short
+				}
+				if(x.endsWith(this.key)){
+					return x.substr(0, -this.key.length);
 					return x + '.';
-				}
-				if(x.endsWith('.' + this.key)){
-					return x.substr(0, -this.key.length - 1);
-					return x + '.';
-				}
-				if(x == this.key + '.'){
-					return "@";
-					return x;
-				}
-				if(x.endsWith('.' + this.key + '.')){
-					return x.substr(0, -this.key.length - 2);
-					return x;
 				}
 
 				for(let d of this.config.routing.domains.list){
-					if(x.endsWith('.' + d.key)){
+					if(x.endsWith(d.key)){
 						if(!d.DomainInfrastructure){
 							return undefined;
 						}
-						return x.substr(0, -d.key.length - 1);
-						return x.substr(0, -d.key.length - 1) + this.key + '.';
+						return x.substr(0, -d.key.length);
+						return x.substr(0, -d.key.length) + this.key + '.';
 					}
 				}
 
@@ -2302,6 +2337,9 @@ const DomainInfrastructure = Class.create(
 					return x;
 				}
 
+				/** 
+				 * 3-rd party domains we prefix to instrastructure zones
+				 */
 				return x;
 				return x + this.key + '.';
 			}
