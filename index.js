@@ -237,7 +237,7 @@ const NetworkAddress = Class.create(
 	"NetworkAddress",
 	AbstractAddress,
 	function(cidr, ip, bits, mac, key){
-		const mask = (0xFFFFFFFF * Math.pow(2, 32 - bits)) % 0x100000000;
+		const mask = (0xFFFFFFFF * (2 ** (32 - bits))) % 0x100000000;
 		const network = AbstractAddress.intForIPv4(ip) & mask;
 		Object.defineProperties(this, {
 			"cidr" : {
