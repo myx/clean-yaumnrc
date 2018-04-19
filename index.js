@@ -2048,7 +2048,7 @@ const Domain = Class.create(
 					// return x + '.'; // always short
 				}
 				if(x.endsWith(this.key)){
-					return x.substr(0, -this.key.length);
+					return x.substr(0, x.length - this.key.length);
 					return x + '.';
 				}
 				if('.' + x == this.key + '.'){
@@ -2056,7 +2056,7 @@ const Domain = Class.create(
 					// return x; // always short
 				}
 				if(x.endsWith(this.key + '.')){
-					return x.substr(0, -this.key.length - 1);
+					return x.substr(0, x.length - this.key.length - 1);
 					return x;
 				}
 				return undefined;
@@ -2319,7 +2319,7 @@ const DomainInfrastructure = Class.create(
 					// return x + '.'; // always short
 				}
 				if(x.endsWith(this.key)){
-					return x.substr(0, -this.key.length);
+					return x.substr(0, x.length - this.key.length);
 					return x + '.';
 				}
 
@@ -2328,8 +2328,8 @@ const DomainInfrastructure = Class.create(
 						if(!d.DomainInfrastructure){
 							return undefined;
 						}
-						return x.substr(0, -d.key.length);
-						return x.substr(0, -d.key.length) + this.key + '.';
+						return x.substr(0, x.length - d.key.length);
+						return x.substr(0, x.length - d.key.length) + this.key + '.';
 					}
 				}
 
