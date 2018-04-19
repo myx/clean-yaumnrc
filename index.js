@@ -2247,8 +2247,8 @@ const DomainDedicated = Class.create(
 						const a = v.resolveSmartIP4(net);
 						if(a && a.length){
 							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a, 'location'));
-							name = "*." + name;
-							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a, 'location'));
+							// name = "*." + name;
+							// recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a, 'location'));
 						} 
 					}
 				}, this);
