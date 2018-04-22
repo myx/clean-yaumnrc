@@ -1921,6 +1921,7 @@ const Domains = Class.create(
 			value : function(){
 				for(let key in this.source){
 					const settings = this.source[key];
+					key[0] === '.' || (key = '.' + key);
 					const domain = Domain.makeDomain(key, this.config, settings);
 					domain && this.put(key, domain);
 				}
