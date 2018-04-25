@@ -3158,6 +3158,70 @@ const Configuration = Class.create(
 				return entries;
 			}
 		},
+		"buildPortForwardView" : {
+			value : function(net){
+				const entries = {};
+				function add(entries, tcpShift, desc, lport, lip, comment){
+					const darr = desc.split('/');
+					const port = darr[0];
+					if(!port){
+						return;
+					}
+					const nport = Number(port||0) + tcpShift;
+					const prot = darr[1] || undefined;
+					if(!prot || prot === 'tcp'){
+						const key = nport + '-tcp';
+						entries[key] = {
+							extPort : nport,
+							lclPort : lport,
+							lclIp : lip,
+							type : 'tcp',
+							comment : comment || '',
+						};
+					}
+					if(!prot || prot === 'udp'){
+						const key = nport + '-udp';
+						entries[key] = {
+							extPort : nport,
+							lclPort : lport,
+							lclIp : lip,
+							type : 'udp',
+							comment : comment || '',
+						};
+					}
+				}
+
+				servers: for(let s of this.servers.list){
+					if(s.isRemote){
+						continue servers;
+					}
+					const lan3 = s === this.router ? "127.0.0.1" : s.lan3smart;
+					if(!lan3){
+						continue servers;
+					}
+					const tcpShift = undefined === s.source.tcpShift 
+						? undefined
+						: tcpShift | 0;
+					if(!tcpShift){
+						continue servers;
+					}
+
+					if(s.Router){
+						add(entries, tcpShift, "1/tcp", 1001, lan3, "beaver-web");
+						add(entries, tcpShift, "655", 655, lan3, "beaver-tinc");
+					}
+					const type = ((this.source.routing||{}).types||{})[s.source.type || 'default'];
+					if(type){
+						for(let nat in (type.level3||{})){
+							const tgt = Number(type.level3[nat]||-1);
+							add(entries, tcpShift, nat, tgt, lan3, "type");
+						}
+					}
+				}
+
+				return entries;
+			}
+		},
 		"makeViewForLocation" : {
 			value : function(location){
 				if(!location){
@@ -3346,6 +3410,25 @@ const Configuration = Class.create(
 							}
 						}
 					}
+				}
+
+				return table;
+			}
+		},
+		"makePortForwardTable" : {
+			value : function(view){
+				const table = new ContactsTable();
+				const rows = table.rows;
+
+				const contacts = this.source.monitoring.notify;
+				for(let key in contacts){
+					const contact = contacts[key];
+					rows.push({
+						key : key,
+						name : contact.name,
+						type : contact.type,
+						contact : contact.email || contact.phone || contact.redirect || (contact.list && contact.list.join(", "))
+					});
 				}
 
 				return table;
