@@ -715,18 +715,6 @@ const ResolvableObject = Class.create(
 			// null, 'use-wan', 'use-router', 'direct', 'local', 'remote', 'static'
 			value : undefined
 		},
-		"modeDns" : {
-			// OBSOLETE
-			get : function(){
-				return this.resolveMode;
-			}
-		},
-		"findLanForClient" : {
-			// OBSOLETE
-			get : function(){
-				return this.networkForClient;
-			}
-		},
 		"wan3smart" : {
 			// Array of external IPs for Layer3 access (length is likely 1 or 0, but could have several WAN IPs of all the routers) 
 			execute : "once", get : function(){
@@ -3240,7 +3228,14 @@ const Configuration = Class.create(
 					if(s.location !== loc){
 						continue servers;
 					}
-					const lan3 = s === this.router ? "127.0.0.1" : s.resolveDirectIP4(loc);
+					if(!s.source.lan || !s.source.lan.ip){
+						continue servers;
+					}
+					const network = loc.networkForClient(s.source.lan.ip);
+					if(!network){
+						continue servers;
+					}
+					const lan3 = s === this.router ? "127.0.0.1" : s.resolveDirectIP4(network);
 					if(!lan3){
 						continue servers;
 					}
