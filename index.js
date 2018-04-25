@@ -2911,6 +2911,48 @@ const LocationsTable = Class.create(
 
 
 
+const PortForwardTable = Class.create(
+	"PortForwardTable",
+	AbstractTable,
+	function(){
+		this.AbstractTable();
+		return this;
+	},{
+		"columns" : {
+			value : [
+				{
+					id : "view",
+					title : "View"
+				},
+				{
+					id : "extPort",
+					title : "Ext Port"
+				},
+				{
+					id : "type",
+					title : "Type"
+				},
+				{
+					id : "lclPort",
+					title : "Local Port"
+				},
+				{
+					id : "lclIp",
+					title : "Local IP"
+				},
+				{
+					id : "comment",
+					title : "Comment"
+				}
+			]
+		}
+	}
+);
+
+
+
+
+
 const DnsTable = Class.create(
 	"DnsTable",
 	AbstractTable,
@@ -3422,18 +3464,40 @@ const Configuration = Class.create(
 		},
 		"makePortForwardTable" : {
 			value : function(view){
-				const table = new ContactsTable();
+				const table = new PortForwardTable();
 				const rows = table.rows;
 
-				const contacts = this.source.monitoring.notify;
-				for(let key in contacts){
-					const contact = contacts[key];
-					rows.push({
-						key : key,
-						name : contact.name,
-						type : contact.type,
-						contact : contact.email || contact.phone || contact.redirect || (contact.list && contact.list.join(", "))
+				const views = [];
+				if(view === undefined || view === null){
+					views.push({
+						name : "WAN",
+						view : this.buildPortForwardView(null)
 					});
+				}
+				if(view === undefined) for(let l of this.locations.list){
+					if(l.key && l.lans) {
+						for(let n of l.lans.list){
+							views.push({
+								name : l.key + '-' + n.key,
+								view : this.buildPortForwardView(n)
+							});
+						}
+					}
+				}
+				for(let v of views){
+					for(let dKey in v){
+						let d = v[dKey];
+						if(d.extIp) {
+							rows.push({
+								view : v.name,
+								extPort : d.extPort,
+								lclPort : d.lclPort,
+								lclIp : d.lclIp,
+								type : d.type,
+								comment : d.comment || '',
+							});
+						}
+					}
 				}
 
 				return table;

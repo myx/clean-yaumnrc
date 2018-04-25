@@ -108,6 +108,14 @@ function makeExplainer(div, config){
     btn("DNS-ALL", function(output){
         table(output, config.makeDnsTable());
     });
+
+    btn("FWD-LOC", function(output){
+        table(output, config.makePortForwardTable(null));
+    });
+
+    btn("FWD-ALL", function(output){
+        table(output, config.makePortForwardTable());
+    });
 }
 
 module.exports = {
