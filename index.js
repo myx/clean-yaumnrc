@@ -3252,8 +3252,8 @@ const Configuration = Class.create(
 					}
 
 					if(s.Router){
-						add(entries, tcpShift, "2/tcp", 1001, lan3, "beaver-web" + locKey);
-						add(entries, tcpShift, "3", 655, lan3, "beaver-tinc" + locKey);
+						add(entries, tcpShift, "2/tcp", 1001, lan3, "beaver-web" + locKey + "-" + s.key);
+						add(entries, tcpShift, "3", 655, lan3, "beaver-tinc" + locKey + "-" + s.key);
 					}
 
 					const typeName = s.source.type;
@@ -3266,7 +3266,7 @@ const Configuration = Class.create(
 					if(type){
 						for(let nat in (type.level3||{})){
 							const tgt = Number(type.level3[nat]||-1);
-							add(entries, tcpShift, nat, tgt, lan3, "type-" + typeName + locKey);
+							add(entries, tcpShift, nat, tgt, lan3, "type-" + typeName + locKey + "-" + s.key);
 						}
 					}
 				}
