@@ -3240,7 +3240,7 @@ const Configuration = Class.create(
 					if(s.location !== loc){
 						continue servers;
 					}
-					const lan3 = s === this.router ? "127.0.0.1" : s.lan3smart;
+					const lan3 = s === this.router ? "127.0.0.1" : s.resolveDirectIP4(loc);
 					if(!lan3){
 						continue servers;
 					}
