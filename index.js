@@ -3210,11 +3210,16 @@ const Configuration = Class.create(
 						add(entries, tcpShift, "2/tcp", 1001, lan3, "beaver-web");
 						add(entries, tcpShift, "3", 655, lan3, "beaver-tinc");
 					}
-					const type = ((this.source.routing||{}).types||{})[s.source.type || 'default'];
+
+					const typeName = s.source.type;
+					if(!typeName){
+						continue servers;
+					}
+					const type = ((this.source.routing||{}).types||{})[typeName];
 					if(type){
 						for(let nat in (type.level3||{})){
 							const tgt = Number(type.level3[nat]||-1);
-							add(entries, tcpShift, nat, tgt, lan3, "type");
+							add(entries, tcpShift, nat, tgt, lan3, "type-" + typeName);
 						}
 					}
 				}
