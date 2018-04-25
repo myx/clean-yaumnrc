@@ -24,6 +24,31 @@ function makeExplainer(div, config){
         div.remove();
     });
 
+    function format(output, value){
+        if(!value){
+            output.innerHTML = value;
+            return;
+        }
+        unrollList: if(value.list){
+            for(let i of value.list){
+                if(i === value){
+                    break unrollList;
+                }
+                const div = document.createElement('div');
+                format(div, i);
+                if(div.innerHTML){
+                    output.appendChild(div);
+                }
+            }
+            return;
+        }
+        if(value.AbstractAddress){
+            output.innerHTML = value.networkCidr.replace(';', '<br/>');
+            return;
+        }
+        output.innerHTML = value;
+    }
+
     function table(output, layout){
         const table = document.createElement("table");
         table.style = "margin:2em 0;";
@@ -45,7 +70,7 @@ function makeExplainer(div, config){
             const tr = document.createElement("tr");
             for(let column of columns){
                 const td = document.createElement("td");
-                td.innerHTML = row[column];
+                format(td, row[column]);
                 tr.appendChild(td);
             }
             table.appendChild(tr);

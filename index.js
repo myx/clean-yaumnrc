@@ -2895,6 +2895,10 @@ const LocationsTable = Class.create(
 					title : "WAN3"
 				},
 				{
+					id : "lans",
+					title : "LAN3"
+				},
+				{
 					id : "comment",
 					title : "Comment"
 				}
@@ -2916,6 +2920,10 @@ const DnsTable = Class.create(
 	},{
 		"columns" : {
 			value : [
+				{
+					id : "view",
+					title : "View"
+				},
 				{
 					id : "domain",
 					title : "Domain"
@@ -3238,7 +3246,8 @@ const Configuration = Class.create(
 							name : l.name || l.key || '',
 							title : l.title || l.description || l.key || '',
 							wan3 : l.wan3 || '',
-							comment : l.toSource(),
+							lans : l.lans || '',
+							comment : l.comment || '',
 						});
 					}
 				}
@@ -3247,6 +3256,45 @@ const Configuration = Class.create(
 			}
 		},
 		"makeDnsTable" : {
+			value : function(){
+				const table = new DnsTable();
+				const rows = table.rows;
+
+				const views = [{
+					name : "WAN",
+					view : this.buildDnsView(null)
+				}];
+				for(let l of this.locations.list){
+					if(l.key && l.lans) {
+						for(let n of l.lans.list){
+							views.push({
+								name : l.key + '-' + n.key,
+								view : this.buildDnsView(n)
+							});
+						}
+					}
+				}
+				for(let v of views){
+					for(let d of v.view.list){
+						if(d.dns && d.dns.list) for(let t of d.dns.list){
+							if(t && t.list) for(let r of t.list){
+								rows.push({
+									view : v.name,
+									domain : d.key,
+									name : r.key,
+									type : t.key,
+									value : r.value || '',
+									comment : r.comment || '',
+								});
+							}
+						}
+					}
+				}
+
+				return table;
+			}
+		},
+		"makeDnsWanTable" : {
 			value : function(){
 				const table = new DnsTable();
 				const rows = table.rows;
