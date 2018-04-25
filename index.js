@@ -3201,7 +3201,7 @@ const Configuration = Class.create(
 					}
 					const tcpShift = undefined === s.source.tcpShift 
 						? undefined
-						: tcpShift | 0;
+						: s.source.tcpShift | 0;
 					if(!tcpShift){
 						continue servers;
 					}
