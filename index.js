@@ -3207,8 +3207,8 @@ const Configuration = Class.create(
 					}
 
 					if(s.Router){
-						add(entries, tcpShift, "1/tcp", 1001, lan3, "beaver-web");
-						add(entries, tcpShift, "655", 655, lan3, "beaver-tinc");
+						add(entries, tcpShift, "2/tcp", 1001, lan3, "beaver-web");
+						add(entries, tcpShift, "3", 655, lan3, "beaver-tinc");
 					}
 					const type = ((this.source.routing||{}).types||{})[s.source.type || 'default'];
 					if(type){
