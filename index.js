@@ -3485,7 +3485,7 @@ const Configuration = Class.create(
 					}
 				}
 				for(let v of views){
-					for(let dKey in v){
+					for(let dKey in v.view){
 						let d = v[dKey];
 						if(d.extIp) {
 							rows.push({
