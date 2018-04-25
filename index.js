@@ -3256,15 +3256,18 @@ const Configuration = Class.create(
 			}
 		},
 		"makeDnsTable" : {
-			value : function(){
+			value : function(view){
 				const table = new DnsTable();
 				const rows = table.rows;
 
-				const views = [{
-					name : "WAN",
-					view : this.buildDnsView(null)
-				}];
-				for(let l of this.locations.list){
+				const views = [];
+				if(view === undefined || view === null){
+					views.push({
+						name : "WAN",
+						view : this.buildDnsView(null)
+					});
+				}
+				if(view === undefined) for(let l of this.locations.list){
 					if(l.key && l.lans) {
 						for(let n of l.lans.list){
 							views.push({
@@ -3287,29 +3290,6 @@ const Configuration = Class.create(
 									comment : r.comment || '',
 								});
 							}
-						}
-					}
-				}
-
-				return table;
-			}
-		},
-		"makeDnsWanTable" : {
-			value : function(){
-				const table = new DnsTable();
-				const rows = table.rows;
-
-				const dns = this.buildDnsView(null);
-				for(let d of dns.list){
-					if(d.dns && d.dns.list) for(let t of d.dns.list){
-						if(t && t.list) for(let r of t.list){
-							rows.push({
-								domain : d.key,
-								name : r.key,
-								type : t.key,
-								value : r.value || '',
-								comment : r.comment || '',
-							});
 						}
 					}
 				}

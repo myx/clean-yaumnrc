@@ -58,6 +58,11 @@ function makeExplainer(div, config){
         const columns = [];
         {
             const tr = document.createElement("tr");
+            {
+                const th = document.createElement("th");
+                th.innerHTML = "#";
+                tr.appendChild(th);
+            }
             for(let column of layout.columns){
                 const th = document.createElement("th");
                 th.innerHTML = column.titleShort || column.title || column.name || column.id;
@@ -66,8 +71,14 @@ function makeExplainer(div, config){
             }
             table.appendChild(tr);
         }
+        var index = 0;
         for(let row of layout.rows){
             const tr = document.createElement("tr");
+            {
+                const td = document.createElement("td");
+                td.innerHTML = ++index;
+                tr.appendChild(td);
+            }
             for(let column of columns){
                 const td = document.createElement("td");
                 format(td, row[column]);
@@ -91,7 +102,7 @@ function makeExplainer(div, config){
     });
 
     btn("DNS-WAN", function(output){
-        table(output, config.makeDnsWanTable());
+        table(output, config.makeDnsTable(null));
     });
 
     btn("DNS-ALL", function(output){
