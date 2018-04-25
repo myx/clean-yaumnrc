@@ -90,7 +90,11 @@ function makeExplainer(div, config){
         table(output, config.makeLocationsTable());
     });
 
-    btn("DNS", function(output){
+    btn("DNS-WAN", function(output){
+        table(output, config.makeDnsWanTable());
+    });
+
+    btn("DNS-ALL", function(output){
         table(output, config.makeDnsTable());
     });
 }

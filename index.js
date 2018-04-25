@@ -517,7 +517,7 @@ const ListAndMap = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc ListAndMap(" + this.list.length + ", [" + Object.keys(this.idx) + "])]";
+				return "[ListAndMap(" + this.list.length + ", [" + Object.keys(this.idx) + "])]";
 			}
 		}
 	}
@@ -570,7 +570,7 @@ const IpRoute = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc IpRoute(" + this.dst + ", " + this.via + ", " + this.type + ")]";
+				return "[IpRoute(" + this.dst + ", " + this.via + ", " + this.type + ")]";
 			}
 		}
 	}
@@ -691,7 +691,7 @@ const ConfigObject = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc ConfigObject(" + this.config + "])]";
+				return "[ConfigObject(" + this.config + "])]";
 			}
 		}
 	}
@@ -787,7 +787,7 @@ const ResolvableObject = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc ResolvableObject(" + this.key + "])]";
+				return "[ResolvableObject(" + this.key + "])]";
 			}
 		}		
 	}
@@ -1032,7 +1032,7 @@ const Location = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Location(" + this.title + ")]";
+				return "[Location(" + this.title + ")]";
 			}
 		}
 	}
@@ -1182,7 +1182,7 @@ const Server = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Server(" + this.key + ")]";
+				return "[Server(" + this.key + ")]";
 			}
 		}
 	}
@@ -1228,7 +1228,7 @@ const Router = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Router(" + this.key + ")]";
+				return "[Router(" + this.key + ")]";
 			}
 		}
 	},{
@@ -1396,7 +1396,7 @@ const Target = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Target("+this.key+")]";
+				return "[Target("+this.key+")]";
 			}
 		}
 	},{
@@ -1528,7 +1528,7 @@ const TargetStatic = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc TargetStatic("+this.key+")]";
+				return "[TargetStatic("+this.key+")]";
 			}
 		}
 	}
@@ -1582,7 +1582,7 @@ const TargetMultiple = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc TargetMultiple("+this.key+")]";
+				return "[TargetMultiple("+this.key+")]";
 			}
 		}
 	}
@@ -1614,7 +1614,7 @@ const TargetSingle = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc TargetSingle("+this.key+")]";
+				return "[TargetSingle("+this.key+")]";
 			}
 		}
 	}
@@ -1688,7 +1688,7 @@ const ConfigListAndMap = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc ConfigListAndMap(" + this.config + ", " + this.list.length + ", [" + Object.keys(this.idx) + "])]";
+				return "[ConfigListAndMap(" + this.config + ", " + this.list.length + ", [" + Object.keys(this.idx) + "])]";
 			}
 		}
 	}
@@ -1724,7 +1724,7 @@ const Locations = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Locations(" + this.list.length + ", [" + Object.keys(this.idx) + "])]";
+				return "[Locations(" + this.list.length + ", [" + Object.keys(this.idx) + "])]";
 			}
 		}
 	}
@@ -1764,7 +1764,7 @@ const Servers = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Servers(" + this.list.length + ", " + Object.keys(this.idx) + ")]";
+				return "[Servers(" + this.list.length + ", " + Object.keys(this.idx) + ")]";
 			}
 		}
 	}
@@ -1811,7 +1811,7 @@ const Routers = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Routers(" + this.list.length + ", " + Object.keys(this.idx) + ")]";
+				return "[Routers(" + this.list.length + ", " + Object.keys(this.idx) + ")]";
 			}
 		}
 	},{
@@ -1851,7 +1851,7 @@ const Targets = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Targets(" + this.list.length + ", " + Object.keys(this.idx) + ")]";
+				return "[Targets(" + this.list.length + ", " + Object.keys(this.idx) + ")]";
 			}
 		}
 	}
@@ -1901,7 +1901,7 @@ const Routing = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Routing()]";
+				return "[Routing()]";
 			}
 		}
 	}
@@ -1974,7 +1974,7 @@ const Domains = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Domains()]";
+				return "[Domains()]";
 			}
 		}
 	},{
@@ -2074,7 +2074,7 @@ const Domain = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Domain("+this.key+")]";
+				return "[Domain("+this.key+")]";
 			}
 		}
 	},{
@@ -2132,7 +2132,7 @@ const DomainStatic = Class.create(
 				},{
 					"toString" : {
 						value : function(){
-							return "[yamnrc DnsStatic()]";
+							return "[DnsStatic()]";
 						}
 					}
 				}
@@ -2187,7 +2187,7 @@ const DomainStatic = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DomainStatic("+this.key+")]";
+				return "[DomainStatic("+this.key+")]";
 			}
 		}
 	}, {
@@ -2290,7 +2290,7 @@ const DomainDedicated = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DomainDedicated("+this.key+")]";
+				return "[DomainDedicated("+this.key+")]";
 			}
 		}
 	}, {
@@ -2347,7 +2347,7 @@ const DomainInfrastructure = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DomainInfrastructure("+this.key+")]";
+				return "[DomainInfrastructure("+this.key+")]";
 			}
 		}
 	}, {
@@ -2387,7 +2387,7 @@ const DomainDelegated = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DomainDelegated("+this.key+")]";
+				return "[DomainDelegated("+this.key+")]";
 			}
 		}
 	}, {
@@ -2421,7 +2421,7 @@ const DomainSlave = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DomainSlave("+this.key+")]";
+				return "[DomainSlave("+this.key+")]";
 			}
 		}
 	}, {
@@ -2445,7 +2445,7 @@ const DnsTypeStatic = Class.create(
 	}, {
 		"toString" : {
 			value : function(){
-				return "[yamnrc DnsTypeStatic()]";
+				return "[DnsTypeStatic()]";
 			}
 		}
 	}
@@ -2480,7 +2480,7 @@ const DnsRecordStatic = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DnsRecordStatic("
+				return "[DnsRecordStatic("
 					+ this.key
 					+ (this.comment 
 						? ", comment: " + this.comment 
@@ -2566,7 +2566,7 @@ const DhcpView = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DhcpView(" + this.location + ", size: " + this.list.length + ")]";
+				return "[DhcpView(" + this.location + ", size: " + this.list.length + ")]";
 			}
 		}
 	}
@@ -2755,7 +2755,7 @@ const DhcpHost = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc DhcpHost(" + this.host + ", " + this.mac + ", " + this.ip + ")]";
+				return "[DhcpHost(" + this.host + ", " + this.mac + ", " + this.ip + ")]";
 			}
 		}
 	}
@@ -3388,7 +3388,7 @@ const Configuration = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[yamnrc Configuration("+(this.view || '')+")]";
+				return "[Configuration("+(this.view || '')+")]";
 			}
 		}
 	}
