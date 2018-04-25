@@ -3232,10 +3232,7 @@ const Configuration = Class.create(
 						continue servers;
 					}
 					const network = loc.networkForClient(s.source.lan.ip);
-					if(!network){
-						continue servers;
-					}
-					const lan3 = s === this.router ? "127.0.0.1" : s.resolveDirectIP4(network);
+					const lan3 = s === this.router ? "127.0.0.1" : s.resolveDirectIP4(network || null);
 					if(!lan3){
 						continue servers;
 					}
