@@ -3201,7 +3201,7 @@ const Configuration = Class.create(
 			}
 		},
 		"buildPortForwardView" : {
-			value : function(net){
+			value : function(location){
 				const entries = {};
 				function add(entries, tcpShift, desc, lport, lip, comment){
 					const darr = desc.split('/');
@@ -3233,8 +3233,11 @@ const Configuration = Class.create(
 					}
 				}
 
-				servers: for(let s of this.servers.list){
-					if(s.isRemote){
+				const loc = location || this.location;
+				const locKey = loc ? '-' + loc.key : '';
+
+				servers: for(let s of loc.servers.list){
+					if(s.location !== loc){
 						continue servers;
 					}
 					const lan3 = s === this.router ? "127.0.0.1" : s.lan3smart;
@@ -3249,11 +3252,13 @@ const Configuration = Class.create(
 					}
 
 					if(s.Router){
-						add(entries, tcpShift, "2/tcp", 1001, lan3, "beaver-web");
-						add(entries, tcpShift, "3", 655, lan3, "beaver-tinc");
+						add(entries, tcpShift, "2/tcp", 1001, lan3, "beaver-web" + locKey);
+						add(entries, tcpShift, "3", 655, lan3, "beaver-tinc" + locKey);
 					}
 
 					const typeName = s.source.type;
+
+
 					if(!typeName){
 						continue servers;
 					}
@@ -3261,7 +3266,7 @@ const Configuration = Class.create(
 					if(type){
 						for(let nat in (type.level3||{})){
 							const tgt = Number(type.level3[nat]||-1);
-							add(entries, tcpShift, nat, tgt, lan3, "type-" + typeName);
+							add(entries, tcpShift, nat, tgt, lan3, "type-" + typeName + locKey);
 						}
 					}
 				}
@@ -3463,31 +3468,23 @@ const Configuration = Class.create(
 			}
 		},
 		"makePortForwardTable" : {
-			value : function(view){
+			value : function(){
 				const table = new PortForwardTable();
 				const rows = table.rows;
 
 				const views = [];
-				if(view === undefined || view === null){
-					views.push({
-						name : "WAN",
-						view : this.buildPortForwardView(null)
-					});
-				}
-				if(view === undefined) for(let l of this.locations.list){
-					if(l.key && l.lans) {
-						for(let n of l.lans.list){
-							views.push({
-								name : l.key + '-' + n.key,
-								view : this.buildPortForwardView(n)
-							});
-						}
+				for(let l of this.locations.list){
+					if(l.key && l.wan3) {
+						views.push({
+							name : l.key,
+							view : this.buildPortForwardView(l)
+						});
 					}
 				}
 				for(let v of views){
 					for(let dKey in v.view){
-						let d = v[dKey];
-						if(d.extIp) {
+						let d = v.view[dKey];
+						if(d.extPort) {
 							rows.push({
 								view : v.name,
 								extPort : d.extPort,

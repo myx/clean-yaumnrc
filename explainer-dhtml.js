@@ -109,11 +109,7 @@ function makeExplainer(div, config){
         table(output, config.makeDnsTable());
     });
 
-    btn("FWD-LOC", function(output){
-        table(output, config.makePortForwardTable(null));
-    });
-
-    btn("FWD-ALL", function(output){
+    btn("FWD", function(output){
         table(output, config.makePortForwardTable());
     });
 }

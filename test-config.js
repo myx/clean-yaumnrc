@@ -126,7 +126,7 @@ module.exports = {
 				"mac" : "AA:BB:10:03:01:01",
 				"ip" : "10.3.2.77"
 			},
-			"tcpShift" : 3000,
+			"tcpShift" : 5000,
 			"type" : "unix"
 		},
 		"mpxy1.myx.ru" : {
