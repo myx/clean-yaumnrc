@@ -2765,6 +2765,31 @@ const AbstractTable = Class.create(
 		});
 		return this;
 	},{
+		"sortColumns" : {
+			/**
+			 * An array of column names to sort by
+			 */
+			value : undefined
+		},
+		"sortComparator" : {
+			get : function(){
+				const columns = this.sortColumns;
+				if(!columns || !columns.length){
+					return undefined;
+				}
+				var code = "return ";
+				for(let i of columns){
+					code += `a.${i} > b.${i} ? 1 : a.${i} < b.${i} ? -1 : `;
+				}
+				code += '0;';
+				return new Function("a", "b", code);
+			}
+		},
+		"sort" : {
+			value : function(c){
+				this.rows.sort(c || this.sortComparator);
+			}
+		},
 		"columns" : {
 			value : [
 				{
@@ -2803,6 +2828,9 @@ const SshAccessTable = Class.create(
 		this.AbstractTable();
 		return this;
 	},{
+		"sortColumns" : {
+			value : ["name", "location"]
+		},
 		"columns" : {
 			value : [
 				{
@@ -2831,6 +2859,9 @@ const ContactsTable = Class.create(
 		this.AbstractTable();
 		return this;
 	},{
+		"sortColumns" : {
+			value : ["name", "type", "contact"]
+		},
 		"columns" : {
 			value : [
 				{
@@ -2863,6 +2894,9 @@ const LocationsTable = Class.create(
 		this.AbstractTable();
 		return this;
 	},{
+		"sortColumns" : {
+			value : ["location"]
+		},
 		"columns" : {
 			value : [
 				{
@@ -2906,6 +2940,9 @@ const PortForwardTable = Class.create(
 		this.AbstractTable();
 		return this;
 	},{
+		"sortColumns" : {
+			value : ["view", "extPort"]
+		},
 		"columns" : {
 			value : [
 				{
@@ -2948,6 +2985,9 @@ const DnsTable = Class.create(
 		this.AbstractTable();
 		return this;
 	},{
+		"sortColumns" : {
+			value : ["name", "type", "domain"]
+		},
 		"columns" : {
 			value : [
 				{
@@ -3360,6 +3400,7 @@ const Configuration = Class.create(
 					}
 				}
 
+				table.sort();
 				return table;
 			}
 		},
@@ -3402,6 +3443,7 @@ const Configuration = Class.create(
 					}
 				}
 
+				table.sort();
 				return table;
 			}
 		},
@@ -3421,6 +3463,7 @@ const Configuration = Class.create(
 					});
 				}
 
+				table.sort();
 				return table;
 			}
 		},
@@ -3456,6 +3499,7 @@ const Configuration = Class.create(
 					}
 				}
 
+				table.sort();
 				return table;
 			}
 		},
@@ -3489,6 +3533,7 @@ const Configuration = Class.create(
 					}
 				}
 
+				table.sort();
 				return table;
 			}
 		},
