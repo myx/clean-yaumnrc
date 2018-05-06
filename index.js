@@ -1875,6 +1875,11 @@ const Routing = Class.create(
 		"domains" : {
 			value : undefined
 		},
+		"types" : {
+			execute : "once", get : function(){
+				return new RoutingTypes(this.config);
+			}
+		},
 		"initializeParse" : {
 			value : function(){
 				this.domains.initializeParse();
@@ -2753,6 +2758,114 @@ const DhcpHost = Class.create(
 
 
 
+const RoutingTypes = Class.create(
+	"RoutingTypes",
+	ConfigListAndMap,
+	function(config){
+		this.ConfigListAndMap(config);
+		Object.defineProperties(this, {
+			"source" : {
+				value : config.source.routing && config.source.routing.types || undefined
+			}
+		});
+		this.load();
+		return this;
+	},{
+		"load" : {
+			value : function(){
+				const types = this.source;
+				if(types === undefined){
+					return;
+				}
+				for(let key in types){
+					const type = types[key];
+					this.addRecord(key, type.extends, type.level3, type.level6);
+				}
+			}
+		},
+		"types" : {
+			get : function(){
+				return this.source;
+			}
+		},
+		"addRecord" : {
+			value : function(key, parent, level3, level6){
+				const record = new RoutingType(this.config, key, parent, level3, level6);
+				this.put(key, record);
+				return record;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[RoutingTypes(" + " size: " + this.list.length + ")]";
+			}
+		}
+	}
+);
+
+
+
+
+
+
+
+const RoutingType = Class.create(
+	"RoutingType",
+	ConfigObject,
+	function(config, key, parent, level3, level6){
+		this.ConfigObject(config);
+		if(!key){
+			throw new Error("RoutingType requires 'key'!");
+		}
+		Object.defineProperties(this, {
+			"key" : {
+				value : key
+			},
+			"parent" : {
+				value : parent || undefined
+			},
+			"level3" : {
+				value : level3 || undefined
+			},
+			"level6" : {
+				value : level6 || undefined
+			},
+		});
+		return this;
+	},{
+		"key" : {
+			value : undefined
+		},
+		"parent" : {
+			value : undefined
+		},
+		"level3" : {
+			value : undefined
+		},
+		"level6" : {
+			value : undefined
+		},
+		"toSourceObject" : {
+			value : function(){
+				return {
+					"parent" : this.parent,
+					"level3" : this.level3,
+					"level6" : this.level6
+				};
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[RoutingType(" + this.key + ")]";
+			}
+		}
+	}
+);
+
+
+
+
+
 
 const AbstractTable = Class.create(
 	"AbstractTable",
@@ -3294,7 +3407,9 @@ const Configuration = Class.create(
 					if(!typeName){
 						continue servers;
 					}
-					const type = ((this.source.routing||{}).types||{})[typeName];
+
+					const type = this.config.routing.types.map[typeName];
+					// const type = ((this.source.routing||{}).types||{})[typeName];
 					if(type){
 						for(let nat in (type.level3||{})){
 							const tgt = Number(type.level3[nat]||-1);
