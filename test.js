@@ -37,7 +37,7 @@
 			this.target.appendChild(d);
 		},
 
-		makeUploader : function(div, config, source, closeFn){
+		makeUploader : function(div, config, source, cancelFn){
 			const output = document.createElement("div");
 			const header = document.createElement("div");
 		
@@ -69,7 +69,7 @@
 			}
 		
 			btn("CANCEL", function(output){
-				test.createParsedPlane(config);
+				'function' === typeof cancelFn ? cancelFn() : test.createParsedPlane(config);
 				div.remove();
 			});
 
@@ -97,7 +97,7 @@
 			header.className = "epanel";
 		
 			const title = document.createElement("title");
-			title.style = "display:block;margin:auto;font-size:200%;align:center;text-align:center;vertical-align:middle;overflow:auto";
+			title.style = "display:block;margin:3em auto;font-size:200%;align:center;text-align:center;vertical-align:middle;overflow:auto";
 			title.innerHTML = "Configuration is parsed.";
 			output.appendChild(title);
 
@@ -199,7 +199,9 @@
 			});
 
 			btn("NEW", function(output){
-				test.createUploadPlane(config, "");
+				test.createUploadPlane(config, "", function(){
+					test.debugFn(test, config);
+				});
 				div.remove();
 			});
 
@@ -218,9 +220,9 @@
 			return div;
 		},
 
-		createUploadPlane : function(config, source){
+		createUploadPlane : function(config, source, cancelFn){
 			const div = this.createFullscreenDiv("uploader");
-			this.makeUploader(div, config, source);
+			this.makeUploader(div, config, source, cancelFn);
 			document.body.appendChild(div);
 		},
 
