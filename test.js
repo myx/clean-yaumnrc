@@ -68,14 +68,14 @@
 				header.appendChild(btn);
 			}
 		
-			btn("CLOSE", function(output){
+			btn("CANCEL", function(output){
 				test.createParsedPlane(config);
 				div.remove();
 			});
 
 			const test = this;
 		
-			btn("PROCESS UPLOADED", function(output){
+			btn("PROCESS EDITED CONFIG", function(output){
 				const source = textArea.value;
 				const object = JSON.parse(source);
 				const parsed = test.parser.parse(object);
@@ -83,6 +83,10 @@
 				test.createParsedPlane(parsed);
 				div.remove();
 			});
+
+			setTimeout(function(){
+				textArea.focus();
+			}, 50);
 		},
 
 		makeParsed : function(div, config, closeFn){
@@ -189,17 +193,17 @@
 		
 			const test = this;
 
-			btn("Close", function(output){
+			btn("CLOSE", function(output){
 				test.createParsedPlane(config);
 				div.remove();
 			});
 
-			btn("Upload your config", function(output){
-				test.createUploadPlane(config);
+			btn("NEW", function(output){
+				test.createUploadPlane(config, "");
 				div.remove();
 			});
 
-			btn("Explain", function(output){
+			btn("EXPLAIN", function(output){
 				test.explainer.createPlane(config, function(){
 					test.createParsedPlane(config);
 				});
