@@ -609,7 +609,7 @@ const SourceObject = Class.create(
 		},
 		"toSourceObject" : {
 			value : function(){
-				return undefined;
+				return this.source;
 			}
 		}
 	},{
@@ -636,7 +636,9 @@ const SourceObject = Class.create(
 						if(x.includes("BEGIN PRIVATE KEY")){
 							return "--- SSL PRIVATE KEY, hash: " + SourceObject.hashCode.call(x);
 						}
-						
+						if(x.includes("---BEGIN CERTIFICATE---")){
+							return "--- PUBLIC CERTIFICATE, hash: " + SourceObject.hashCode.call(x);
+						}
 					}
 					case 'undefined':
 					case 'null':
@@ -1865,19 +1867,18 @@ const Routing = Class.create(
 		Object.defineProperties(this, {
 			"config" : {
 				value : config
-			},
-			"domains" : {
-				value : new Domains(config, (source || {}).domains)
 			}
 		});
 		return this;
 	}, {
 		"domains" : {
-			value : undefined
+			execute : "once", get : function(){
+				return new Domains(this.config, this.source && this.source.domains || undefined);
+			}
 		},
 		"types" : {
 			execute : "once", get : function(){
-				return new RoutingTypes(this.config);
+				return new RoutingTypes(this.config, this.source && this.source.types || undefined);
 			}
 		},
 		"initializeParse" : {
@@ -2761,17 +2762,12 @@ const DhcpHost = Class.create(
 const RoutingTypes = Class.create(
 	"RoutingTypes",
 	ConfigListAndMap,
-	function(config){
-		this.ConfigListAndMap(config);
-		Object.defineProperties(this, {
-			"source" : {
-				value : config.source.routing && config.source.routing.types || undefined
-			}
-		});
-		this.load();
+	function(config, source){
+		this.ConfigListAndMap(config, source);
+		this.initializeParse();
 		return this;
 	},{
-		"load" : {
+		"initializeParse" : {
 			value : function(){
 				const types = this.source;
 				if(types === undefined){
@@ -2861,6 +2857,356 @@ const RoutingType = Class.create(
 		}
 	}
 );
+
+
+
+
+
+
+
+
+
+
+const Monitoring = Class.create(
+	"Monitoring",
+	ConfigObject,
+	function(config, source){
+		this.ConfigObject(config, source || {});
+		return this;
+	}, {
+		"templates" : {
+			execute : "once", get : function(){
+				return new MonitoringTemplates(this.config, (this.source || {}).templates);
+			}
+		},
+		"notify" : {
+			execute : "once", get : function(){
+				return new MonitoringNotify(this.config, (this.source || {}).notify);
+			}
+		},
+		"initializeParse" : {
+			value : function(){
+				this.templates.initializeParse();
+				this.notify.initializeParse();
+			}
+		},
+		"monitorForTarget" : {
+			value : function(t){
+				const monitor = t.source && t.source.monitor;
+				if(!monitor){
+					return undefined;
+				}
+				if('string' === typeof monitor){
+					return this.templates.map[monitor];
+				}
+				if(monitor.check || monitor.notify){
+					return new MonitoringTemplate(this.config, "tgt-" + t.key, monitor);
+				}
+				return null;
+			}
+		},
+		"toSourceObject" : {
+			value : function(){
+				return {
+					"templates" : this.templates && this.templates.toSourceObject() || undefined,
+					"notify" : this.notify && this.notify.toSourceObject() || undefined
+				};
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[Monitoring()]";
+			}
+		}
+	}
+);
+
+
+
+
+
+
+
+
+
+const MonitoringTemplates = Class.create(
+	"MonitoringTemplates",
+	ConfigListAndMap,
+	function(config, source){
+		this.ConfigListAndMap(config, source);
+		this.initializeParse();
+		return this;
+	},{
+		"initializeParse" : {
+			value : function(){
+				const templates = this.source;
+				if(templates === undefined){
+					return;
+				}
+				for(let key in templates){
+					const template = templates[key];
+					template && this.addRecord(key, template);
+				}
+			}
+		},
+		"addRecord" : {
+			value : function(key, source){
+				const record = new MonitoringTemplate(this.config, key, source);
+				this.put(key, record);
+				return record;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[MonitoringTemplates(" + " size: " + this.list.length + ")]";
+			}
+		}
+	}
+);
+
+
+
+
+
+const MonitoringTemplate = Class.create(
+	"MonitoringTemplate",
+	ConfigObject,
+	function(config, key, source){
+		this.ConfigObject(config, source || {});
+		if(!key){
+			throw new Error("MonitoringTemplate requires 'key'!");
+		}
+		Object.defineProperties(this, {
+			"key" : {
+				value : key
+			}
+		});
+		return this;
+	},{
+		"key" : {
+			value : undefined
+		},
+		"extends" : {
+			get : function(){
+				return this.source.extends || undefined;
+			}
+		},
+		"check" : {
+			get : function(){
+				return this.source.check || undefined;
+			}
+		},
+		"notify" : {
+			get : function(){
+				return this.source.notify || undefined;
+			}
+		},
+		"getChecksArray" : {
+			value : function(all){
+				if(!this.source.check){
+					return [];
+				}
+				if(Array.isArray(this.source.check)){
+					return this.source.check.map(function(x, idx){
+						return new MonitoringCheck(this.config, this, idx, x);
+					}, this);
+				}
+				return [ new MonitoringCheck(this.config, this, "only", this.source.check) ];
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[MonitoringTemplate(" + this.key + ")]";
+			}
+		}
+	}
+);
+
+
+
+
+
+
+const MonitoringCheck = Class.create(
+	"MonitoringCheck",
+	ConfigObject,
+	function(config, template, key, source){
+		this.ConfigObject(config, source || {});
+		if(key === undefined){
+			throw new Error("MonitoringCheck requires 'key' (index)!");
+		}
+		Object.defineProperties(this, {
+			"template" : {
+				value : template
+			},
+			"key" : {
+				value : key
+			},
+			"protocol" : {
+				value : this.source.protocol || undefined
+			},
+		});
+		return this;
+	},{
+		"template" : {
+			value : undefined
+		},
+		"key" : {
+			value : undefined
+		},
+		"protocol" : {
+			value : undefined
+		},
+		"urlForHost" : {
+			value : function(fqdn){
+				var query = "?protocol=" + this.protocol;
+				for(let key of Object.keys(this.source)){
+					switch(key){
+						case "protocol":
+							break;
+						default:
+							query += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(this.source[key]);
+ 					}
+				}
+				return this.protocol + "://" + fqdn + query;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[MonitoringCheck(" + this.key + ", asUrl: " + this.urlForHost("host.example.org") + ")]";
+			}
+		}
+	}
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const MonitoringNotify = Class.create(
+	"MonitoringNotify",
+	ConfigListAndMap,
+	function(config, source){
+		this.ConfigListAndMap(config, source);
+		this.initializeParse();
+		return this;
+	},{
+		"initializeParse" : {
+			value : function(){
+				const types = this.source;
+				if(types === undefined){
+					return;
+				}
+				for(let key in types){
+					const type = types[key];
+					this.addRecord(key, type.extends, type.level3, type.level6);
+				}
+			}
+		},
+		"addRecord" : {
+			value : function(key, source){
+				const record = new MonitoringNotificationTarget(this.config, key, source);
+				this.put(key, record);
+				return record;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[MonitoringNotify(" + " size: " + this.list.length + ")]";
+			}
+		}
+	}
+);
+
+
+
+
+
+
+
+const MonitoringNotificationTarget = Class.create(
+	"MonitoringNotificationTarget",
+	ConfigObject,
+	function(config, key, source){
+		this.ConfigObject(config, source || {});
+		if(!key){
+			throw new Error("MonitoringNotificationTarget requires 'key'!");
+		}
+		Object.defineProperties(this, {
+			"key" : {
+				value : key
+			}
+		});
+		return this;
+	},{
+		"key" : {
+			value : undefined
+		},
+		"type" : {
+			get : function(){
+				return this.source.type;
+			}
+		},
+		"name" : {
+			get : function(){
+				return this.source.name;
+			}
+		},
+		"email" : {
+			get : function(){
+				return this.source.email;
+			}
+		},
+		"phone" : {
+			get : function(){
+				return this.source.phone;
+			}
+		},
+		"testing" : {
+			get : function(){
+				return this.source.testing;
+			}
+		},
+		"list" : {
+			get : function(){
+				return this.source.list;
+			}
+		},
+		"redirect" : {
+			get : function(){
+				return this.source.redirect;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[MonitoringNotificationTarget(" + this.key + ")]";
+			}
+		}
+	}
+);
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3090,6 +3436,46 @@ const PortForwardTable = Class.create(
 
 
 
+const MonitoringTable = Class.create(
+	"MonitoringTable",
+	AbstractTable,
+	function(){
+		this.AbstractTable();
+		return this;
+	},{
+		"sortColumns" : {
+			value : ["view", "host", "type"]
+		},
+		"columns" : {
+			value : [
+				{
+					id : "view",
+					title : "View"
+				},
+				{
+					id : "type",
+					title : "Type"
+				},
+				{
+					id : "host",
+					title : "Host"
+				},
+				{
+					id : "url",
+					title : "As URL"
+				},
+				{
+					id : "comment",
+					title : "Comment"
+				}
+			]
+		}
+	}
+);
+
+
+
+
 
 const DnsTable = Class.create(
 	"DnsTable",
@@ -3157,6 +3543,9 @@ const Configuration = Class.create(
 			"routing" : {
 				value : new Routing(this, source.routing)
 			},
+			"monitoring" : {
+				value : new Monitoring(this, source.monitoring)
+			},
 		});
 		
 		this.locations.initializeParse();
@@ -3164,6 +3553,7 @@ const Configuration = Class.create(
 		this.targets.initializeParse();
 		this.routers.initializeParse();
 		this.routing.initializeParse();
+		this.monitoring.initializeParse();
 		
 		return this;
 	}, {
@@ -3195,6 +3585,10 @@ const Configuration = Class.create(
 		},
 		"routing" : {
 			// Routing configuration class instance
+			value : null
+		},
+		"monitoring" : {
+			// Monitoring configuration class instance
 			value : null
 		},
 		"router" : {
@@ -3414,6 +3808,54 @@ const Configuration = Class.create(
 						for(let nat in (type.level3||{})){
 							const tgt = Number(type.level3[nat]||-1);
 							add(entries, tcpShift, nat, tgt, lan3, "type-" + typeName + locKey + "-" + s.key);
+						}
+					}
+				}
+
+				return entries;
+			}
+		},
+		"buildMonitoringView" : {
+			value : function(location){
+				const entries = {};
+				function add(entries, target, monitor, check, ip, shift, comment){
+					const key = target.key + ':' + check.protocol;
+					if(entries[key] !== undefined){
+						return;
+					}
+					entries[key] = {
+						key : key,
+						type : check.protocol,
+						host : target.key,
+						url : check.urlForHost(target.key),
+						comment : comment || check.comment || monitor.comment || key
+					};
+				}
+
+				const loc = location || this.location;
+				const locKey = loc ? '-' + loc.key : '';
+
+				/** l6 block */
+				targets: for(let t of this.config.targets.list){
+					const monitor = this.config.monitoring.monitorForTarget(t);
+					if(monitor) for(let check of monitor.getChecksArray(false)){
+						const lan3 = t.resolveSmartIP4(loc && loc.lans || null);
+						lan3 && add(entries, t, monitor, check, lan3, 0, "tgt-" + t.key);
+					}
+				}
+
+				servers: for(let s of this.config.servers.list){
+					const monitor = this.config.monitoring.monitorForTarget(s);
+					if(monitor) for(let check of monitor.getChecksArray(true)){
+						if(s.source.lan){
+							//const lan3 = s.resolveDirectIP4(loc.networkForClient(s.source.lan.ip) || null);
+							const lan3 = s.resolveDirectIP4(loc && loc.lans || null);
+							lan3 && add(entries, s, monitor, check, lan3, 0, "srv-" + s.key);
+						}
+						if(s.source.wan){
+							//const wan3 = s.resolveDirectIP4(loc.networkForClient(s.source.wan.ip) || null);
+							const wan3 = s.resolveDirectIP4(loc && loc.lans || null);
+							wan3 && add(entries, s, monitor, check, wan3, 0, "srv-" + s.key);
 						}
 					}
 				}
@@ -3652,6 +4094,46 @@ const Configuration = Class.create(
 				return table;
 			}
 		},
+		"makeMonitoringTable" : {
+			value : function(view){
+				const table = new MonitoringTable();
+				const rows = table.rows;
+
+				const views = [];
+				if(view === undefined || view === null){
+					views.push({
+						name : "WAN",
+						view : this.buildMonitoringView(null)
+					});
+				}
+				if(view === undefined) for(let l of this.locations.list){
+					if(l.key && l.wan3) {
+						views.push({
+							name : l.key,
+							view : this.buildMonitoringView(l)
+						});
+					}
+				}
+				for(let v of views){
+					for(let mKey in v.view){
+						const m = v.view[mKey];
+						if(m && m.key) {
+							rows.push({
+								view : v.name,
+								key : v.key,
+								type : m.type,
+								host : m.host,
+								url : m.url,
+								comment : m.comment || '',
+							});
+						}
+					}
+				}
+
+				table.sort();
+				return table;
+			}
+		},
 		"makeNonSecure" : {
 			value : function(){
 				return ;
@@ -3662,6 +4144,7 @@ const Configuration = Class.create(
 				return {
 					locations	: this.locations.toSourceObject(),
 					servers		: this.servers.toSourceObject(),
+					monitoring	: this.monitoring.toSourceObject(),
 					routing		: this.routing.toSourceObject(),
 					targets		: this.targets.toSourceObject(),
 				};

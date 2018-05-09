@@ -1,26 +1,28 @@
-function makeExplainer(div, config){
+function makeExplainer(div, config, closeFn){
     const output = document.createElement("div");
     const header = document.createElement("div");
 
     output.style = "position:absolute;left:0;top:0;width:100%;height:100%;background-color:#efe;color:#000;overflow:auto";
-    header.style = "position:fixed;left:0;top:0;width:100%;height:1.8em;background-color:#eff;color:#000";
+    header.style = "position:fixed;right:1em;top:0;overflow:hidden;padding:0.3em;background-color:#eff;color:#000";
 
     div.appendChild(output);
     div.appendChild(header);
 
-    function btn(name, explainer){
+    function btn(name, action){
         const btn = document.createElement("button");
+        btn.style = "height:2em;line-height:1em;padding:0.3em;overflow:hodden";
         btn.innerHTML = name;
         btn.onclick = function(){
             output.innerHTML = '';
             output.scrollTop = 0;
             output.scrollLeft = 0;
-            explainer(output);
+            action(output);
         };
         header.appendChild(btn);
     }
 
     btn("CLOSE", function(output){
+        "function" === typeof closeFn && closeFn();
         div.remove();
     });
 
@@ -109,17 +111,26 @@ function makeExplainer(div, config){
         table(output, config.makeDnsTable());
     });
 
+    btn("MON-WAN", function(output){
+        table(output, config.makeMonitoringTable(null));
+    });
+
+    btn("MON-ALL", function(output){
+        table(output, config.makeMonitoringTable());
+    });
+
     btn("FWD", function(output){
         table(output, config.makePortForwardTable());
     });
+
 }
 
 module.exports = {
-    "createPlane" : function(config){
+    "createPlane" : function(config, closeFn){
         const div = document.createElement("div");
         div.className = "explainer";
         div.style = "position:absolute;left:0;top:0;width:100%;height:100%;background-color:#eef;color:#000;overflow:auto";
-        this.makeExplainer(div, config);
+        this.makeExplainer(div, config, closeFn);
         document.body.appendChild(div);
     },
     "makeExplainer" : makeExplainer

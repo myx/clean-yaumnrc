@@ -26,15 +26,8 @@
 		</script>
 		<link rel="stylesheet" href="test.css">
 		<script>
-			function test(src){
-				const config = Parser.parse(src ? JSON.parse(src) : TestConfig);
-
-				const test = new Test(document);
-				
-				const output = test.output;
-				const lpanel = test.lpanel;
-
-				test.prepare(Explainer, config);
+			function debug(test, config){
+				test.createDebugPlane(config);
 
 				function out(t,x,e,d){
 					test.out(t,x,e,d);
@@ -314,12 +307,18 @@
 				});
 				
 			}
+
+			const test = new Test(document, debug, Parser, Explainer);
+
+			function initial(){
+				const source = JSON.stringify(TestConfig, null, 4);
+				const config = Parser.parse(TestConfig);
+
+				test.source = source;
+				test.createParsedPlane(config, source);
+			}
 		</script>
 	</head>
-	<body onload="test()" ondblclick="test(prompt('Upload config'))">
-		<div id="lpanel">
-		</div>
-		<div id="output">
-		</div>
+	<body onload="initial()">
 	</body>
 </html>

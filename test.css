@@ -18,7 +18,7 @@ blockquote {
     font-size: 90%;
     line-height: 1em;
 }
-.explainer {
+.explainer, .uploader {
     position: absolute;
     left: 0;
     top: 0;
@@ -26,6 +26,12 @@ blockquote {
     height: 100%;
     background-color: #fff;
     color: #000;
+}
+.uploader TEXTAREA {
+    font-family: monospace;
+    font-weight: 400;
+    background-color: #000;
+    color: #ffb000;
 }
 #lpanel {
     position: absolute;
@@ -39,17 +45,24 @@ blockquote {
     background-color: #fef;
     color: #000;
 }
-#epanel {
-    position: absolute;
-    right: 0;
+#epanel, .epanel {
+    position: fixed;
+    right: 1em;
     top: 0;
-    height: 2em;
-    width: 2em;
+    min-height: 1em;
+    min-width: 2em;
     line-height: 1.31em;
     overflow: hidden;
-    padding: 0.5em;
-    background-color: #ff7;
+    padding: 0.3em;
+    background-color: #ff0;
     color: #000;
+}
+#epanel BUTTON, .epanel BUTTON {
+    height: 2em;
+    min-width: 2em;
+    line-height: 1em;
+    padding: 0.3em;
+    overflow: hidden;
 }
 .lpanelItem {
     display: block;

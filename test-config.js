@@ -54,7 +54,8 @@ module.exports = {
 				"ip" : "l6h1-tap",
 				"key" : "-----BEGIN RSA PUBLIC KEY-----\r\nMIIBCgKCAQEA1u1UJ1/rKCT2pVPgSAvLWeZ2RW2e72ObC7xG1YVBMUi1V8JCU0+S\r\ntEaEgNknTxNylJm2OiE50YWZzydDMf+GNq3AEqq/9S9UZRuZQlxSbTe4Ic1odgdi\r\nXMZHdMJu3Q4AOCxu8kEHGR4VelvpprjHyZxEteZ/doBSGm4TaomaAT3gI0k5TAol\r\nacjoctu+dgrL1YZA0MtPYAN0JX5yeLA0yZ7AKeHfGW5Ws5E5++Y1QdE3XNXxftL4\r\nX9dhOJBziW4TsPYTpair2oLLcmOYihnD6Bbsb87aoaKt6iheEtVzBgluN+qhzCP1\r\nA5ZgIlicbLrwHD61o83lpatE/dNDbhKVvQIDAQAB\r\n-----END RSA PUBLIC KEY-----"
 			},
-			"tcpShift" : 1000
+			"tcpShift" : 1000,
+			"monitor" : "l6route"
 		},
 		"l6o3.myx.ru" : {
 			"router" : "active",
@@ -69,7 +70,8 @@ module.exports = {
 				"ip" : "l6o3-tap",
 				"key" : "-----BEGIN RSA PUBLIC KEY-----\r\nMIIBCgKCAQEA1u1UJ1/rKCT2pVPgSAvLWeX2RW2e72ObC7xG1YVBMUi1V8JCU0+S\r\ntEaEgNknTxNylJm2OiE50YWXzydDMf+GNq3AEqq/9S9UXRuXQlxSbTe4Ic1odgdi\r\nXMXHdMJu3Q4AOCxu8kEHGR4VelvpprjHyXxEteX/doBSGm4TaomaAT3gI0k5TAol\r\nacjoctu+dgrL1YXA0MtPYAN0JX5yeLA0yX7AKeHfGW5Ws5E5++Y1QdE3XNXxftL4\r\nX9dhOJBziW4TsPYTpair2oLLcmOYihnD6Bbsb87aoaKt6iheEtVzBgluN+qhzCP1\r\nA5XgIlicbLrwHD61o83lpatE/dNDbhKVvQIDAQAB\r\n-----END RSA PUBLIC KEY-----"
 			},
-			"tcpShift" : 2000
+			"tcpShift" : 2000,
+			"monitor" : "l6route"
 		},
 		"stdalone1-h1.myx.ru" : {
 			"location" : "h1",
@@ -109,7 +111,8 @@ module.exports = {
 				"ip" : "192.168.1.77"
 			},
 			"tcpShift" : 3000,
-			"type" : "ae3bsd"
+			"type" : "ae3bsd",
+			"monitor" : "acmcms"
 		},
 		"www-o3.myx.ru" : {
 			"location" : "o3",
@@ -119,7 +122,8 @@ module.exports = {
 				"ip" : "192.168.3.77"
 			},
 			"tcpShift" : 3000,
-			"type" : "ae3bsd"
+			"type" : "ae3bsd",
+			"monitor" : "acmcms"
 		},
 		"www-2-o3.myx.ru" : {
 			"location" : "o3",
@@ -129,7 +133,8 @@ module.exports = {
 				"ip" : "10.3.2.77"
 			},
 			"tcpShift" : 5000,
-			"type" : "unix"
+			"type" : "unix",
+			"monitor" : "acmcms"
 		},
 		"mpxy1.myx.ru" : {
 			"location" : "h1",
@@ -160,6 +165,31 @@ module.exports = {
 			},
 			"web" : {
 				"timeoutMillis" : "10000"
+			}
+		},
+		"templates" : {
+			"default" : {
+				"loopCycleMillis" : 300000
+			},
+			"acmcms" : {
+				"extends" : "meloscope-admins",
+				"check" : [
+					{ "protocol" : "http", "path" : "/check1", "expectCode" : 404 },
+					{ "protocol" : "https", "path" : "/check2", "expectCode" : 404 }
+				]
+			},
+			"myx-kvm" : {
+				"extends" : "meloscope-admins",
+				"check" : { "protocol" : "ssh", "port" : 22, "until" : "tcp-connect" }
+			},
+			"l6route" : {
+				"extends" : "meloscope-admins",
+				"check" : [
+					{ "protocol" : "http", "path" : "/check1", "expectCode" : 404 },
+					{ "protocol" : "https", "port" : 1001, "path" : "/", "expectCode" : 200 },
+					{ "protocol" : "http", "path" : "/check1", "expectCode" : 404 },
+					{ "protocol" : "ssh", "port" : 22, "until" : "tcp-connect" }
+				]
 			}
 		},
 		"notify" : {
@@ -389,13 +419,16 @@ module.exports = {
 			"target" : [
 				"www-h1.myx.ru",
 				"www-o3.myx.ru"
-			]
+			],
+			"monitor" : "acmcms"
 		},
 		"web.myx.ru" : {
-			"target" : "l6.myx.ru"
+			"target" : "l6.myx.ru",
+			"monitor" : "acmcms"
 		},
 		"zyx.myx.ru" : {
-			"target" : "zyxel.myx.ru"
+			"target" : "zyxel.myx.ru",
+			"monitor" : "acmcms"
 		},
 		"zyxel.myx.ru" : {
 			"proxyHttp" : "http://zyxel.ru",
