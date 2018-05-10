@@ -1012,10 +1012,10 @@ const Location = Class.create(
 		"toSourceObject" : {
 			value : function(){
 				return {
-					"name" : this.name || null,
+					"name" : this.name || undefined,
 					"title" : (this.source.title || this.title !== this.name) && this.title || undefined,
-					"wan3" : this.wan3 || null,
-					"lan3" : this.lans && this.lans.length && this.lans.map(function(x){return x.toSourceObject();}) || null,
+					"wan3" : this.wan3 || undefined,
+					"lan3" : this.lans && (this.lans.list ? this.lans.list.map(function(x){return x.toSourceObject();}) : this.lans.toSourceObject()) || undefined,
 					"tap3" : this.tap3 || undefined,
 				};
 			}
@@ -1871,14 +1871,14 @@ const Routing = Class.create(
 		});
 		return this;
 	}, {
-		"domains" : {
-			execute : "once", get : function(){
-				return new Domains(this.config, this.source && this.source.domains || undefined);
-			}
-		},
 		"types" : {
 			execute : "once", get : function(){
 				return new RoutingTypes(this.config, this.source && this.source.types || undefined);
+			}
+		},
+		"domains" : {
+			execute : "once", get : function(){
+				return new Domains(this.config, this.source && this.source.domains || undefined);
 			}
 		},
 		"initializeParse" : {
@@ -1889,6 +1889,7 @@ const Routing = Class.create(
 		"toSourceObject" : {
 			value : function(){
 				return {
+					"types" : this.types && this.types.toSourceObject() || undefined,
 					"domains" : this.domains && this.domains.toSourceObject() || undefined
 				};
 			}
@@ -3112,8 +3113,7 @@ const MonitoringNotify = Class.create(
 					return;
 				}
 				for(let key in types){
-					const type = types[key];
-					this.addRecord(key, type.extends, type.level3, type.level6);
+					this.addRecord(key, types[key]);
 				}
 			}
 		},
