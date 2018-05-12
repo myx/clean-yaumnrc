@@ -2894,14 +2894,14 @@ const Monitoring = Class.create(
 		"monitorForTarget" : {
 			value : function(t){
 				const monitor = t.source && t.source.monitor;
-				if(!monitor){
+				if(undefined === monitor || null === monitor){
 					return undefined;
 				}
 				if('string' === typeof monitor){
 					return this.templates.map[monitor];
 				}
 				if(monitor.check || monitor.notify){
-					return new MonitoringTemplate(this.config, "tgt-" + t.key, monitor);
+					return new MonitoringTemplate(this.config, "inl-" + t.key, monitor);
 				}
 				return null;
 			}
@@ -3444,7 +3444,7 @@ const MonitoringTable = Class.create(
 		return this;
 	},{
 		"sortColumns" : {
-			value : ["view", "host", "type"]
+			value : ["view", "host", "type", "ip"]
 		},
 		"columns" : {
 			value : [
@@ -3459,6 +3459,10 @@ const MonitoringTable = Class.create(
 				{
 					id : "host",
 					title : "Host"
+				},
+				{
+					id : "ip",
+					title : "IP"
 				},
 				{
 					id : "url",
@@ -3819,7 +3823,7 @@ const Configuration = Class.create(
 			value : function(location){
 				const entries = {};
 				function add(entries, target, monitor, check, ip, shift, comment){
-					const key = target.key + ':' + check.protocol;
+					const key = target.key + ':' + check.protocol + ":" + (ip || '');
 					if(entries[key] !== undefined){
 						return;
 					}
@@ -3827,6 +3831,7 @@ const Configuration = Class.create(
 						key : key,
 						type : check.protocol,
 						host : target.key,
+						ip : ip || undefined,
 						url : check.urlForHost(target.key),
 						comment : comment || check.comment || monitor.comment || key
 					};
@@ -3838,24 +3843,32 @@ const Configuration = Class.create(
 				/** l6 block */
 				targets: for(let t of this.config.targets.list){
 					const monitor = this.config.monitoring.monitorForTarget(t);
-					if(monitor) for(let check of monitor.getChecksArray(false)){
-						const lan3 = t.resolveSmartIP4(loc && loc.lans || null);
-						lan3 && add(entries, t, monitor, check, lan3, 0, "tgt-" + t.key);
+					if(monitor){
+						const web = t.resolveSmartIP4(loc && loc.lans || null);
+						if(web){
+							for(let check of monitor.getChecksArray(false)){
+								// console.log(">>> l6: " + t + ", " + web);
+								for(let address of web){
+									add(entries, t, monitor, check, address, 0, "tgw-" + t.key);
+								}
+							}
+						}
 					}
 				}
 
 				servers: for(let s of this.config.servers.list){
+					const tcpShift = s.source.tcpShift | 0;
 					const monitor = this.config.monitoring.monitorForTarget(s);
 					if(monitor) for(let check of monitor.getChecksArray(true)){
-						if(s.source.lan){
-							//const lan3 = s.resolveDirectIP4(loc.networkForClient(s.source.lan.ip) || null);
-							const lan3 = s.resolveDirectIP4(loc && loc.lans || null);
-							lan3 && add(entries, s, monitor, check, lan3, 0, "srv-" + s.key);
+						if(loc === s.location){
+							const lan3 = s.lan3;
+							// console.log(">>> l3: " + s + ", " + lan3);
+							lan3 && add(entries, s, monitor, check, lan3, 0, "srl-" + s.key);
 						}
-						if(s.source.wan){
-							//const wan3 = s.resolveDirectIP4(loc.networkForClient(s.source.wan.ip) || null);
-							const wan3 = s.resolveDirectIP4(loc && loc.lans || null);
-							wan3 && add(entries, s, monitor, check, wan3, 0, "srv-" + s.key);
+						{
+							const wan3 = s.wan3;
+							// console.log(">>> w3: " + s + ", " + wan3);
+							wan3 && add(entries, s, monitor, check, wan3, 0, "srw-" + s.key);
 						}
 					}
 				}
@@ -4123,6 +4136,7 @@ const Configuration = Class.create(
 								key : v.key,
 								type : m.type,
 								host : m.host,
+								ip : m.ip,
 								url : m.url,
 								comment : m.comment || '',
 							});
