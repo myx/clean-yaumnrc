@@ -4043,7 +4043,19 @@ const Configuration = Class.create(
 				const rows = table.rows;
 
 				servers: for(let s of this.servers.list){
+					const type = ((this.source.routing||{}).types||{})[s.source.type || 'default'];
 					if(s.wan3){
+						if(type && type.level6){
+							const tgt = Number(type.level6.sshd||-1);
+							if(tgt && tgt > 0){
+								rows.push({
+									name : s.key,
+									location : s.location && s.location.key,
+									ssh : "ssh " + s.key + " -p " + tgt,
+								});
+								continue servers;
+							}
+						} 
 						rows.push({
 							name : s.key,
 							location : s.location && s.location.key,
@@ -4051,7 +4063,6 @@ const Configuration = Class.create(
 						});
 						continue servers;
 					}
-					const type = ((this.source.routing||{}).types||{})[s.source.type || 'default'];
 					if(type){
 						for(let nat in (type.level3||{})){
 							const tgt = Number(type.level3[nat]||-1);
