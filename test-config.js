@@ -76,7 +76,8 @@ module.exports = {
 		"stdalone1-h1.myx.ru" : {
 			"location" : "h1",
 			"wan" : {
-				"ip" : "stdalone1-h1.wan"
+				"ip" : "stdalone1-h1.wan",
+				"ipv6" : "2a01:4f8:160:30c1:0:0:0:75"
 			},
 			"lan" : {
 				"ip" : "192.168.1.77"
@@ -88,13 +89,15 @@ module.exports = {
 				"ip" : "stdalone2-h1.wan"
 			},
 			"lan" : {
-				"ip" : "192.168.1.79"
+				"ip" : "192.168.1.79",
+				"ipv6" : "2a01:4f8:160:30c1:0:0:0:76"
 			}
 		},
 		"stdalone3-h1.myx.ru" : {
 			"location" : "h1",
 			"wan" : {
-				"ip" : "stdalone3-h1.wan"
+				"ip" : "stdalone3-h1.wan",
+				"ipv6" : "2a01:4f8:160:30c1:0:0:0:77"
 			},
 			"lan" : {
 				"ip" : "7.7.7.7"
