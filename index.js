@@ -2330,8 +2330,11 @@ const DomainStatic = Class.create(
 				function(domain, config, source){
 					this.ConfigListAndMap(config, source || {});
 					if(source) for(let key in source){
-						const name = domain.staticName(key);
-						name && this.put(name, new DnsTypeStatic(name, config, source[key]));
+						const typeName = domain.staticName(key);
+						typeName && this.put(
+							name, 
+							new DnsTypeStatic(typeName, config, source[key])
+						);
 					}
 					return this;
 				},{
