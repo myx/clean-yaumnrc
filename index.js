@@ -2698,7 +2698,7 @@ const DnsTypeStatic = Class.create(
 	}, {
 		"toString" : {
 			value : function(){
-				return "[DnsTypeStatic()]";
+				return "[DnsTypeStatic("+this.key+")]";
 			}
 		}
 	}
