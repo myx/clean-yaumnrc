@@ -2362,6 +2362,11 @@ const DomainStatic = Class.create(
 				return this.ensureDnsTypeByName("AAAA");
 			}
 		},
+		"dnsTypeCNAME" : {
+			execute : "once", get : function(){
+				return this.ensureDnsTypeByName("CNAME");
+			}
+		},
 		"dnsTypeNS" : {
 			execute : "once", get : function(){
 				return this.ensureDnsTypeByName("NS");
