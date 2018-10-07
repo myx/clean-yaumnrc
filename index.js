@@ -2372,6 +2372,16 @@ const DomainStatic = Class.create(
 				return this.ensureDnsTypeByName("NS");
 			}
 		},
+		"dnsTypeMX" : {
+			execute : "once", get : function(){
+				return this.ensureDnsTypeByName("MX");
+			}
+		},
+		"dnsTypeTXT" : {
+			execute : "once", get : function(){
+				return this.ensureDnsTypeByName("TXT");
+			}
+		},
 		"ensureDnsTypeByName" : {
 			// Uppercase letters, like: A, AAAA, NS, MX, TXT
 			value : function(typeName){
@@ -2442,7 +2452,7 @@ const DomainDedicated = Class.create(
 				const recs6 = result.dnsTypeAAAA;
 				const recsN = result.dnsTypeNS;
 
-				var name, a4, a6, location;
+				var name, a4, a6, l;
 
 				for(let i of this.config.targetListDns){
 					name = this.filterName(i.key);
@@ -2455,66 +2465,71 @@ const DomainDedicated = Class.create(
 						if(a6 && a6.length){
 							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-' + i));
 						}
-						name = "*." + name;
-						if(a4 && a4.length){
-							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-' + i));
-						}
-						if(a6 && a6.length){
-							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-' + i));
+						if(name !== '@'){
+							name = "*." + name;
+							if(a4 && a4.length){
+								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-' + i));
+							}
+							if(a6 && a6.length){
+								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-' + i));
+							}
 						}
 					}
 				}
 				if(!recsA.map["*"] || !recsA.map["@"]){
 					a4 = this.config.resolveSmartIP4(net);
 					if(a4 && a4.length){
-						recsA.map["*"] || recsA.put("*", new DnsRecordStatic("*", a4, 'config'));
-						recsA.map["@"] || recsA.put("@", new DnsRecordStatic("@", a4, 'config'));
+						recsA.map["*"] || recsA.put("*", new DnsRecordStatic("*", a4, 'config-a4'));
+						recsA.map["@"] || recsA.put("@", new DnsRecordStatic("@", a4, 'config-a4'));
 					}
 					a6 = this.config.resolveSmartIPv6(net);
 					if(a6 && a6.length){
-						recs6.map["*"] || recs6.put("*", new DnsRecordStatic("*", a6, 'config'));
-						recs6.map["@"] || recs6.put("@", new DnsRecordStatic("@", a6, 'config'));
+						recs6.map["*"] || recs6.put("*", new DnsRecordStatic("*", a6, 'config-a6'));
+						recs6.map["@"] || recs6.put("@", new DnsRecordStatic("@", a6, 'config-a6'));
 					}
 				}
 
-				for(location of this.config.locations.list){
-					name = this.filterName(location.key);
+				for(l of this.config.locations.list){
+					name = this.filterName(l.key);
 					if(name){
-						a4 = location.resolveSmartIP4(net);
-						a6 = location.resolveSmartIPv6(net);
+						a4 = l.resolveSmartIP4(net);
+						a6 = l.resolveSmartIPv6(net);
 						if(a4 && a4.length){
 							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location'));
 						} 
 						if(a6 && a6.length){
 							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location'));
 						} 
-						name = "*." + name;
-						if(a4 && a4.length){
-							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location'));
-						} 
-						if(a6 && a6.length){
-							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location'));
-						} 
+						if(name !== '@'){
+							name = "*." + name;
+							if(a4 && a4.length){
+								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location'));
+							} 
+							if(a6 && a6.length){
+								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location'));
+							} 
+						}
 					}
 				}
 
 
 				if(!recsN.map["@"]){
 					const map = {};
-					for(location of this.config.locations.list){
-						name = DomainInfrastructure.prototype.filterName.call(this, location.key) || (location.key + this.key);
-						a4 = location.resolveSmartIP4(net);
+					for(l of this.config.locations.list){
+						name = DomainInfrastructure.prototype.filterName.call(this, l.key) || (l.key + this.key);
+						console.log(">>>>> " + name);
+						a4 = l.resolveSmartIP4(net);
 						if(a4 && a4.length){
+							map[name] = true;
 							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location'));
-							map[name] = true;
 						} 
-						a6 = location.resolveSmartIPv6(net);
+						a6 = l.resolveSmartIPv6(net);
 						if(a6 && a6.length){
-							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location'));
 							map[name] = true;
+							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location'));
 						} 
 					}
-					recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config'));
+					recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config-n'));
 				}
 
 				recsA.sort(DnsRecordStatic.compare);
