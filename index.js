@@ -804,6 +804,7 @@ const Location = Class.create(
 		this.ResolvableObject(config, source);
 
 		const wan3 = source.wan3;
+		const wan36 = source.wan36;
 		const wan6 = source.wan6 || wan3;
 		const tap3 = source.tap3;
 		
@@ -833,6 +834,9 @@ const Location = Class.create(
 			},
 			"wan3" : {
 				value : wan3
+			},
+			"wan36" : {
+				value : wan36
 			},
 			"wan6" : {
 				value : wan6
@@ -905,20 +909,16 @@ const Location = Class.create(
 						return result;
 					}
 				}
-				{
-					if(this.wan3){
-						return [].concat(this.wan3);
-					}
+				if(this.wan3){
+					return [].concat(this.wan3);
 				}
 				return undefined;
 			}
 		},
 		"resolveDirectIPv6" : {
 			value : function(net){
-				{
-					if(this.wan36){
-						return [].concat(this.wan36);
-					}
+				if(this.wan36){
+					return [].concat(this.wan36);
 				}
 				return undefined;
 			}
@@ -953,7 +953,7 @@ const Location = Class.create(
 				}
 			}
 		},
-		"resolveSmartIP4" : {
+		"resolveSmartIPv6" : {
 			value : function(net, own/*, location*/){
 
 				{
@@ -2452,26 +2452,26 @@ const DomainDedicated = Class.create(
 				const recs6 = result.dnsTypeAAAA;
 				const recsN = result.dnsTypeNS;
 
-				var name, a4, a6, l;
+				var name, a4, a6, target;
 
-				for(let i of this.config.targetListDns){
-					name = this.filterName(i.key);
+				for(target of this.config.targetListDns){
+					name = this.filterName(target.key);
 					if(name){
-						a4 = i.resolveSmartIP4(net);
-						a6 = i.resolveSmartIPv6(net);
+						a4 = target.resolveSmartIP4(net);
+						a6 = target.resolveSmartIPv6(net);
 						if(a4 && a4.length){
-							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-' + i));
+							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-4-' + target));
 						}
 						if(a6 && a6.length){
-							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-' + i));
+							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-6-' + target));
 						}
 						if(name !== '@'){
 							name = "*." + name;
 							if(a4 && a4.length){
-								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-' + i));
+								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-*-4-' + target));
 							}
 							if(a6 && a6.length){
-								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-' + i));
+								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-*-6-' + target));
 							}
 						}
 					}
@@ -2489,24 +2489,25 @@ const DomainDedicated = Class.create(
 					}
 				}
 
-				for(l of this.config.locations.list){
-					name = this.filterName(l.key);
+				for(target of this.config.locations.list){
+					name = this.filterName(target.key);
 					if(name){
-						a4 = l.resolveSmartIP4(net);
-						a6 = l.resolveSmartIPv6(net);
+						a4 = target.resolveSmartIP4(net);
+						a6 = target.resolveSmartIPv6(net);
+						console.log(">>**>1 " + name + ", a4: " + a4 + ", a6: " + a6);
 						if(a4 && a4.length){
-							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location'));
+							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-4-'+target));
 						} 
 						if(a6 && a6.length){
-							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location'));
+							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-6-'+target));
 						} 
 						if(name !== '@'){
 							name = "*." + name;
 							if(a4 && a4.length){
-								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location'));
+								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-*-4-'+target));
 							} 
 							if(a6 && a6.length){
-								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location'));
+								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-*-4-'+target));
 							} 
 						}
 					}
@@ -2515,19 +2516,20 @@ const DomainDedicated = Class.create(
 
 				if(!recsN.map["@"]){
 					const map = {};
-					for(l of this.config.locations.list){
-						name = DomainInfrastructure.prototype.filterName.call(this, l.key) || (l.key + this.key);
-						console.log(">>>>> " + name);
-						a4 = l.resolveSmartIP4(net);
+					for(target of this.config.locations.list){
+						name = DomainInfrastructure.prototype.filterName.call(this, target.key) || (target.key + this.key);
+						a4 = target.resolveSmartIP4(net);
+						a6 = target.resolveSmartIPv6(net);
+						console.log(">>>>>1 " + name + ", a4: " + a4 + ", a6: " + a6 + ", net: " + net);
 						if(a4 && a4.length){
 							map[name] = true;
-							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location'));
+							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-@-4-'+target));
 						} 
-						a6 = l.resolveSmartIPv6(net);
 						if(a6 && a6.length){
 							map[name] = true;
-							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location'));
+							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-@-6-'+target));
 						} 
+						console.log(">>>>>2 " + name + ", keys: " + Object.keys(map));
 					}
 					recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config-n'));
 				}
