@@ -45,7 +45,7 @@ const Class = {
 					d.get = function(){
 						const result = get.call(this);
 						this === p || Object.defineProperty(this, key, { value : result });
-						// console.log("createClass: >>>>>> once: " + name + ", " + key);
+						// console.log("createClass: >>> once: " + name + ", " + key);
 						return result;
 					};
 				}
@@ -2497,7 +2497,6 @@ const DomainDedicated = Class.create(
 					if(name){
 						a4 = target.resolveSmartIP4(net);
 						a6 = target.resolveSmartIPv6(net);
-						console.log(">>**>1 " + name + ", a4: " + a4 + ", a6: " + a6);
 						if(a4 && a4.length){
 							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-4-'+target));
 						} 
@@ -2523,7 +2522,6 @@ const DomainDedicated = Class.create(
 						name = DomainInfrastructure.prototype.filterName.call(this, target.key) || (target.key + this.key);
 						a4 = target.resolveSmartIP4(net);
 						a6 = target.resolveSmartIPv6(net);
-						console.log(">>>>>1 " + name + ", a4: " + a4 + ", a6: " + a6 + ", net: " + net);
 						if(a4 && a4.length){
 							map[name] = true;
 							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-@-4-'+target));
@@ -2532,7 +2530,6 @@ const DomainDedicated = Class.create(
 							map[name] = true;
 							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-@-6-'+target));
 						} 
-						console.log(">>>>>2 " + name + ", keys: " + Object.keys(map));
 					}
 					recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config-n'));
 				}
