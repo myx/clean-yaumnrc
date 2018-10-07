@@ -1081,7 +1081,7 @@ const Location = Class.create(
 		},
 		"toString" : {
 			value : function(){
-				return "[Location(" + this.title + ")]";
+				return "[Location(" + (this.key || this.title || undefined) + ")]";
 			}
 		}
 	}
