@@ -2332,7 +2332,7 @@ const DomainStatic = Class.create(
 					if(source) for(let key in source){
 						const typeName = domain.staticName(key);
 						typeName && this.put(
-							name, 
+							typeName, 
 							new DnsTypeStatic(typeName, config, source[key])
 						);
 					}
