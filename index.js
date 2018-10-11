@@ -3961,7 +3961,7 @@ const Configuration = Class.create(
 					const result = this.resolveDirectIPv6(net);
 					if(result) return result;
 				}
-				{
+				if(net) {
 					const result = this.resolveDirectIP4(net);
 					if(result) return undefined;
 				}
