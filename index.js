@@ -924,7 +924,7 @@ const Location = Class.create(
 						return r;
 					}, null);
 					if(result){
-						return undefined;
+						return result;
 					}
 				}
 				if(this.wan36){
@@ -1204,6 +1204,11 @@ const Server = Class.create(
 		},
 		"resolveDirectIPv6" : {
 			value : function(net){
+				if(net){
+					if(this.location === net.location){
+						return undefined;
+					}
+				}
 				{
 					const a = this.wan36;
 					return a ? [ a ] : undefined;
@@ -3955,6 +3960,10 @@ const Configuration = Class.create(
 				{
 					const result = this.resolveDirectIPv6(net);
 					if(result) return result;
+				}
+				{
+					const result = this.resolveDirectIPv4(net);
+					if(result) return undefined;
 				}
 				{
 					const result = [];
