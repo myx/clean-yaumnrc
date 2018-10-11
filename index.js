@@ -3962,7 +3962,7 @@ const Configuration = Class.create(
 					if(result) return result;
 				}
 				{
-					const result = this.resolveDirectIPv4(net);
+					const result = this.resolveDirectIP4(net);
 					if(result) return undefined;
 				}
 				{
