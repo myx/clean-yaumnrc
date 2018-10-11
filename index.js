@@ -925,7 +925,6 @@ const Location = Class.create(
 		},
 		"resolveSmartIP4" : {
 			value : function(net, own/*, location*/){
-
 				{
 					const result = this.resolveDirectIP4(net);
 					if(result) return result;
@@ -955,7 +954,16 @@ const Location = Class.create(
 		},
 		"resolveSmartIPv6" : {
 			value : function(net, own/*, location*/){
-
+				if(net && this.lan3 && net.location === this){
+					const result = this.lan3.reduce(function(r,x){
+						const lan3 = net.filterIp(x);
+						lan3 && (r || (r = [])).push(lan3);
+						return r;
+					}, null);
+					if(result){
+						return undefined;
+					}
+				}
 				{
 					const result = this.resolveDirectIPv6(net);
 					if(result) return result;
