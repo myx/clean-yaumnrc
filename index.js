@@ -971,7 +971,7 @@ const Location = Class.create(
 						return r;
 					}, null);
 					if(result){
-						return undefined;
+						return [];
 					}
 				}
 				{
@@ -1206,7 +1206,7 @@ const Server = Class.create(
 			value : function(net){
 				if(net){
 					if(this.location === net.location){
-						return undefined;
+						return [];
 					}
 				}
 				{
@@ -3963,7 +3963,7 @@ const Configuration = Class.create(
 				}
 				if(net) {
 					const result = this.resolveDirectIP4(net);
-					if(result) return undefined;
+					if(result) return [];
 				}
 				{
 					const result = [];
