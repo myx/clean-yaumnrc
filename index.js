@@ -917,6 +917,16 @@ const Location = Class.create(
 		},
 		"resolveDirectIPv6" : {
 			value : function(net){
+				if(net && this.lan3 && net.location === this){
+					const result = this.lan3.reduce(function(r,x){
+						const lan3 = net.filterIp(x);
+						lan3 && (r || (r = [])).push(lan3);
+						return r;
+					}, null);
+					if(result){
+						return undefined;
+					}
+				}
 				if(this.wan36){
 					return [].concat(this.wan36);
 				}
