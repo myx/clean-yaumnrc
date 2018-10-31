@@ -794,9 +794,6 @@ const NetworkPortsObject = Class.create(
 				if(this.ipv6 && this.ipv6.length === 0){
 					this.ipv6 = undefined;
 				}
-				if(this.mac && this.mac.length === 0){
-					this.mac = undefined;
-				}
 				return this;
 			}
 		},
