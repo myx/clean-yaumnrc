@@ -743,6 +743,12 @@ const NetworkPortsObject = Class.create(
 	},{
 		"addIP" : {
 			value : function(x){
+				if(x.push){
+					for(var y of x){
+						this.addIP(y);
+					}
+					return;
+				}
 				if(this.ip.indexOf(x) === -1){
 					this.all.push(x);
 					this.ip.push(x);
@@ -751,6 +757,12 @@ const NetworkPortsObject = Class.create(
 		},
 		"addIPv6" : {
 			value : function(x){
+				if(x.push){
+					for(var y of x){
+						this.addIPv6(y);
+					}
+					return;
+				}
 				if(this.ipv6.indexOf(x) === -1){
 					this.all.push(x);
 					this.ipv6.push(x);
