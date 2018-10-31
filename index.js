@@ -1233,12 +1233,8 @@ const Server = Class.create(
 					result.addIP(a);
 					return result.normalize();
 				}
-				if(this.wan3){
-					result.addIP(this.wan3);
-				}
-				if(this.wan36){
-					result.addIPv6(this.wan36);
-				}
+				this.wan3 && result.addIP(this.wan3);
+				this.wan36 && result.addIPv6(this.wan36);
 				return result.normalize();
 			}
 		},
