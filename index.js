@@ -701,6 +701,105 @@ const ConfigObject = Class.create(
 
 
 
+const NetworkPortObject = Class.create(
+	"NetworkPortObject",
+	undefined,
+	function(){
+		this.net = null;
+		this.mac = null;
+		this.ip = [];
+		this.ipv6 = [];
+		return this;
+	},{
+		"net" : {
+			value : undefined
+		},
+		"mac" : {
+			value : undefined
+		},
+		"ip" : {
+			value : undefined
+		},
+		"ipv6" : {
+			value : undefined
+		},
+		"toString" : {
+			value : function(){
+				return "[NetworkPort(" + this.net + ", " + this.mac + ", " + this.ip + ", " + this.ipv6 + "])]";
+			}
+		}
+	}
+);
+
+
+const NetworkPortsObject = Class.create(
+	"NetworkPortsObject",
+	undefined,
+	function(){
+		this.all = [];
+		this.ip = [];
+		this.ipv6 = [];
+		return this;
+	},{
+		"addIP" : {
+			value : function(x){
+				if(this.ip.indexOf(x) === -1){
+					this.all.push(x);
+					this.ip.push(x);
+				}
+			}
+		},
+		"addIPv6" : {
+			value : function(x){
+				if(this.ipv6.indexOf(x) === -1){
+					this.all.push(x);
+					this.ipv6.push(x);
+				}
+			}
+		},
+		"addNetworkPortsObject" : {
+			value : function(x){
+				if(x && x.ip){
+					for(var y of x.ip){
+						this.addIP(y);
+					}
+				}
+				if(x && x.ipv6){
+					for(var y of x.ipv6){
+						this.addIPv6(y);
+					}
+				}
+			}
+		},
+		"normalize" : {
+			value : function(){
+				if(this.all.length === 0){
+					return undefined;
+				}
+				if(this.ip && this.ip.length === 0){
+					this.ip = undefined;
+				}
+				if(this.ipv6 && this.ipv6.length === 0){
+					this.ipv6 = undefined;
+				}
+				if(this.mac && this.mac.length === 0){
+					this.mac = undefined;
+				}
+				return this;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[NetworkPorts(" + this.all + "])]";
+			}
+		}
+	}
+);
+
+
+
+
+
 const ResolvableObject = Class.create(
 	"ResolvableObject",
 	ConfigObject,
@@ -720,33 +819,23 @@ const ResolvableObject = Class.create(
 		"wan3smart" : {
 			// Array of external IPs for Layer3 access (length is likely 1 or 0, but could have several WAN IPs of all the routers) 
 			execute : "once", get : function(){
-				return this.resolveSmartIP4(null);
+				return (this.resolveSmart(null)||{}).ip;
 			}
 		},
 		"lan3smart" : {
 			// Array of local IPs for Layer3 access (length is likely 1 or 0, but could have several LAN IPs of all the routers) 
 			execute : "once", get : function(){
-				return this.resolveSmartIP4(this.config.location && this.config.location.lans || null);
+				return (this.resolveSmart(this.config.location && this.config.location.lans || null)||{}).ip;
 			}
 		},
-		"resolveDirectIP4" : {
+		"resolveDirect" : {
 			value : function(net){
 				throw new Error("Must re-implement, instance: " + this + ", net: " + net);
 			}
 		},
-		"resolveDirectIPv6" : {
-			value : function(net){
-				throw new Error("Must re-implement, instance: " + this + ", net: " + net);
-			}
-		},
-		"resolveSmartIP4" : {
+		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
-				return this.resolveDirectIP4(net);
-			}
-		},
-		"resolveSmartIPv6" : {
-			value : function(net, own, parent/*, location*/){
-				return this.resolveDirectIPv6(net);
+				return this.resolveDirect(net, own, parent);
 			}
 		},
 		"endpointsList" : {
@@ -897,106 +986,54 @@ const Location = Class.create(
 			// Array of local IPs for Layer3 access (tap to inter-cluster vpn) 
 			value : null
 		},
-		"resolveDirectIP4" : {
+		"resolveDirect" : {
 			value : function(net){
+				const result = new NetworkPortsObject();
 				if(net && this.lan3 && net.location === this){
-					const result = this.lan3.reduce(function(r,x){
-						const lan3 = net.filterIp(x);
-						lan3 && (r || (r = [])).push(lan3);
-						return r;
-					}, null);
-					if(result){
-						return result;
+					var lan3, filtered, found = false;
+					for(lan3 of this.lan3){
+						filtered = net.filterIp(lan3);
+						if(filtered){
+							result.addIP(filtered);
+							found = true;
+						}
+					}
+					if(found){
+						return result.normalize();
 					}
 				}
 				if(this.wan3){
-					return [].concat(this.wan3);
-				}
-				return undefined;
-			}
-		},
-		"resolveDirectIPv6" : {
-			value : function(net){
-				if(net && this.lan3 && net.location === this){
-					const result = this.lan3.reduce(function(r,x){
-						const lan3 = net.filterIp(x);
-						lan3 && (r || (r = [])).push(lan3);
-						return r;
-					}, null);
-					if(result){
-						return result;
-					}
+					result.addIP(this.wan3);
 				}
 				if(this.wan36){
-					return [].concat(this.wan36);
+					result.addIPv6(this.wan36);
 				}
-				return undefined;
+				return result.normalize();
 			}
 		},
-		"resolveSmartIP4" : {
+		"resolveSmart" : {
 			value : function(net, own/*, location*/){
 				{
-					const result = this.resolveDirectIP4(net);
+					const result = this.resolveDirect(net);
 					if(result) return result;
 				}
 				{
-					const result = {};
+					const result = new NetworkPortsObject();
 					{
 						for(const r of this.routers.list.filter(Router.isActive)){
-							for(const i of (r.resolveSmartIP4(net, true) || [])){
-								result[i] = true;
-							}
+							const ips = r.resolveSmart(net, true);
+							ips && result.addNetworkPortsObject(ips);
 						}
-						const keys = Object.keys(result);
-						if(keys.length) return keys;
+						if(result.all.length) {
+							return result.normalize();
+						}
 					}
 					{
 						for(const r of this.routers.list.filter(Router.isTesting)){
-							for(const i of (r.resolveSmartIP4(net, true) || [])){
-								result[i] = true;
-							}
+							const ips = r.resolveSmart(net, true);
+							ips && result.addNetworkPortsObject(ips);
 						}
-						const keys = Object.keys(result);
-						return keys.length ? keys : undefined;
-					}
-				}
-			}
-		},
-		"resolveSmartIPv6" : {
-			value : function(net, own/*, location*/){
-				if(net && this.lan3 && net.location === this){
-					const result = this.lan3.reduce(function(r,x){
-						const lan3 = net.filterIp(x);
-						lan3 && (r || (r = [])).push(lan3);
-						return r;
-					}, null);
-					if(result){
-						return [];
-					}
-				}
-				{
-					const result = this.resolveDirectIPv6(net);
-					if(result) return result;
-				}
-				{
-					const result = {};
-					{
-						for(const r of this.routers.list.filter(Router.isActive)){
-							for(const i of (r.resolveSmartIPv6(net, true) || [])){
-								result[i] = true;
-							}
-						}
-						const keys = Object.keys(result);
-						if(keys.length) return keys;
-					}
-					{
-						for(const r of this.routers.list.filter(Router.isTesting)){
-							for(const i of (r.resolveSmartIPv6(net, true) || [])){
-								result[i] = true;
-							}
-						}
-						const keys = Object.keys(result);
-						return keys.length ? keys : undefined;
+						return result.normalize();
 					}
 				}
 			}
@@ -1188,44 +1225,34 @@ const Server = Class.create(
 				return [ new UpstreamObject() ];
 			}
 		},
-		"resolveDirectIP4" : {
+		"resolveDirect" : {
 			value : function(net){
-				if(net){
-					if(this.location === net.location){
-						const a = this.lan3 && net.filterIp(this.lan3, true) || this.wan3;
-						return a ? [ a ] : undefined;
-					}
+				const result = new NetworkPortsObject();
+				if(net && this.location === net.location){
+					const a = this.lan3 && net.filterIp(this.lan3, true) || this.wan3;
+					result.addIP(a);
+					return result.normalize();
 				}
-				{
-					const a = this.wan3;
-					return a ? [ a ] : undefined;
+				if(this.wan3){
+					result.addIP(this.wan3);
 				}
+				if(this.wan36){
+					result.addIPv6(this.wan36);
+				}
+				return result.normalize();
 			}
 		},
-		"resolveDirectIPv6" : {
-			value : function(net){
-				if(net){
-					if(this.location === net.location){
-						return [];
-					}
-				}
-				{
-					const a = this.wan36;
-					return a ? [ a ] : undefined;
-				}
-			}
-		},
-		"resolveSmartIP4" : {
+		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
 				const resolveMode = parent && (parent.resolveMode || 'default') || this.resolveMode || 'direct';
 				if(resolveMode === "use-wan"){
-					const a = this.resolveDirectIP4(null);
+					const a = this.resolveDirect(null);
 					if(a){
 						return a;
 					}
 				}
 				if(resolveMode === "direct"){
-					const a = this.resolveDirectIP4(net);
+					const a = this.resolveDirect(net);
 					if(a){
 						return a;
 					}
@@ -1234,35 +1261,9 @@ const Server = Class.create(
 					return undefined;
 				}
 				if(this.location){
-					return this.location.resolveSmartIP4(net);
+					return this.location.resolveSmart(net);
 				}
-				return this.config.resolveSmartIP4(net);
-			}
-		},
-		"resolveSmartIPv6" : {
-			value : function(net, own, parent/*, location*/){
-				const resolveMode = parent && (parent.resolveMode || 'default') || this.resolveMode || 'direct';
-				if(resolveMode === "use-wan"){
-					const a = this.resolveDirectIPv6(null);
-					if(a){
-						return a;
-					}
-					return undefined;
-				}
-				if(resolveMode === "direct"){
-					const a = this.resolveDirectIPv6(net);
-					if(a){
-						return a;
-					}
-					return undefined;
-				}
-				if(own){
-					return undefined;
-				}
-				if(this.location){
-					return this.location.resolveSmartIPv6(net);
-				}
-				return this.config.resolveSmartIPv6(net);
+				return this.config.resolveSmart(net);
 			}
 		},
 		"provisionFill" : {
@@ -1413,168 +1414,114 @@ const Target = Class.create(
 				return [ new UpstreamObject() ];
 			}
 		},
-		"resolveDirectIP4" : {
+		"resolveDirect" : {
 			value : function(net, forceDirect){
-				const map = {};
+				const result = new NetworkPortsObject();
 				if(net){
-					for(const t of this.endpointsList){
+					var t, lan3, found = false;
+					for(t of this.endpointsList){
 						if(t.location === net.location){
-							const lan3 = forceDirect 
+							lan3 = forceDirect 
 								? t.lan3
 								: t.lan3 && net.filterIp(t.lan3, true);
-							(lan3 && (map[lan3] = true));
+							if(lan3){
+								result.addIP(lan3);
+								found = true;
+							}
 						}
 					}
-					const keys = Object.keys(map);
-					if(keys.length) return keys;
+					if(found){
+						return result.normalize();
+					}
 				}
+				
 				if(forceDirect){
 					const location = (net && net.location) || (this.config.location);
 					if(location){
-						for(const t of this.endpointsList){
+						var t, found = false;
+						for(t of this.endpointsList){
 							if(t.location === location){
-								(t.wan3 && (map[t.wan3] = true));
+								if(t.wan3){
+									result.addIP(t.wan3);
+									found = true;
+								}
+								if(t.wan36){
+									result.addIPv6(t.wan36);
+									found = true;
+								}
 							}
 						}
-						const keys = Object.keys(map);
-						if(keys.length) return keys;
+						if(found){
+							return result.normalize();
+						}
 					}
 				}
 				{
 					for(const t of this.endpointsList){
-						(t.wan3 && (map[t.wan3] = true));
+						t.wan3 && result.addIP(t.wan3);
+						t.wan36 && result.addIPv6(t.wan36);
 					}
-					const keys = Object.keys(map);
-					return keys.length ? keys : undefined;
+					return result.normalize();
 				}
 			}
 		},
-		"resolveDirectIPv6" : {
-			value : function(net, forceDirect){
-				const map = {};
-				if(forceDirect){
-					const location = (net && net.location) || (this.config.location);
-					if(location){
-						for(const t of this.endpointsList){
-							if(t.location === location){
-								(t.wan36 && (map[t.wan36] = true));
-							}
-						}
-						const keys = Object.keys(map);
-						if(keys.length) return keys;
-					}
-				}
-				{
-					for(const t of this.endpointsList){
-						(t.wan36 && (map[t.wan36] = true));
-					}
-					const keys = Object.keys(map);
-					return keys.length ? keys : undefined;
-				}
-			}
-		},
-		"resolveSmartIP4" : {
+		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
 				const resolveMode = parent && parent.resolveMode || this.resolveMode;
 				if(resolveMode === "use-router"){
 					if(this.location){
-						return this.location.resolveSmartIP4(net);
+						return this.location.resolveSmart(net);
 					}
 				}
 				if(resolveMode === "use-local"){
 					if(net && net.location){
-						return net.location.resolveSmartIP4(net);
+						return net.location.resolveSmart(net);
 					}
 				}
 				if(resolveMode === "direct"){
-					const result = this.resolveDirectIP4(net, true);
+					const result = this.resolveDirect(net, true);
 					if(result) return result;
 				}
-				const map = {};
 				if(resolveMode === "use-wan"){
-					const result = this.resolveDirectIP4(null);
-					if(result) return result;
+					{
+						const result = this.resolveDirect(null);
+						if(result) return result;
+					}
+					
 					if(this.location){
-						return this.location.resolveSmartIP4(null);
+						return this.location.resolveSmart(null);
 					}
-					for(const t of this.endpointsList){
-						for(const a of (t.resolveSmartIP4(null, false, this) || [])){
-							map[a] = true;
+
+					{					
+						const result = new NetworkPortsObject();
+						for(const t of this.endpointsList){
+							const ips = t.resolveSmart(null, false, this);
+							ips && result.addNetworkPortsObject(ips);
 						}
+						return result.normalize();
 					}
-					return Object.keys(map);
 				}
 				if(this.location){
-					return this.location.resolveSmartIP4(net);
+					return this.location.resolveSmart(net);
 				}
-				for(const t of this.endpointsList){
-					for(const a of (t.resolveSmartIP4(net, false, this) || [])){
-						map[a] = true;
-					}
-				}
+
 				{
-					const keys = Object.keys(map);
-					if(!keys.length) return undefined;
-					if(net && net.location){
-						if(keys.length > 1){
-							const view = net.location.resolveSmartIP4(net);
-							if(view) return view;
-						}
-					}
-					return keys;
-				}
-			}
-		},
-		"resolveSmartIPv6" : {
-			value : function(net, own, parent/*, location*/){
-				const resolveMode = parent && parent.resolveMode || this.resolveMode;
-				if(resolveMode === "use-router"){
-					if(this.location){
-						return this.location.resolveSmartIPv6(net);
-					}
-				}
-				if(resolveMode === "use-local"){
-					if(net && net.location){
-						return net.location.resolveSmartIPv6(net);
-					}
-				}
-				if(resolveMode === "direct"){
-					const result = this.resolveDirectIPv6(net, true);
-					if(result) return result;
-				}
-				const map = {};
-				if(resolveMode === "use-wan"){
-					const result = this.resolveDirectIPv6(null);
-					if(result) return result;
-					if(this.location){
-						return this.location.resolveSmartIPv6(null);
-					}
+					const result = new NetworkPortsObject();
 					for(const t of this.endpointsList){
-						for(const a of (t.resolveSmartIPv6(null, false, this) || [])){
-							map[a] = true;
+						const ips = t.resolveSmart(net, false, this);
+						ips && result.addNetworkPortsObject(ips);
+					}
+					{
+						if(!result.all.length) return undefined;
+						if(net && net.location){
+							if(result.all.length > 1){
+								const view = net.location.resolveSmart(net);
+								if(view) return view;
+							}
 						}
+						return result.normalize();
 					}
-					return Object.keys(map);
-				}
-				if(this.location){
-					return this.location.resolveSmartIPv6(net);
-				}
-				for(const t of this.endpointsList){
-					for(const a of (t.resolveSmartIPv6(net, false, this) || [])){
-						map[a] = true;
-					}
-				}
-				{
-					const keys = Object.keys(map);
-					if(!keys.length) return undefined;
-					if(net && net.location){
-						if(keys.length > 1){
-							const view = net.location.resolveSmartIPv6(net);
-							if(view) return view;
-						}
-					}
-					return keys;
-				}
+				}				
 			}
 		},
 		"toSourceObject" : {
@@ -1679,74 +1626,39 @@ const TargetStatic = Class.create(
 				return [ new UpstreamObject() ];
 			}
 		},
-		"resolveDirectIP4" : {
+		"resolveDirect" : {
 			// leads to l6routes
 			value : function(net){
 				if(this.location){
-					return this.location.resolveDirectIP4(net);
+					return this.location.resolveDirect(net);
 				}
 				if(net){
 					if(net.location){
-						return net.location.resolveDirectIP4(net);
+						return net.location.resolveDirect(net);
 					}
 					if(this.config.location){
-						return this.config.location.resolveDirectIP4(net);
+						return this.config.location.resolveDirect(net);
 					}
 				}
-				return this.config.resolveDirectIP4(net);
+				return this.config.resolveDirect(net);
 			}
 		},
-		"resolveDirectIPv6" : {
-			// leads to l6routes
-			value : function(net){
-				if(this.location){
-					return this.location.resolveDirectIPv6(net);
-				}
-				if(net){
-					if(net.location){
-						return net.location.resolveDirectIPv6(net);
-					}
-					if(this.config.location){
-						return this.config.location.resolveDirectIPv6(net);
-					}
-				}
-				return this.config.resolveDirectIPv6(net);
-			}
-		},
-		"resolveSmartIP4" : {
+		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
 				const resolveMode = parent && parent.resolveMode || this.resolveMode;
 				if(own){
 					return undefined;
 				}
 				if(resolveMode === "direct" || resolveMode === "use-router"){
-					return this.resolveDirectIP4(net);
+					return this.resolveDirect(net);
 				}
 				if(!resolveMode && !this.location){
-					return this.config.resolveSmartIP4(net);
+					return this.config.resolveSmart(net);
 				}
 				if(resolveMode === "use-wan"){
-					return this.resolveDirectIP4(null);
+					return this.resolveDirect(null);
 				}
-				return this.resolveDirectIP4(net);
-			}
-		},
-		"resolveSmartIPv6" : {
-			value : function(net, own, parent/*, location*/){
-				const resolveMode = parent && parent.resolveMode || this.resolveMode;
-				if(own){
-					return undefined;
-				}
-				if(resolveMode === "direct" || resolveMode === "use-router"){
-					return this.resolveDirectIPv6(net);
-				}
-				if(!resolveMode && !this.location){
-					return this.config.resolveSmartIPv6(net);
-				}
-				if(resolveMode === "use-wan"){
-					return this.resolveDirectIPv6(null);
-				}
-				return this.resolveDirectIPv6(net);
+				return this.resolveDirect(net);
 			}
 		},
 		"toString" : {
@@ -2478,62 +2390,71 @@ const DomainDedicated = Class.create(
 				const recs6 = result.dnsTypeAAAA;
 				const recsN = result.dnsTypeNS;
 
-				var name, a4, a6, target;
+				var name, aa, a4, a6, target;
 
 				for(target of this.config.targetListDns){
 					name = this.filterName(target.key);
 					if(name){
-						a4 = target.resolveSmartIP4(net);
-						a6 = target.resolveSmartIPv6(net);
-						if(a4 && a4.length){
-							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-4-' + target));
-						}
-						if(a6 && a6.length){
-							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-6-' + target));
-						}
-						if(name !== '@'){
-							name = "*." + name;
+						aa = target.resolveSmart(net);
+						if(aa){
+							a4 = aa.ip;
+							a6 = aa.ipv6;
 							if(a4 && a4.length){
-								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-*-4-' + target));
+								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-4-' + target));
 							}
 							if(a6 && a6.length){
-								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-*-6-' + target));
+								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-6-' + target));
+							}
+							if(name !== '@'){
+								name = "*." + name;
+								if(a4 && a4.length){
+									recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-*-4-' + target));
+								}
+								if(a6 && a6.length){
+									recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-*-6-' + target));
+								}
 							}
 						}
 					}
 				}
 				if(!recsA.map["*"] || !recsA.map["@"]){
-					a4 = this.config.resolveSmartIP4(net);
-					if(a4 && a4.length){
-						recsA.map["*"] || recsA.put("*", new DnsRecordStatic("*", a4, 'config-a4'));
-						recsA.map["@"] || recsA.put("@", new DnsRecordStatic("@", a4, 'config-a4'));
-					}
-					a6 = this.config.resolveSmartIPv6(net);
-					if(a6 && a6.length){
-						recs6.map["*"] || recs6.put("*", new DnsRecordStatic("*", a6, 'config-a6'));
-						recs6.map["@"] || recs6.put("@", new DnsRecordStatic("@", a6, 'config-a6'));
+					aa = this.config.resolveSmart(net);
+					if(aa){
+						a4 = aa.ip;
+						a6 = aa.ipv6;
+						if(a4 && a4.length){
+							recsA.map["*"] || recsA.put("*", new DnsRecordStatic("*", a4, 'config-a4'));
+							recsA.map["@"] || recsA.put("@", new DnsRecordStatic("@", a4, 'config-a4'));
+						}
+						if(a6 && a6.length){
+							recs6.map["*"] || recs6.put("*", new DnsRecordStatic("*", a6, 'config-a6'));
+							recs6.map["@"] || recs6.put("@", new DnsRecordStatic("@", a6, 'config-a6'));
+						}
 					}
 				}
 
 				for(target of this.config.locations.list){
 					name = this.filterName(target.key);
 					if(name){
-						a4 = target.resolveSmartIP4(net);
-						a6 = target.resolveSmartIPv6(net);
-						if(a4 && a4.length){
-							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-4-'+target));
-						} 
-						if(a6 && a6.length){
-							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-6-'+target));
-						} 
-						if(name !== '@'){
-							name = "*." + name;
+						aa = target.resolveSmart(net);
+						if(aa){
+							a4 = aa.ip;
+							a6 = aa.ipv6;
 							if(a4 && a4.length){
-								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-*-4-'+target));
+								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-4-'+target));
 							} 
 							if(a6 && a6.length){
-								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-*-4-'+target));
+								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-6-'+target));
 							} 
+							if(name !== '@'){
+								name = "*." + name;
+								if(a4 && a4.length){
+									recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-*-4-'+target));
+								} 
+								if(a6 && a6.length){
+									recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-*-4-'+target));
+								} 
+							}
 						}
 					}
 				}
@@ -2543,16 +2464,19 @@ const DomainDedicated = Class.create(
 					const map = {};
 					for(target of this.config.locations.list){
 						name = DomainInfrastructure.prototype.filterName.call(this, target.key) || (target.key + this.key);
-						a4 = target.resolveSmartIP4(net);
-						a6 = target.resolveSmartIPv6(net);
-						if(a4 && a4.length){
-							map[name] = true;
-							recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-@-4-'+target));
-						} 
-						if(a6 && a6.length){
-							map[name] = true;
-							recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-@-6-'+target));
-						} 
+						aa = target.resolveSmart(net);
+						if(aa){
+							a4 = aa.ip;
+							a6 = aa.ipv6;
+							if(a4 && a4.length){
+								map[name] = true;
+								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-@-4-'+target));
+							} 
+							if(a6 && a6.length){
+								map[name] = true;
+								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-@-6-'+target));
+							} 
+						}
 					}
 					recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config-n'));
 				}
@@ -3884,97 +3808,44 @@ const Configuration = Class.create(
 			// ListAndMap instance 
 			value : null
 		},
-		"resolveDirectIP4" : {
+		"resolveDirect" : {
 			// leads to l6routes
 			value : function(net){
-				const result = {};
+				const result = new NetworkPortsObject();
 				for(var l of this.locations.list){
 					if(l.routers.list.some(Router.isActive)){
-						const ips = l.resolveDirectIP4(net);
-						for(const ip of (ips || [])){
-							result[ip] = true;
-						}
+						const ips = l.resolveDirect(net);
+						ips && result.addNetworkPortsObject(ips);
 						continue;
 					}
 					for(var i of l.routers.list){
 						if(i.isActive && i.wan3){
-							const ips = i.resolveDirectIP4(net);
-							for(const ip of (ips || [])){
-								result[ip] = true;
-							}
+							const ips = i.resolveDirect(net);
+							ips && result.addNetworkPortsObject(ips);
 						}
 						continue;
 					}
 				}
-				const keys = Object.keys(result);
-				return keys.length ? keys : undefined;
+				return result.normalize();
 			}
 		},
-		"resolveDirectIPv6" : {
-			// leads to l6routes
-			value : function(net){
-				const result = {};
-				for(var l of this.locations.list){
-					if(l.routers.list.some(Router.isActive)){
-						const ips = l.resolveDirectIPv6(net);
-						for(const ip of (ips || [])){
-							result[ip] = true;
-						}
-						continue;
-					}
-					for(var i of l.routers.list){
-						if(i.isActive && i.wan36){
-							const ips = i.resolveDirectIPv6(net);
-							for(const ip of (ips || [])){
-								result[ip] = true;
-							}
-						}
-						continue;
-					}
-				}
-				const keys = Object.keys(result);
-				return keys.length ? keys : undefined;
-			}
-		},
-		"resolveSmartIP4" : {
+		"resolveSmart" : {
 			value : function(net){
 				{
-					const result = this.resolveDirectIP4(net);
+					const result = this.resolveDirect(net);
 					if(result) return result;
 				}
 				{
-					const result = [];
+					const result = new NetworkPortsObject();
 					for(var l of this.locations.list){
 						for(var i of l.routers.list){
-							if(i.isTesting && i.wan3){
-								result[i.wan3] = true;
+							if(i.isTesting){
+								i.wan3 && result.addIP(i.wan3);
+								i.wan36 && result.addIPv6(i.wan36);
 							}
 						}
 					}
-					return Object.keys(result);
-				}
-			}
-		},
-		"resolveSmartIPv6" : {
-			value : function(net){
-				{
-					const result = this.resolveDirectIPv6(net);
-					if(result) return result;
-				}
-				if(net) {
-					const result = this.resolveDirectIP4(net);
-					if(result) return [];
-				}
-				{
-					const result = [];
-					for(var l of this.locations.list){
-						for(var i of l.routers.list){
-							if(i.isTesting && i.wan36){
-								result[i.wan36] = true;
-							}
-						}
-					}
-					return Object.keys(result);
+					return result.normalize();
 				}
 			}
 		},
@@ -3991,7 +3862,7 @@ const Configuration = Class.create(
 				} 
 				{
 					const target = this.targets.map[host] || this.servers.map[host];
-					return target && target.resolveSmartIP4(n) || undefined;
+					return target && (target.resolveSmart(n)||{}).ip || undefined;
 				}
 			}
 		},
@@ -4113,7 +3984,7 @@ const Configuration = Class.create(
 						continue servers;
 					}
 					const network = loc.networkForClient(s.source.lan.ip);
-					const lan3 = s === this.router ? "127.0.0.1" : s.resolveDirectIP4(network || null);
+					const lan3 = s === this.router ? "127.0.0.1" : ((s.resolveDirect(network || null) || {}).ip);
 					if(!lan3){
 						continue servers;
 					}
@@ -4174,7 +4045,7 @@ const Configuration = Class.create(
 				targets: for(let t of this.config.targets.list){
 					const monitor = this.config.monitoring.monitorForTarget(t);
 					if(monitor){
-						const web = t.resolveSmartIP4(loc && loc.lans || null);
+						const web = (t.resolveSmart(loc && loc.lans || null) || {}).ip;
 						if(web){
 							for(let check of monitor.getChecksArray(false)){
 								// console.log(">>> l6: " + t + ", " + web);
