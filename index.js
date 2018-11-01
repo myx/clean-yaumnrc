@@ -743,6 +743,9 @@ const NetworkPortsObject = Class.create(
 	},{
 		"addIP" : {
 			value : function(x){
+				if(!x){
+					return;
+				}
 				if(x.push){
 					for(var y of x){
 						this.addIP(y);
@@ -757,6 +760,9 @@ const NetworkPortsObject = Class.create(
 		},
 		"addIPv6" : {
 			value : function(x){
+				if(!x){
+					return;
+				}
 				if(x.push){
 					for(var y of x){
 						this.addIPv6(y);
@@ -1028,22 +1034,15 @@ const Location = Class.create(
 				}
 				{
 					const result = new NetworkPortsObject();
-					{
-						for(const r of this.routers.list.filter(Router.isActive)){
-							const ips = r.resolveSmart(net, true);
-							ips && result.addNetworkPortsObject(ips);
-						}
-						if(result.all.length) {
-							return result.normalize();
-						}
+					for(const r of this.routers.list.filter(Router.isActive)){
+						result.addNetworkPortsObject( r.resolveSmart(net, true) );
 					}
-					{
+					if(!result.all.length) {
 						for(const r of this.routers.list.filter(Router.isTesting)){
-							const ips = r.resolveSmart(net, true);
-							ips && result.addNetworkPortsObject(ips);
+							result.addNetworkPortsObject( r.resolveSmart(net, true) );
 						}
-						return result.normalize();
 					}
+					return result.normalize();
 				}
 			}
 		},
@@ -1252,15 +1251,11 @@ const Server = Class.create(
 				const resolveMode = parent && (parent.resolveMode || 'default') || this.resolveMode || 'direct';
 				if(resolveMode === "use-wan"){
 					const a = this.resolveDirect(null);
-					if(a){
-						return a;
-					}
+					if(a) return a;
 				}
 				if(resolveMode === "direct"){
 					const a = this.resolveDirect(net);
-					if(a){
-						return a;
-					}
+					if(a) return a;
 				}
 				if(own){
 					return undefined;
@@ -1500,8 +1495,7 @@ const Target = Class.create(
 					{					
 						const result = new NetworkPortsObject();
 						for(const t of this.endpointsList){
-							const ips = t.resolveSmart(null, false, this);
-							ips && result.addNetworkPortsObject(ips);
+							result.addNetworkPortsObject( t.resolveSmart(null, false, this) );
 						}
 						return result.normalize();
 					}
@@ -1513,8 +1507,7 @@ const Target = Class.create(
 				{
 					const result = new NetworkPortsObject();
 					for(const t of this.endpointsList){
-						const ips = t.resolveSmart(net, false, this);
-						ips && result.addNetworkPortsObject(ips);
+						result.addNetworkPortsObject( t.resolveSmart(net, false, this) );
 					}
 					{
 						if(!result.all.length) return undefined;
@@ -3819,16 +3812,13 @@ const Configuration = Class.create(
 				const result = new NetworkPortsObject();
 				for(var l of this.locations.list){
 					if(l.routers.list.some(Router.isActive)){
-						const ips = l.resolveDirect(net);
-						ips && result.addNetworkPortsObject(ips);
+						result.addNetworkPortsObject( l.resolveDirect(net) );
 						continue;
 					}
 					for(var i of l.routers.list){
 						if(i.isActive && i.wan3){
-							const ips = i.resolveDirect(net);
-							ips && result.addNetworkPortsObject(ips);
+							result.addNetworkPortsObject( i.resolveDirect(net) );
 						}
-						continue;
 					}
 				}
 				return result.normalize();
