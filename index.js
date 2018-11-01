@@ -1237,8 +1237,7 @@ const Server = Class.create(
 			value : function(net){
 				const result = new NetworkPortsObject();
 				if(net && this.location === net.location){
-					const a = this.lan3 && net.filterIp(this.lan3, true) || this.wan3;
-					result.addIP(a);
+					result.addIP( this.lan3 && net.filterIp(this.lan3, true) || this.wan3 );
 					return result.normalize();
 				}
 				this.wan3 && result.addIP(this.wan3);
@@ -1456,6 +1455,8 @@ const Target = Class.create(
 						}
 					}
 				}
+
+				// from WAN
 				{
 					for(const t of this.endpointsList){
 						t.wan3 && result.addIP(t.wan3);
@@ -1480,6 +1481,7 @@ const Target = Class.create(
 				}
 				if(resolveMode === "direct"){
 					const result = this.resolveDirect(net, true);
+					console.log(">>>>> resul: " + result);
 					if(result) return result;
 				}
 				if(resolveMode === "use-wan"){
@@ -3579,6 +3581,10 @@ const LocationsTable = Class.create(
 					title : "WAN3"
 				},
 				{
+					id : "wan36",
+					title : "WAN36"
+				},
+				{
 					id : "lans",
 					title : "LAN3"
 				},
@@ -4160,6 +4166,7 @@ const Configuration = Class.create(
 							name : l.name || l.key || '',
 							title : l.title || l.description || l.key || '',
 							wan3 : l.wan3 || '',
+							wan36 : l.wan36 || '',
 							lans : l.lans || '',
 							comment : l.comment || '',
 						});

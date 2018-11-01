@@ -3,6 +3,7 @@ module.exports = {
 		"h1" : {
 			"name" : "h1.myx.ru",
 			"wan3" : "h1-wan",
+			"wan36" : "h1-wan6",
 			"lan3" : "192.168.1.250",
 			"tap3" : "10.112.11.20"
 		},
@@ -27,6 +28,7 @@ module.exports = {
 		"h5" : {
 			"name" : "h5.myx.ru",
 			"wan3" : "h5-wan",
+			"wan36" : "h5-wan6",
 			"lan3" : "192.168.5.250",
 			"tap3" : "10.112.55.20"
 		},
@@ -147,6 +149,14 @@ module.exports = {
 			},
 			"lan" : {
 				"ip" : "192.168.1.27"
+			}
+		},
+		"mpxy5.myx.ru" : {
+			"location" : "h5",
+			"net" : [ "monitoring", "www" ],
+			"lan" : {
+				"mac" : "AA:BB:CC:05:07:07",
+				"ip" : "192.168.5.27"
 			}
 		},
 		"mpxy3.myx.ru" : {
@@ -438,14 +448,14 @@ module.exports = {
 			"proxyHttps" : "https://zyxel.ru"
 		},
 		"mpxy-direct.myx.ru" : {
-			"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru"],
+			"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru", "mpxy5.myx.ru"],
 			"dns" : "direct"
 		},
 		"mpxy-default.myx.ru" : {
-			"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru"]
+			"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru", "mpxy5.myx.ru"]
 		},
 		"mpxy-router.myx.ru" : {
-			"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru"],
+			"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru", "mpxy5.myx.ru"],
 			"dns" : "use-router"
 		},
 		"mpxy-def-h1l.myx.ru" : {
