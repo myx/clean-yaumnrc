@@ -2,9 +2,17 @@ module.exports = {
 	"locations" : {
 		"h1" : {
 			"name" : "h1.myx.ru",
-			"wan3" : "h1-wan",
-			"wan36" : "h1-wan6",
-			"lan3" : "192.168.1.250",
+			"wan3" : "88.198.177.100",
+			"wan36" : "2a01:4f8:d1:1d00::100",
+			"lan3" : [ 
+				"192.168.20.250/24", 
+				"192.168.21.250/24", 
+				"192.168.22.250/24", 
+				"192.168.24.250/24", 
+				"192.168.25.250/24", 
+				"192.168.26.250/24", 
+				"172.16.1.250/24" 
+			],
 			"tap3" : "10.112.11.20"
 		},
 		"h2" : {
@@ -45,6 +53,7 @@ module.exports = {
 		"l6h1.myx.ru" : {
 			"router" : "active",
 			"location" : "h1",
+			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "10G"	},
 			"wan" : {
 				"ip" : "l6h1-wan"
 			},
@@ -62,6 +71,7 @@ module.exports = {
 		"l6o3.myx.ru" : {
 			"router" : "active",
 			"location" : "o3",
+			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "10G"	},
 			"wan" : {
 				"ip" : "l6o3-wan"
 			},
@@ -77,6 +87,7 @@ module.exports = {
 		},
 		"stdalone1-h1.myx.ru" : {
 			"location" : "h1",
+			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
 			"wan" : {
 				"ip" : "stdalone1-h1.wan",
 				"ipv6" : "2a01:4f8:160:30c1:0:0:0:75"
@@ -87,6 +98,7 @@ module.exports = {
 		},
 		"stdalone2-h1.myx.ru" : {
 			"location" : "h1",
+			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
 			"wan" : {
 				"ip" : "stdalone2-h1.wan"
 			},
@@ -97,6 +109,7 @@ module.exports = {
 		},
 		"stdalone3-h1.myx.ru" : {
 			"location" : "h1",
+			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
 			"wan" : {
 				"ip" : "stdalone3-h1.wan",
 				"ipv6" : "2a01:4f8:160:30c1:0:0:0:77"
@@ -111,6 +124,7 @@ module.exports = {
 		"www-h1.myx.ru" : {
 			"location" : "h1",
 			"net" : "www",
+			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
 			"lan" : {
 				"mac" : "AA:BB:CC:00:01:01",
 				"ip" : "192.168.1.77"
@@ -122,6 +136,7 @@ module.exports = {
 		"www-o3.myx.ru" : {
 			"location" : "o3",
 			"net" : "www",
+			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
 			"lan" : {
 				"mac" : "AA:BB:CC:03:01:01",
 				"ip" : "192.168.3.77"
@@ -133,6 +148,7 @@ module.exports = {
 		"www-2-o3.myx.ru" : {
 			"location" : "o3",
 			"net" : "www",
+			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
 			"lan" : {
 				"mac" : "AA:BB:10:03:01:01",
 				"ip" : "10.3.2.77"
@@ -154,6 +170,7 @@ module.exports = {
 		"mpxy5.myx.ru" : {
 			"location" : "h5",
 			"net" : [ "monitoring", "www" ],
+			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
 			"lan" : {
 				"mac" : "AA:BB:CC:05:07:07",
 				"ip" : "192.168.5.27"
@@ -162,6 +179,7 @@ module.exports = {
 		"mpxy3.myx.ru" : {
 			"location" : "o3",
 			"net" : [ "monitoring", "www" ],
+			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
 			"lan" : {
 				"mac" : "AA:BB:CC:03:07:07",
 				"ip" : "192.168.3.27"
