@@ -805,11 +805,14 @@ const NetworkPortsObject = Class.create(
 		},
 		"removeIPv6" : {
 			value : function(){
+				if(this.all.length === 0){
+					return undefined;
+				}
 				if(!this.ip || this.ip.length === 0){
 					return undefined;
 				}
 				if(this.ipv6){
-					this.all = this.ip.splice(0);
+					this.all = this.ip;
 					this.ipv6 = undefined;
 				}
 				return this;
