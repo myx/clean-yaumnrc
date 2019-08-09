@@ -803,6 +803,18 @@ const NetworkPortsObject = Class.create(
 				return this;
 			}
 		},
+		"removeIPv6" : {
+			value : function(){
+				if(!this.ip || this.ip.length === 0){
+					return undefined;
+				}
+				if(this.ipv6){
+					this.all = this.ip.splice(0);
+					this.ipv6 = undefined;
+				}
+				return this;
+			}
+		},
 		"toString" : {
 			value : function(){
 				return "[NetworkPorts(" + this.all + "])]";
@@ -828,7 +840,7 @@ const ResolvableObject = Class.create(
 		return this;
 	},{
 		"resolveMode" : {
-			// null, 'use-wan', 'use-router', 'direct', 'local', 'remote', 'static'
+			// null, 'use-wan', 'use-router', 'direct', 'direct-no-ipv6', 'local', 'remote', 'static'
 			value : undefined
 		},
 		"wan3smart" : {
@@ -1252,9 +1264,9 @@ const Server = Class.create(
 					const a = this.resolveDirect(null);
 					if(a) return a;
 				}
-				if(resolveMode === "direct"){
+				if(resolveMode === "direct" || resolveMode === "direct-no-ipv6"){
 					const a = this.resolveDirect(net);
-					if(a) return a;
+					if(a) return resolveMode === "direct-no-ipv6" ? a.removeIPv6() : a;
 				}
 				if(own){
 					return undefined;
@@ -1479,10 +1491,9 @@ const Target = Class.create(
 						return net.location.resolveSmart(net);
 					}
 				}
-				if(resolveMode === "direct"){
-					const result = this.resolveDirect(net, true);
-					console.log(">>>>> resul: " + result);
-					if(result) return result;
+				if(resolveMode === "direct" || resolveMode === "direct-no-ipv6"){
+					const a = this.resolveDirect(net, true);
+					if(a) return resolveMode === "direct-no-ipv6" ? a.removeIPv6() : a;
 				}
 				if(resolveMode === "use-wan"){
 					{
@@ -1648,6 +1659,10 @@ const TargetStatic = Class.create(
 				const resolveMode = parent && parent.resolveMode || this.resolveMode;
 				if(own){
 					return undefined;
+				}
+				if(resolveMode === "direct-no-ipv6"){
+					const a = this.resolveDirect(net);
+					if(a) return resolveMode === "direct-no-ipv6" ? a.removeIPv6() : a;
 				}
 				if(resolveMode === "direct" || resolveMode === "use-router"){
 					return this.resolveDirect(net);
