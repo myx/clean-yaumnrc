@@ -859,13 +859,13 @@ const ResolvableObject = Class.create(
 			}
 		},
 		"resolveDirect" : {
-			value : function(net){
+			value : function(net, forceDirect, noIPv6){
 				throw new Error("Must re-implement, instance: " + this + ", net: " + net);
 			}
 		},
 		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
-				return this.resolveDirect(net, own, parent);
+				return this.resolveDirect(net, own);
 			}
 		},
 		"endpointsList" : {
@@ -1017,7 +1017,7 @@ const Location = Class.create(
 			value : null
 		},
 		"resolveDirect" : {
-			value : function(net){
+			value : function(net, /* unused */ forceDirect, noIPv6){
 				const result = new NetworkPortsObject();
 				if(net && this.lan3 && net.location === this){
 					var lan3, filtered, found = false;
@@ -1036,7 +1036,7 @@ const Location = Class.create(
 					result.addIP(this.wan3);
 				}
 				if(this.wan36){
-					result.addIPv6(this.wan36);
+					noIPv6 || result.addIPv6(this.wan36);
 				}
 				return result.normalize();
 			}
@@ -1249,14 +1249,14 @@ const Server = Class.create(
 			}
 		},
 		"resolveDirect" : {
-			value : function(net){
+			value : function(net, /* unused */ forceDirect, noIPv6){
 				const result = new NetworkPortsObject();
 				if(net && this.location === net.location){
 					result.addIP( this.lan3 && net.filterIp(this.lan3, true) || this.wan3 );
 					return result.normalize();
 				}
 				this.wan3 && result.addIP(this.wan3);
-				this.wan36 && result.addIPv6(this.wan36);
+				noIPv6 || this.wan36 && result.addIPv6(this.wan36);
 				return result.normalize();
 			}
 		},
@@ -1267,9 +1267,13 @@ const Server = Class.create(
 					const a = this.resolveDirect(null);
 					if(a) return a;
 				}
-				if(resolveMode === "direct" || resolveMode === "direct-no-ipv6"){
+				if(resolveMode === "direct"){
 					const a = this.resolveDirect(net);
-					if(a) return resolveMode === "direct-no-ipv6" ? a.removeIPv6() : a;
+					if(a) return a;
+				}
+				if(resolveMode === "direct-no-ipv6"){
+					const a = this.resolveDirect(net, undefined, true);
+					if(a) return a;
 				}
 				if(own){
 					return undefined;
@@ -1429,7 +1433,7 @@ const Target = Class.create(
 			}
 		},
 		"resolveDirect" : {
-			value : function(net, forceDirect){
+			value : function(net, forceDirect, noIPv6){
 				const result = new NetworkPortsObject();
 				if(net){
 					var t, lan3, found = false;
@@ -1459,7 +1463,7 @@ const Target = Class.create(
 									result.addIP(t.wan3);
 									found = true;
 								}
-								if(t.wan36){
+								if(!noIPv6 && t.wan36){
 									result.addIPv6(t.wan36);
 									found = true;
 								}
@@ -1475,7 +1479,7 @@ const Target = Class.create(
 				{
 					for(const t of this.endpointsList){
 						t.wan3 && result.addIP(t.wan3);
-						t.wan36 && result.addIPv6(t.wan36);
+						noIPv6 || t.wan36 && result.addIPv6(t.wan36);
 					}
 					return result.normalize();
 				}
@@ -1494,9 +1498,13 @@ const Target = Class.create(
 						return net.location.resolveSmart(net);
 					}
 				}
-				if(resolveMode === "direct" || resolveMode === "direct-no-ipv6"){
+				if(resolveMode === "direct"){
 					const a = this.resolveDirect(net, true);
-					if(a) return resolveMode === "direct-no-ipv6" ? a.removeIPv6() : a;
+					if(a) return a;
+				}
+				if(resolveMode === "direct-no-ipv6"){
+					const a = this.resolveDirect(net, true, true);
+					if(a) return a;
 				}
 				if(resolveMode === "use-wan"){
 					{
@@ -1642,19 +1650,19 @@ const TargetStatic = Class.create(
 		},
 		"resolveDirect" : {
 			// leads to l6routes
-			value : function(net){
+			value : function(net, /* unused */ forceDirect, noIPv6){
 				if(this.location){
-					return this.location.resolveDirect(net);
+					return this.location.resolveDirect(net, forceDirect, noIPv6);
 				}
 				if(net){
 					if(net.location){
-						return net.location.resolveDirect(net);
+						return net.location.resolveDirect(net, forceDirect, noIPv6);
 					}
 					if(this.config.location){
-						return this.config.location.resolveDirect(net);
+						return this.config.location.resolveDirect(net, forceDirect, noIPv6);
 					}
 				}
-				return this.config.resolveDirect(net);
+				return this.config.resolveDirect(net, forceDirect, noIPv6);
 			}
 		},
 		"resolveSmart" : {
@@ -1664,8 +1672,8 @@ const TargetStatic = Class.create(
 					return undefined;
 				}
 				if(resolveMode === "direct-no-ipv6"){
-					const a = this.resolveDirect(net);
-					if(a) return resolveMode === "direct-no-ipv6" ? a.removeIPv6() : a;
+					const a = this.resolveDirect(net, undefined, true);
+					if(a) return a;
 				}
 				if(resolveMode === "direct" || resolveMode === "use-router"){
 					return this.resolveDirect(net);
@@ -3832,16 +3840,16 @@ const Configuration = Class.create(
 		},
 		"resolveDirect" : {
 			// leads to l6routes
-			value : function(net){
+			value : function(net, forceDirect, noIPv6){
 				const result = new NetworkPortsObject();
 				for(var l of this.locations.list){
 					if(l.routers.list.some(Router.isActive)){
-						result.addNetworkPortsObject( l.resolveDirect(net) );
+						result.addNetworkPortsObject( l.resolveDirect(net, forceDirect, noIPv6) );
 						continue;
 					}
 					for(var i of l.routers.list){
 						if(i.isActive && i.wan3){
-							result.addNetworkPortsObject( i.resolveDirect(net) );
+							result.addNetworkPortsObject( i.resolveDirect(net, forceDirect, noIPv6) );
 						}
 					}
 				}
