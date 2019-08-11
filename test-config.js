@@ -51,6 +51,7 @@ module.exports = {
 	},
 	"servers" : {
 		"l6h1.myx.ru" : {
+			"disposition" : "guest",
 			"router" : "active",
 			"location" : "h1",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "10G"	},
@@ -69,6 +70,7 @@ module.exports = {
 			"monitor" : "l6route"
 		},
 		"l6o3.myx.ru" : {
+			"disposition" : "guest",
 			"router" : "active",
 			"location" : "o3",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "10G"	},
@@ -86,6 +88,7 @@ module.exports = {
 			"monitor" : "l6route"
 		},
 		"stdalone1-h1.myx.ru" : {
+			"disposition" : "standalone",
 			"location" : "h1",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
 			"wan" : {
@@ -97,6 +100,7 @@ module.exports = {
 			}
 		},
 		"stdalone2-h1.myx.ru" : {
+			"disposition" : "host",
 			"location" : "h1",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
 			"wan" : {
@@ -108,6 +112,7 @@ module.exports = {
 			}
 		},
 		"stdalone3-h1.myx.ru" : {
+			"disposition" : "standalone",
 			"location" : "h1",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
 			"wan" : {
@@ -122,6 +127,7 @@ module.exports = {
 			"location" : "h1"
 		},
 		"www-h1.myx.ru" : {
+			"disposition" : "standalone",
 			"location" : "h1",
 			"net" : "www",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
@@ -134,6 +140,7 @@ module.exports = {
 			"monitor" : "acmcms"
 		},
 		"www-o3.myx.ru" : {
+			"disposition" : "standalone",
 			"location" : "o3",
 			"net" : "www",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
@@ -146,6 +153,7 @@ module.exports = {
 			"monitor" : "acmcms"
 		},
 		"www-2-o3.myx.ru" : {
+			"disposition" : "standalone",
 			"location" : "o3",
 			"net" : "www",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
@@ -158,6 +166,7 @@ module.exports = {
 			"monitor" : "acmcms"
 		},
 		"mpxy1.myx.ru" : {
+			"disposition" : "other",
 			"location" : "h1",
 			"net" : "monitoring",
 			"wan" : {
@@ -168,6 +177,7 @@ module.exports = {
 			}
 		},
 		"mpxy5.myx.ru" : {
+			"disposition" : "other",
 			"location" : "h5",
 			"net" : [ "monitoring", "www" ],
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
@@ -177,6 +187,7 @@ module.exports = {
 			}
 		},
 		"mpxy3.myx.ru" : {
+			"disposition" : "other",
 			"location" : "o3",
 			"net" : [ "monitoring", "www" ],
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
