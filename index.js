@@ -1387,7 +1387,26 @@ const Router = Class.create(
 
 
 
+const SslPresetSettings = Class.create(
+	"SslPresetSettings",
+	undefined,
+	function(config, key, source){
+		f.defineProperty(this, "key", key);
+		return this;
+	}, {
+	}
+);
 
+
+const GitStaticSettings = Class.create(
+	"GitStaticSettings",
+	undefined,
+	function(config, key, source){
+		f.defineProperty(this, "key", key);
+		return this;
+	}, {
+	}
+);
 
 
 
@@ -1560,11 +1579,12 @@ const Target = Class.create(
 		"makeTargetObject" : {
 			value : function(key, config, source){
 				{
+					const t0 = source.gitStatic;
 					const t1 = source.proxyHttp;
 					const t2 = source.proxyHttps;
 					const t3 = source.redirectHttp;
 					const t4 = source.redirectHttps;
-					if(t1 || t2 || t3 || t4){
+					if(t0 | t1 || t2 || t3 || t4){
 						return new TargetStatic(
 							config, 
 							key, 
@@ -2038,10 +2058,16 @@ const Routing = Class.create(
 		Object.defineProperties(this, {
 			"config" : {
 				value : config
-			}
+			},
 		});
 		return this;
 	}, {
+		"options" : {
+			// routing.options map
+			get : function(){
+				return this.source.options || {};
+			}
+		}
 		"types" : {
 			execute : "once", get : function(){
 				return new RoutingTypes(this.config, this.source && this.source.types || undefined);
@@ -2060,6 +2086,7 @@ const Routing = Class.create(
 		"toSourceObject" : {
 			value : function(){
 				return {
+					"options" : this.options || undefined,
 					"types" : this.types && this.types.toSourceObject() || undefined,
 					"domains" : this.domains && this.domains.toSourceObject() || undefined
 				};
