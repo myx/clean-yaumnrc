@@ -2067,7 +2067,7 @@ const Routing = Class.create(
 			get : function(){
 				return this.source.options || {};
 			}
-		}
+		},
 		"types" : {
 			execute : "once", get : function(){
 				return new RoutingTypes(this.config, this.source && this.source.types || undefined);
