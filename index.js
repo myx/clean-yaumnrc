@@ -2577,20 +2577,20 @@ const DomainInfrastructure = Class.create(
 					return x + '.';
 				}
 
-				/***
-				 * infrastructure mirroring. I think I don't want that here (anymore!)
-				 * <code>
 				for(let d of this.config.routing.domains.list){
 					if(x.endsWith(d.key)){
-						if(!d.DomainInfrastructure){
-							return undefined;
-						}
-						return x.substr(0, x.length - d.key.length);
-						return x.substr(0, x.length - d.key.length) + this.key + '.';
+						return undefined;
+						/***
+						 * infrastructure mirroring. I think I don't want that here (anymore!)
+						 * <code>
+							if(!d.DomainInfrastructure){
+								return undefined;
+							}
+							return x.substr(0, x.length - d.key.length);
+						 * </code>
+						 */
 					}
 				}
-				 * </code>
-				 */
 
 				if(x.endsWith('.')){
 					return x;

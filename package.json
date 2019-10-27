@@ -1,7 +1,7 @@
 {
   "name": "clean-yaumnrc",
   "description": "Yet Another Universal Mesh Network Router Configuration",
-  "version": "0.0.24",
+  "version": "0.0.25",
   "author": "myx <myx@myx.ru>",
   "contributors": [
     {
