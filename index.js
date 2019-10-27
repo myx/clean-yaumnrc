@@ -2577,6 +2577,9 @@ const DomainInfrastructure = Class.create(
 					return x + '.';
 				}
 
+				/***
+				 * infrastructure mirroring. I think I don't want that here (anymore!)
+				 * <code>
 				for(let d of this.config.routing.domains.list){
 					if(x.endsWith(d.key)){
 						if(!d.DomainInfrastructure){
@@ -2586,6 +2589,8 @@ const DomainInfrastructure = Class.create(
 						return x.substr(0, x.length - d.key.length) + this.key + '.';
 					}
 				}
+				 * </code>
+				 */
 
 				if(x.endsWith('.')){
 					return x;
