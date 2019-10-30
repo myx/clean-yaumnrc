@@ -2078,6 +2078,11 @@ const Routing = Class.create(
 				return new Domains(this.config, this.source && this.source.domains || undefined);
 			}
 		},
+		"ssl" : {
+			execute : "once", get : function(){
+				return new Ssl(this.config, this.source && this.source.ssl || undefined);
+			}
+		},
 		"initializeParse" : {
 			value : function(){
 				this.domains.initializeParse();
@@ -2088,6 +2093,7 @@ const Routing = Class.create(
 				return {
 					"options" : this.options || undefined,
 					"types" : this.types && this.types.toSourceObject() || undefined,
+					"ssl" : this.ssl && this.ssl.toSourceObject() || undefined,
 					"domains" : this.domains && this.domains.toSourceObject() || undefined
 				};
 			}
@@ -3121,6 +3127,132 @@ const RoutingType = Class.create(
 		}
 	}
 );
+
+
+
+
+
+
+
+
+
+
+const Ssl = Class.create(
+	"Ssl",
+	ConfigObject,
+	function(config, source){
+		this.ConfigObject(config, source || {});
+		return this;
+	}, {
+		"presets" : {
+			execute : "once", get : function(){
+				return new SslPresets(this.config, (this.source || {}).presets);
+			}
+		},
+		"defaultPreset" : {
+			get : function(){
+				return (this.source || {}).defaultPreset;
+			}
+		},
+		"initializeParse" : {
+			value : function(){
+				this.presets.initializeParse();
+			}
+		},
+		"toSourceObject" : {
+			value : function(){
+				return {
+					"defaultPreset" : this.defaultPreset || undefined,
+					"presets" : this.presets && this.presets.toSourceObject() || undefined,
+				};
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[Ssl()]";
+			}
+		}
+	}
+);
+
+
+
+
+
+
+
+
+
+
+
+const SslPresets = Class.create(
+	"SslPresets",
+	ConfigListAndMap,
+	function(config, source){
+		this.ConfigListAndMap(config, source);
+		this.initializeParse();
+		return this;
+	},{
+		"initializeParse" : {
+			value : function(){
+				const presets = this.source;
+				if(presets === undefined){
+					return;
+				}
+				for(let key in presets){
+					this.addRecord(key, presets[key]);
+				}
+			}
+		},
+		"addRecord" : {
+			value : function(key, preset){
+				const record = new SslPreset(this.config, key, preset);
+				this.put(key, record);
+				return record;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[SslPresets(" + " size: " + this.list.length + ")]";
+			}
+		}
+	}
+);
+
+
+
+
+
+
+
+const SslPreset = Class.create(
+	"SslPreset",
+	ConfigObject,
+	function(config, key, source){
+		this.ConfigObject(config, source || {});
+		if(!key){
+			throw new Error("SslPreset requires 'key'!");
+		}
+		Object.defineProperties(this, {
+			"key" : {
+				value : key
+			},
+		});
+		return this;
+	},{
+		"key" : {
+			value : undefined
+		},
+		"toString" : {
+			value : function(){
+				return "[SslPreset(" + this.key + ")]";
+			}
+		}
+	}
+);
+
+
+
 
 
 
