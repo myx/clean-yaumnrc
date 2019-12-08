@@ -2667,6 +2667,9 @@ const DomainSlave = Class.create(
 		Object.defineProperties(this, {
 			"masters" : {
 				value : source && source.masters && [].concat(source.masters) || []
+			},
+			"slaves" : {
+				value : source && source.slaves && [].concat(source.slaves) || []
 			}
 		});
 		return this;
@@ -2679,7 +2682,8 @@ const DomainSlave = Class.create(
 				return {
 					"publish" : this.publish,
 					"mode" : this.mode,
-					"masters" : this.masters
+					"masters" : this.masters,
+					"slaves" : this.slaves
 				};
 			}
 		},
