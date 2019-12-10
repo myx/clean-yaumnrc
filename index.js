@@ -1116,7 +1116,7 @@ const Location = Class.create(
 		},
 		"networkForClient" : {
 			value : function(ip){
-				return this.lans.networkForIp(ip);
+				return this.lans && this.lans.networkForIp(ip) || undefined;
 			}
 		},
 		"findGatewayForClient" : {
