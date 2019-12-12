@@ -360,7 +360,7 @@ module.exports = {
 				"acme-le-MYX-RU" : {
 					"type" : "acme-http-01",
 					"acme" : "letsencrypt",
-					"master" : "l6k1h1.myx.co.nz",
+					"master" : "l6o3.myx.ru",
 					"email" : "myx@myx.ru",
 					"keySize": "2048",
 					"subject" : "/C=RU/ST=RU/OU=MyX/CN=${CN}/ext:subjectAltName=DNS:${CN}"
