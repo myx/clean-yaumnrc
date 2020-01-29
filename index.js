@@ -4469,7 +4469,7 @@ const Configuration = Class.create(
 								rows.push({
 									name : s.key,
 									location : s.location && s.location.key,
-									ssh : "ssh " + s.key + " -p " + (shift + nport),
+									ssh : "ssh -4 " + s.key + " -p " + (shift + nport),
 								});
 								continue servers;
 							}
