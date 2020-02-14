@@ -102,7 +102,7 @@ function makeExplainer(div, config, closeFn) {
                         skip = true;
                         break;
                     }
-                    td.addEventListener('click', table.onContentClick);
+                    td.addEventListener('dblclick', table.onContentClick);
                     format(td, row[column]);
                     tr.appendChild(td);
                 }
