@@ -4,6 +4,9 @@ module.exports = {
 			"name" : "h1.myx.ru",
 			"wan3" : "88.198.177.100",
 			"wan36" : "2a01:4f8:d1:1d00::100",
+			"url" : [
+				"https://robot.your-server.de"
+			],
 			"lan3" : [ 
 				"192.168.20.250/24", 
 				"192.168.21.250/24", 
@@ -17,7 +20,10 @@ module.exports = {
 		},
 		"h2" : {
 			"name" : "h2.myx.ru",
-			"wan3" : "h2-wan"
+			"wan3" : "h2-wan",
+			"url" : [
+				"https://my.selectel.ru/vpc/projects"
+			]
 		},
 		"o3" : {
 			"name" : "o3.myx.ru",
