@@ -1689,6 +1689,9 @@ const TargetStatic = Class.create(
 			value : function(net, own, parent/*, location*/){
 				const resolveMode = parent && parent.resolveMode || this.resolveMode;
 				if(own){
+					if(this.location){
+						return this.location.resolveSmart(net);
+					}
 					return undefined;
 				}
 				if(resolveMode === "use-router"){
@@ -1713,6 +1716,9 @@ const TargetStatic = Class.create(
 				}
 				if(resolveMode === "use-wan"){
 					return this.resolveDirect(null);
+				}
+				if(this.location){
+					return this.location.resolveSmart(net);
 				}
 				return this.resolveDirect(net);
 			}
