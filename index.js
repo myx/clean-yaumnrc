@@ -2600,7 +2600,8 @@ const DomainInfrastructure = Class.create(
 					if(x.endsWith(d.key)){
 						return undefined;
 						/***
-						 * infrastructure mirroring. I think I don't want that here (anymore!)
+						 * infrastructure mirroring. 
+						 * I think I don't want that here (anymore!)
 						 * <code>
 							if(!d.DomainInfrastructure){
 								return undefined;
@@ -2616,8 +2617,10 @@ const DomainInfrastructure = Class.create(
 				}
 
 				/** 
-				 * 3-rd party domains we prefix to instrastructure zones
+				 * 3-rd party domains we prefix to infrastructure zones.
+				 * I think I don't want that here (anymore!)
 				 */
+				return undefined;
 				return x;
 				return x + this.key + '.';
 			}
