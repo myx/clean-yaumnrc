@@ -1691,6 +1691,16 @@ const TargetStatic = Class.create(
 				if(own){
 					return undefined;
 				}
+				if(resolveMode === "use-router"){
+					if(this.location){
+						return this.location.resolveSmart(net);
+					}
+				}
+				if(resolveMode === "use-local"){
+					if(net && net.location){
+						return net.location.resolveSmart(net);
+					}
+				}
 				if(resolveMode === "direct-no-ipv6"){
 					const a = this.resolveDirect(net, undefined, true);
 					if(a) return a;
@@ -1734,9 +1744,6 @@ const TargetMultiple = Class.create(
 	},{
 		"target" : {
 			// array
-			value : null
-		},
-		"immediateEndpoints" : {
 			value : null
 		},
 		"endpointsToMap" : {
