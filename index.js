@@ -2535,7 +2535,7 @@ const DomainDedicated = Class.create(
 				if(!recsN.map["@"]){
 					const map = {};
 					for(target of this.config.locations.list){
-						name = DomainInfrastructure.prototype.filterName.call(this, target.key) || (target.key + this.key);
+						name = DomainInfrastructure.prototype.filterName.call(this, target.key) || target.key;
 						aa = target.resolveSmart(net);
 						if(aa){
 							a4 = aa.ip;
@@ -2617,10 +2617,9 @@ const DomainInfrastructure = Class.create(
 				}
 
 				/** 
-				 * 3-rd party domains we prefix to infrastructure zones.
+				 * 3-rd party domains we prefix to infrastructure zones
 				 * I think I don't want that here (anymore!)
 				 */
-				return undefined;
 				return x;
 				return x + this.key + '.';
 			}
