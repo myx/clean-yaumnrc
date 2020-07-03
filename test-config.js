@@ -53,6 +53,14 @@ module.exports = {
 		"a1" : {
 			"name" : "a1.myx.ru",
 			"title" : "AWS (Amazon Web S?)"
+		},
+		"eu" : {
+			"name" : "eu.myx.ru",
+			"title" : "EU Root Entry, h1+o3",
+			"group" : [
+				"h1",
+				"o3"
+			]
 		}
 	},
 	"servers" : {
@@ -542,5 +550,22 @@ module.exports = {
 				"bcp-aw.myx.ru"
 			]
 		},
+		
+		"eu-web" : {
+			"target" : [
+				"h1.myx.ru",
+				"h5.myx.ru",
+				"o3.myx.ru"
+			]
+		},
+		
+		"eu.site" : {
+			"location" : "eu-web",
+			"target" : [
+				"bcp-h1.myx.ru",
+				"bcp-o3.myx.ru",
+				"bcp-aw.myx.ru"
+			]
+		}
 	},
 };

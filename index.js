@@ -1426,7 +1426,7 @@ const Target = Class.create(
 		},
 		"location" : {
 			execute : "once", get : function(){
-				return this.source.location && this.config.locations.map[this.source.location];
+				return this.source.location && this.config.locations.map[this.source.location] || this.config.targets.map[this.source.location];
 			}
 		},
 		"endpointsToMap" : {
