@@ -2532,7 +2532,7 @@ const DomainDedicated = Class.create(
 				}
 
 
-				if(!recsN.map["@"]){
+				{
 					const map = {};
 					for(target of this.config.locations.list){
 						name = DomainInfrastructure.prototype.filterName.call(this, target.key) || target.key;
@@ -2550,7 +2550,9 @@ const DomainDedicated = Class.create(
 							} 
 						}
 					}
-					recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config-n'));
+					if(!recsN.map["@"]){
+						recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config-n'));
+					}
 				}
 
 				recsA.sort(DnsRecordStatic.compare);
