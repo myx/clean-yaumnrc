@@ -2975,7 +2975,8 @@ const DhcpHost = Class.create(
 				if(!network){
 					return undefined;
 				}
-				const result = [ this.routeLocal ];
+				const result = [];
+				this.routeLocal && result.push(this.routeLocal);
 
 				const groups = this.groups;
 				if(groups){
