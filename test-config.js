@@ -211,6 +211,30 @@ module.exports = {
 			}
 		}
 	},
+	"kvm" : {
+		"OSes" : {
+			"bsd12" : {
+				"install" : "https://download.freebsd.org/ftp/releases/amd64/amd64/ISO-IMAGES/12.1/FreeBSD-12.1-RELEASE-amd64-disc1.iso",
+				"ssh" : true,
+				"title" : "FreeBSD 12.0"
+			},
+			"ubuntu16" : {
+				"install" : "http://releases.ubuntu.com/16.04.3/ubuntu-16.04.3-server-amd64.iso",
+				"ssh" : true,
+				"title" : "Ubuntu Server LTS"
+			},
+			"ubuntu18" : {
+				"install" : "http://releases.ubuntu.com/18.04/ubuntu-18.04-live-server-amd64.iso",
+				"ssh" : true,
+				"title" : "Ubuntu Server LTS"
+			},
+			"win8" : {
+				"install" : "manual",
+				"rdp" : true,
+				"title" : "Windows 8"
+			}
+		}
+	},
 	"monitoring" : {
 		"settings" : {
 			"intervalMillis" : "30000"
