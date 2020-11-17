@@ -1511,6 +1511,7 @@ const Target = Class.create(
 					if(this.location){
 						return this.location.resolveSmart(net);
 					}
+					return this.config.resolveSmart(net);
 				}
 				if(resolveMode === "use-local"){
 					if(net && net.location){
@@ -1579,7 +1580,7 @@ const Target = Class.create(
 		"makeTargetObject" : {
 			value : function(key, config, source){
 				{
-					const t0 = source.gitStatic;
+					const t0 = source.static;
 					const t1 = source.proxyHttp;
 					const t2 = source.proxyHttps;
 					const t3 = source.redirectHttp;
@@ -1590,7 +1591,9 @@ const Target = Class.create(
 							key, 
 							source, 
 							t1, 
-							t2
+							t2,
+							t3,
+							t4
 						);
 					}
 				}
@@ -1698,6 +1701,7 @@ const TargetStatic = Class.create(
 					if(this.location){
 						return this.location.resolveSmart(net);
 					}
+					return this.config.resolveSmart(net);
 				}
 				if(resolveMode === "use-local"){
 					if(net && net.location){
