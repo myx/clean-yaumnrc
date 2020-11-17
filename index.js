@@ -1553,8 +1553,7 @@ const Target = Class.create(
 					for(const t of this.endpointsList){
 						result.addNetworkPortsObject( t.resolveSmart(net, false, this) );
 					}
-					{
-						if(!result.all.length) return undefined;
+					if(result.all.length){
 						if(net && net.location){
 							if(result.all.length > 1){
 								const view = net.location.resolveSmart(net);
@@ -1564,6 +1563,8 @@ const Target = Class.create(
 						return result.normalize();
 					}
 				}				
+				
+				return this.config.resolveSmart(net);
 			}
 		},
 		"toSourceObject" : {
