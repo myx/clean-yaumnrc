@@ -1518,6 +1518,9 @@ const Target = Class.create(
 						return net.location.resolveSmart(net);
 					}
 				}
+				if(resolveMode === "no-address"){
+					return undefined;
+				}
 				if(resolveMode === "direct"){
 					const a = this.resolveDirect(net, true);
 					if(a) return a;
@@ -1563,7 +1566,7 @@ const Target = Class.create(
 						return result.normalize();
 					}
 				}				
-				
+
 				return this.config.resolveSmart(net);
 			}
 		},
@@ -1708,6 +1711,9 @@ const TargetStatic = Class.create(
 					if(net && net.location){
 						return net.location.resolveSmart(net);
 					}
+				}
+				if(resolveMode === "no-address"){
+					return undefined;
 				}
 				if(resolveMode === "direct-no-ipv6"){
 					const a = this.resolveDirect(net, undefined, true);
