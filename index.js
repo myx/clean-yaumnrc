@@ -2488,13 +2488,12 @@ const DomainDedicated = Class.create(
 							for(const srvKey of ([].concat(target.source.srv))){
 								const srvFullKey = srvKey + '.' + target.key + '.';
 								const targets = [];
-								for(const serverKey of ([].concat(target.source.target))){
-									const server = this.config.servers.map[serverKey];
-									const srv = server && server.source.srv[srvKey];
+								for(const server of target.endpointsList){
+									const srv = server.source.srv[srvKey];
 									if(typeof srv === 'string'){
-										targets.push(srv + ' ' + serverKey + '.');
+										targets.push(srv + ' ' + server.key + '.');
 									}else if(typeof srv === 'object'){
-										srv.target = serverKey + '.';
+										srv.target = server.key + '.';
 										targets.push(srv);
 									}
 								}
