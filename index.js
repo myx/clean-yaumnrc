@@ -2403,8 +2403,13 @@ const DomainStatic = Class.create(
 				return this.ensureDnsTypeByName("TXT");
 			}
 		},
+		"dnsTypeSRV" : {
+			execute : "once", get : function(){
+				return this.ensureDnsTypeByName("SRV");
+			}
+		},
 		"ensureDnsTypeByName" : {
-			// Uppercase letters, like: A, AAAA, NS, MX, TXT
+			// Uppercase letters, like: A, AAAA, NS, MX, TXT, SRV
 			value : function(typeName){
 				var records = this.dns.map[typeName];
 				if(!records) {
@@ -2473,8 +2478,31 @@ const DomainDedicated = Class.create(
 				const recsA = result.dnsTypeA;
 				const recs6 = result.dnsTypeAAAA;
 				const recsN = result.dnsTypeNS;
+				const recsS = result.dnsTypeSRV;
 
 				var name, aa, a4, a6, target;
+
+				for(const target of this.config.targets.list){
+					if(('.' + target.key).endsWith(this.key)){
+						if(Array.isArray(target.source.srv) || typeof target.source.srv === 'string'){
+							for(const srvKey of ([].concat(target.source.srv))){
+								const srvFullKey = srvKey + '.' + target.key + '.';
+								const targets = [];
+								for(const serverKey of ([].concat(target.source.target))){
+									const server = this.config.servers.map[serverKey];
+									const srv = server && server.source.srv[srvKey];
+									if(typeof srv === 'string'){
+										targets.push(srv + ' ' + serverKey + '.');
+									}else if(typeof srv === 'object'){
+										srv.target = serverKey + '.';
+										targets.push(srv);
+									}
+								}
+								recsS.map[srvFullKey] || recsS.put(srvFullKey, new DnsRecordStatic(srvFullKey, targets, 'target-srv'));
+							}
+						}
+					}
+				}
 
 				for(target of this.config.targetListDns){
 					name = this.filterName(target.key);
@@ -2555,11 +2583,11 @@ const DomainDedicated = Class.create(
 							if(a4 && a4.length){
 								map[name] = true;
 								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-@-4-'+target));
-							} 
+							}
 							if(a6 && a6.length){
 								map[name] = true;
 								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-@-6-'+target));
-							} 
+							}
 						}
 					}
 					if(!recsN.map["@"]){
@@ -2570,7 +2598,8 @@ const DomainDedicated = Class.create(
 				recsA.sort(DnsRecordStatic.compare);
 				recs6.sort(DnsRecordStatic.compare);
 				recsN.sort(DnsRecordStatic.compare);
-				
+				recsS.sort(DnsRecordStatic.compare);
+
 				return result;
 			},
 		},
