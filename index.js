@@ -1200,6 +1200,11 @@ const Server = Class.create(
 				return this.source.lan && this.source.lan.ip;
 			}
 		},
+		"srv" : {
+			execute : "once", get : function(){
+				return typeof this.source.srv !== 'object' || Array.isArray(this.source.srv) ? {} : this.source.srv;
+			}
+		},
 		"location" : {
 			execute : "once", get : function(){
 				return this.config.locations.map[this.source.location];
@@ -1427,6 +1432,36 @@ const Target = Class.create(
 		"location" : {
 			execute : "once", get : function(){
 				return this.source.location && this.config.locations.map[this.source.location] || this.config.targets.map[this.source.location];
+			}
+		},
+		"srv" : {
+			execute : "once", get : function(){
+				if(Array.isArray(this.source.srv)){
+					return this.source.srv;
+				}else if(typeof this.source.srv === 'string'){
+					return [this.source.srv];
+				}
+				return [];
+			}
+		},
+		"srvMap" : {
+			execute : "once", get : function(){
+				const result = {};
+				for(const srvKey of this.srv){
+					const srvFullKey = srvKey + '.' + this.key + '.';
+					const targets = [];
+					for(const server of this.endpointsList){
+						const srv = server.srv[srvKey];
+						if(typeof srv === 'string'){
+							targets.push(srv + ' ' + server.key + '.');
+						}else if(typeof srv === 'object'){
+							srv.target = server.key + '.';
+							targets.push(srv);
+						}
+					}
+					result[srvFullKey] = targets;
+				}
+				return result;
 			}
 		},
 		"endpointsToMap" : {
@@ -2484,21 +2519,8 @@ const DomainDedicated = Class.create(
 
 				for(const target of this.config.targets.list){
 					if(('.' + target.key).endsWith(this.key)){
-						if(Array.isArray(target.source.srv) || typeof target.source.srv === 'string'){
-							for(const srvKey of ([].concat(target.source.srv))){
-								const srvFullKey = srvKey + '.' + target.key + '.';
-								const targets = [];
-								for(const server of target.endpointsList){
-									const srv = server.source.srv[srvKey];
-									if(typeof srv === 'string'){
-										targets.push(srv + ' ' + server.key + '.');
-									}else if(typeof srv === 'object'){
-										srv.target = server.key + '.';
-										targets.push(srv);
-									}
-								}
-								recsS.map[srvFullKey] || recsS.put(srvFullKey, new DnsRecordStatic(srvFullKey, targets, 'target-srv'));
-							}
+						for(const [key, targets] of Object.entries(target.srvMap)){
+							recsS.map[key] || recsS.put(key, new DnsRecordStatic(key, targets, 'target-srv'));
 						}
 					}
 				}
