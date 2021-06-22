@@ -2596,18 +2596,20 @@ const DomainDedicated = Class.create(
 				{
 					const map = {};
 					for(target of this.config.locations.list){
-						name = DomainInfrastructure.prototype.filterName.call(this, target.key) || target.key;
-						aa = target.resolveSmart(net);
-						if(aa){
-							a4 = aa.ip;
-							a6 = aa.ipv6;
-							if(a4 && a4.length){
-								map[name] = true;
-								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-@-4-'+target));
-							}
-							if(a6 && a6.length){
-								map[name] = true;
-								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-@-6-'+target));
+						if(target.routers.list.length){
+							name = DomainInfrastructure.prototype.filterName.call(this, target.key) || target.key;
+							aa = target.resolveSmart(net);
+							if(aa){
+								a4 = aa.ip;
+								a6 = aa.ipv6;
+								if(a4 && a4.length){
+									map[name] = true;
+									recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-@-4-'+target));
+								}
+								if(a6 && a6.length){
+									map[name] = true;
+									recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-@-6-'+target));
+								}
 							}
 						}
 					}
