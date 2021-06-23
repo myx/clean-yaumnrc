@@ -98,7 +98,7 @@ function makeExplainer(div, config, closeFn) {
                 let skip = false;
                 for (const column of this.columns) {
                     const td = document.createElement("td");
-                    if (filterValues[column] && !~row[column].indexOf(filterValues[column])) {
+                    if (filterValues[column] && !~row[column].toString().indexOf(filterValues[column])) {
                         skip = true;
                         break;
                     }
@@ -132,6 +132,8 @@ function makeExplainer(div, config, closeFn) {
                 const thFilter = document.createElement('th');
                 const inputFilter = document.createElement('input');
                 inputFilter.columnId = columnId;
+                inputFilter.style.width = '100%';
+                inputFilter.style.boxSizing = 'border-box';
                 inputFilter.addEventListener('input', function () {
                     table.filtersChanged();
                 });
