@@ -1214,9 +1214,13 @@ const Server = Class.create(
 				return this.source.lan && this.source.lan.ip;
 			}
 		},
-		"srv" : {
+		"srvRecordsMap" : {
 			execute : "once", get : function(){
-				return typeof this.source.srv !== 'object' || Array.isArray(this.source.srv) ? {} : this.source.srv;
+				const s = this.source.srv;
+				return typeof s !== 'object' || Array.isArray(s) 
+					? {} 
+					: s
+				;
 			}
 		},
 		"location" : {
@@ -1448,34 +1452,15 @@ const Target = Class.create(
 				return this.source.location && this.config.locations.map[this.source.location] || this.config.targets.map[this.source.location];
 			}
 		},
-		"srv" : {
+		"srvFilterArray" : {
 			execute : "once", get : function(){
-				if(Array.isArray(this.source.srv)){
-					return this.source.srv;
-				}else if(typeof this.source.srv === 'string'){
-					return [this.source.srv];
+				const s = this.source.srv;
+				if(Array.isArray(s)){
+					return s;
+				}else if(typeof s === 'string'){
+					return [s];
 				}
 				return [];
-			}
-		},
-		"srvMap" : {
-			execute : "once", get : function(){
-				const result = {};
-				for(const srvKey of this.srv){
-					const srvFullKey = srvKey + '.' + this.key + '.';
-					const targets = [];
-					for(const server of this.endpointsList){
-						const srv = server.srv[srvKey];
-						if(typeof srv === 'string'){
-							targets.push(srv + ' ' + server.key + '.');
-						}else if(typeof srv === 'object'){
-							srv.target = server.key + '.';
-							targets.push(srv);
-						}
-					}
-					result[srvFullKey] = targets;
-				}
-				return result;
 			}
 		},
 		"endpointsToMap" : {
@@ -2533,8 +2518,34 @@ const DomainDedicated = Class.create(
 
 				for(const target of this.config.targets.list){
 					if(('.' + target.key).endsWith(this.key)){
-						for(const [key, targets] of Object.entries(target.srvMap)){
-							recsS.map[key] || recsS.put(key, new DnsRecordStatic(key, targets, 'target-srv'));
+						const filterArray = target.srvFilterArray;
+						if(filterArray && filterArray.length){
+							const targetEndpoints = target.endpointsList;
+							filters: for(const filter of filterArray){
+								const dnsSrvKey = filter + '.' + target.key + '.';
+								if(recS[dnsSrvKey]){
+									continue filters;
+								}
+								const targets = [];
+								for(const server of targetEndpoints){
+									const serverSrvRecords = server.srvRecordsMap;
+									if(serverSrvRecords){
+										const record = serverSrvRecords[filter];
+										if(record){
+											if(typeof record === 'string'){
+												targets.push(record + ' ' + server.key + '.');
+											}else //
+											if(typeof record === 'object'){
+												record.target = server.key + '.';
+												targets.push(record);
+											}
+										}
+									}
+								}
+								if(targets.length){
+									recS.put(dnsSrvKey, new DnsRecordStatic(dnsSrvKey, targets, 'target-srv'));
+								}
+							}
 						}
 					}
 				}
