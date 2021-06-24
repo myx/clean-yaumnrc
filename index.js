@@ -2523,7 +2523,7 @@ const DomainDedicated = Class.create(
 							const targetEndpoints = target.endpointsList;
 							filters: for(const filter of filterArray){
 								const dnsSrvKey = filter + '.' + target.key + '.';
-								if(recS[dnsSrvKey]){
+								if(recsS[dnsSrvKey]){
 									continue filters;
 								}
 								const targets = [];
@@ -2543,7 +2543,7 @@ const DomainDedicated = Class.create(
 									}
 								}
 								if(targets.length){
-									recS.put(dnsSrvKey, new DnsRecordStatic(dnsSrvKey, targets, 'target-srv'));
+									recsS.put(dnsSrvKey, new DnsRecordStatic(dnsSrvKey, targets, 'target-srv'));
 								}
 							}
 						}
