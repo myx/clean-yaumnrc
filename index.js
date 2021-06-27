@@ -1230,7 +1230,7 @@ const Server = Class.create(
 				const p = (this.routingType || {}).srvRecordMap || {};
 				const r = Object.create(p);
 				for(let k of Object.keys(s)){
-					r[k] = DnsValueStatic.parseServerRecord(s[k]) || undefined;
+					r[k] = DnsValueServer.parseServerRecord(s[k]) || undefined;
 				}
 				return r;
 			}
