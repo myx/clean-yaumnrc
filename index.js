@@ -2563,7 +2563,7 @@ const DomainDedicated = Class.create(
 									if(serverSrvRecords){
 										const record = serverSrvRecords[filter];
 										if(record){
-											targets.push(record.replaceTarget(server.key));
+											targets.push(record.replaceTarget(server.key + "."));
 										}
 									}
 								}
@@ -2999,7 +2999,7 @@ const DnsValueServer = Class.create(
 		},
 		"value" : {
 			execute : "once", get : function(){
-				return this.priority + " " + this.weight + " " + this.port + " " + this.target + ".";
+				return this.priority + " " + this.weight + " " + this.port + " " + this.target;
 			}
 		},
 		"replaceTarget" : {
@@ -3007,7 +3007,7 @@ const DnsValueServer = Class.create(
 				if(this.target == target){
 					return this;
 				}
-				return new DnsValueServer(this.priority, this.weight, this.port, target, comment || this.comment)
+				return new DnsValueServer(this.priority, this.weight, this.port, target, comment || this.comment);
 			}
 		},
 		"toSourceObject" : {
