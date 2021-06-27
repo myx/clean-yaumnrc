@@ -3031,7 +3031,7 @@ const DnsValueServer = Class.create(
 					return undefined;
 				}
 				if("string" === typeof def){
-					const parts = def.trim().split(/(\s+)/);
+					const parts = def.trim().split(/\s+/);
 					switch(parts.length){
 					case 3:
 					case 4:
