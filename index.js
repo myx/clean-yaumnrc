@@ -3031,7 +3031,7 @@ const DnsValueServer = Class.create(
 					return undefined;
 				}
 				if("string" === typeof def){
-					const parts = def.trim().split(/(\s+)/).filter( e => e.length > 1);
+					const parts = def.trim().split(/(\s+)/);
 					switch(parts.length){
 					case 3:
 					case 4:
@@ -3042,7 +3042,7 @@ const DnsValueServer = Class.create(
 							parts[3] || ''
 						);
 					default:
-						throw new Error("Invalid SRV record format (string)!");
+						throw new Error("Invalid SRV record format (string): " + parts);
 					}
 				}
 				if(def.priority !== undefined && def.weight !== undefined && def.port !== undefined){
@@ -3050,7 +3050,7 @@ const DnsValueServer = Class.create(
 						def.proirity,
 						def.weight,
 						def.port,
-						def.server || '',
+						def.target || '',
 						def.comment || '');
 				}
 				throw new Error("Invalid SRV record format (unknown)!");
