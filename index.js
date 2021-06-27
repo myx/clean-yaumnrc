@@ -1217,10 +1217,22 @@ const Server = Class.create(
 		"srvRecordsMap" : {
 			execute : "once", get : function(){
 				const s = this.source.srv;
-				return typeof s !== 'object' || Array.isArray(s) 
-					? {} 
-					: s
-				;
+				if(!s || typeof s !== 'object'){
+					const t = this.routingType;
+					if(!t){
+						return {};
+					}
+					return t.srvRecordMap || {};
+				}
+				if(Array.isArray(s)){
+					throw new Error("Server's srv description supposed to be Map, not an Array!");
+				}
+				const p = (this.routingType || {}).srvRecordMap || {};
+				const r = Object.create(p);
+				for(let k of Object.keys(s)){
+					r[k] = DnsValueStatic.parseServerRecord(s[k]) || undefined;
+				}
+				return r;
 			}
 		},
 		"location" : {
@@ -1327,6 +1339,25 @@ const Server = Class.create(
 				if(doWan){
 					dhcpView.addRecord(this.key + "_wan", wan.mac, this.key, wan.ip, undefined, undefined, this.source.gateway || undefined);
 				}
+			}
+		},
+		"routingType" : {
+			get : function(){
+				const typeName = this.source.type;
+				const typeMap = this.config.routing.types.map;
+				if(!typeName){
+					return typeMap["default"] || undefined;
+				}
+
+				return typeMap[typeName] || typeMap["default"] || undefined;
+			}
+		},
+		"tcpShift" : {
+			get : function(){
+				return undefined === this.source.tcpShift 
+					? undefined
+					: this.source.tcpShift | 0
+				;
 			}
 		},
 		"toSourceObject" : {
@@ -2532,13 +2563,7 @@ const DomainDedicated = Class.create(
 									if(serverSrvRecords){
 										const record = serverSrvRecords[filter];
 										if(record){
-											if(typeof record === 'string'){
-												targets.push(record + ' ' + server.key + '.');
-											}else //
-											if(typeof record === 'object'){
-												record.target = server.key + '.';
-												targets.push(record);
-											}
+											targets.push(record.replaceTarget(server.key));
 										}
 									}
 								}
@@ -2885,12 +2910,10 @@ const DnsRecordStatic = Class.create(
 
 
 
-const DnsValueStatic = Class.create(
-	"DnsValueStatic",
+const DnsValue = Class.create(
+	"DnsValue",
 	undefined,
-	function(value, comment){
-		Object.defineProperty(this, "value", { value : value });
-		comment && Object.defineProperty(this, "comment", { value : comment });
+	function(){
 		return this;
 	},{
 		"value" : {
@@ -2916,6 +2939,121 @@ const DnsValueStatic = Class.create(
 					return this.value + " ; " + this.comment;
 				}
 				return this.value;
+			}
+		}
+	}
+);
+
+
+
+const DnsValueStatic = Class.create(
+	"DnsValueStatic",
+	DnsValue,
+	function(value, comment){
+		Object.defineProperties(this, {
+			"value" : { value : value },
+			"comment" : { value : comment || '' },
+		});
+		return this;
+	},{
+		"toSourceObject" : {
+			value : function(){
+				if(this.comment){
+					return { 
+						"value" : this.value, 
+						"comment" : this.comment,
+					};
+				}
+				return this.value;
+			}
+		}
+	}
+);
+
+
+
+const DnsValueServer = Class.create(
+	"DnsValueServer",
+	DnsValue,
+	function(priority, weight, port, target, comment){
+		Object.defineProperties(this, {
+			"priority" : { value : priority },
+			"weight" : { value : weight },
+			"port" : { value : port },
+			"target" : { value : target || '' },
+			"comment" : { value : comment || '' },
+		});
+		return this;
+	},{
+		"priority" : {
+			value : undefined
+		},
+		"weight" : {
+			value : undefined
+		},
+		"port" : {
+			value : undefined
+		},
+		"target" : {
+			value : undefined
+		},
+		"value" : {
+			execute : "once", get : function(){
+				return this.priority + " " + this.weight + " " + this.port + " " + this.target + ".";
+			}
+		},
+		"replaceTarget" : {
+			value : function(target, comment){
+				if(this.target == target){
+					return this;
+				}
+				return new DnsValueServer(this.priority, this.weight, this.port, target, comment || this.comment)
+			}
+		},
+		"toSourceObject" : {
+			value : function(){
+				if(this.comment){
+					return { 
+						"priority" : this.priority,
+						"weight" : this.weight,
+						"port" : this.port,
+						"target" : this.target || undefined,
+						"comment" : this.comment || undefined,
+					};
+				}
+				return this.value;
+			}
+		}
+	},{
+		"parseServerRecord" : {
+			value : function(def){
+				if(!def){
+					return undefined;
+				}
+				if("string" === typeof def){
+					const parts = def.trim().split(/(\s+)/).filter( e => e.length > 1);
+					switch(parts.length){
+					case 3:
+					case 4:
+						return new DnsValueServer(
+							parts[0], 
+							parts[1], 
+							parts[2], 
+							parts[3] || ''
+						);
+					default:
+						throw new Error("Invalid SRV record format (string)!");
+					}
+				}
+				if(def.priority !== undefined && def.weight !== undefined && def.port !== undefined){
+					return new DnsValueServer(
+						def.proirity,
+						def.weight,
+						def.port,
+						def.server || '',
+						def.comment || '');
+				}
+				throw new Error("Invalid SRV record format (unknown)!");
 			}
 		}
 	}
@@ -3226,6 +3364,27 @@ const RoutingType = Class.create(
 		},
 		"level6" : {
 			value : undefined
+		},
+		"srvMap" : {
+			get : function(){
+				return this.config.routing.types.source[this.key].srvMap || undefined;
+			}
+		},
+		"srvRecordsMap" : {
+			get : function(){
+				const s = this.srvMap;
+				if(!s || typeof s !== 'object'){
+					return {};
+				}
+				if(Array.isArray(s)){
+					throw new Error("Server's srv description supposed to be Map, not an Array!");
+				}
+				const r = {};
+				for(let k of Object.keys(s)){
+					r[k] = DnsValueStatic.parseServerRecord(s[k]) || undefined;
+				}
+				return r;
+			}
 		},
 		"toSourceObject" : {
 			value : function(){
@@ -4295,9 +4454,7 @@ const Configuration = Class.create(
 					if(!lan3){
 						continue servers;
 					}
-					const tcpShift = undefined === s.source.tcpShift 
-						? undefined
-						: s.source.tcpShift | 0;
+					const tcpShift = s.tcpShift;
 					if(!tcpShift){
 						continue servers;
 					}
@@ -4307,19 +4464,11 @@ const Configuration = Class.create(
 						add(entries, tcpShift, "3", 655, lan3, "beaver-tinc" + locKey + "-" + s.key);
 					}
 
-					const typeName = s.source.type;
-
-
-					if(!typeName){
-						continue servers;
-					}
-
-					const type = this.config.routing.types.map[typeName];
-					// const type = ((this.source.routing||{}).types||{})[typeName];
+					const type = s.routingType;
 					if(type){
 						for(let nat in (type.level3||{})){
 							const tgt = Number(type.level3[nat]||-1);
-							add(entries, tcpShift, nat, tgt, lan3, "type-" + typeName + locKey + "-" + s.key);
+							add(entries, tcpShift, nat, tgt, lan3, "type-" + type.key + locKey + "-" + s.key);
 						}
 					}
 				}
@@ -4365,7 +4514,6 @@ const Configuration = Class.create(
 				}
 
 				servers: for(let s of this.config.servers.list){
-					const tcpShift = s.source.tcpShift | 0;
 					const monitor = this.config.monitoring.monitorForTarget(s);
 					if(monitor) for(let check of monitor.getChecksArray(true)){
 						if(loc === s.location){
@@ -4552,7 +4700,7 @@ const Configuration = Class.create(
 				const rows = table.rows;
 
 				servers: for(let s of this.servers.list){
-					const type = ((this.source.routing||{}).types||{})[s.source.type || 'default'];
+					const type = s.routingType;
 					if(s.wan3){
 						if(type && type.level6){
 							const tgt = Number(type.level6.sshd||-1);
@@ -4577,7 +4725,7 @@ const Configuration = Class.create(
 							const tgt = Number(type.level3[nat]||-1);
 							if(nat == "22" || nat == "22/tcp" || tgt == 22){
 								const nport = Number(nat.split('/')[0]||-1);
-								const shift = Number(s.source.tcpShift||0) || 0;
+								const shift = s.tcpShift || 0;
 								rows.push({
 									name : s.key,
 									location : s.location && s.location.key,
