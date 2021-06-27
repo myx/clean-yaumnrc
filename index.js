@@ -3381,7 +3381,7 @@ const RoutingType = Class.create(
 				}
 				const r = {};
 				for(let k of Object.keys(s)){
-					r[k] = DnsValueStatic.parseServerRecord(s[k]) || undefined;
+					r[k] = DnsValueServer.parseServerRecord(s[k]) || undefined;
 				}
 				return r;
 			}
