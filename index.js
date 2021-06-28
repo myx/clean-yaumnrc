@@ -3299,7 +3299,7 @@ const RoutingTypes = Class.create(
 				}
 				for(let key in types){
 					const type = types[key];
-					this.addRecord(key, type.extends, type.level3, type.level6);
+					this.addRecord(key, type, type.extends, type.level3, type.level6);
 				}
 			}
 		},
@@ -3309,8 +3309,8 @@ const RoutingTypes = Class.create(
 			}
 		},
 		"addRecord" : {
-			value : function(key, parent, level3, level6){
-				const record = new RoutingType(this.config, key, parent, level3, level6);
+			value : function(key, source){
+				const record = new RoutingType(this.config, source, key);
 				this.put(key, record);
 				return record;
 			}
@@ -3332,42 +3332,34 @@ const RoutingTypes = Class.create(
 const RoutingType = Class.create(
 	"RoutingType",
 	ConfigObject,
-	function(config, key, parent, level3, level6){
-		this.ConfigObject(config);
+	function(config, source, key){
+		this.ConfigObject(config, source || {});
 		if(!key){
 			throw new Error("RoutingType requires 'key'!");
 		}
 		Object.defineProperties(this, {
 			"key" : {
 				value : key
-			},
-			"parent" : {
-				value : parent || undefined
-			},
-			"level3" : {
-				value : level3 || undefined
-			},
-			"level6" : {
-				value : level6 || undefined
-			},
+			}
 		});
 		return this;
 	},{
 		"key" : {
 			value : undefined
 		},
-		"parent" : {
-			value : undefined
+		"extends" : {
+			get : function(){
+				return this.source.extends || undefined;
+			}
 		},
 		"level3" : {
-			value : undefined
+			get : function(){
+				return this.source.level3 || (this.parentRoutingType || {}).level3;
+			}
 		},
 		"level6" : {
-			value : undefined
-		},
-		"source" : {
 			get : function(){
-				return this.config.routing.types.source[this.key];
+				return this.source.level6 || (this.parentRoutingType || {}).level6;
 			}
 		},
 		"srvMap" : {
@@ -3377,10 +3369,10 @@ const RoutingType = Class.create(
 		},
 		"parentRoutingType" : {
 			execute : "once", get : function(){
-				if(!this.parent){
+				if(!this.extends){
 					return undefined;
 				}
-				return this.config.routing.types.map[this.parent] || undefined;
+				return this.config.routing.types.map[this.extends] || undefined;
 			}
 		},
 		"srvRecordsMap" : {
@@ -3392,7 +3384,8 @@ const RoutingType = Class.create(
 				if(Array.isArray(s)){
 					throw new Error("Server's srv description supposed to be Map, not an Array!");
 				}
-				const r = {};
+				const p = this.parentRoutingType;
+				const r = p ? Object.create(p.srvRecordsMap || {}) : {};
 				for(let k of Object.keys(s)){
 					r[k] = DnsValueServer.parseServerRecord(s[k]) || undefined;
 				}
