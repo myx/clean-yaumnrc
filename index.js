@@ -1222,12 +1222,12 @@ const Server = Class.create(
 					if(!t){
 						return {};
 					}
-					return t.srvRecordMap || {};
+					return t.srvRecordsMap || {};
 				}
 				if(Array.isArray(s)){
 					throw new Error("Server's srv description supposed to be Map, not an Array!");
 				}
-				const p = (this.routingType || {}).srvRecordMap || {};
+				const p = (this.routingType || {}).srvRecordsMap || {};
 				const r = Object.create(p);
 				for(let k of Object.keys(s)){
 					r[k] = DnsValueServer.parseServerRecord(s[k]) || undefined;
@@ -3369,10 +3369,11 @@ const RoutingType = Class.create(
 		},
 		"parentRoutingType" : {
 			execute : "once", get : function(){
-				if(!this.extends){
+				const e = this.extends;
+				if(!e){
 					return undefined;
 				}
-				return this.config.routing.types.map[this.extends] || undefined;
+				return this.config.routing.types.map[e] || undefined;
 			}
 		},
 		"srvRecordsMap" : {
@@ -3395,7 +3396,7 @@ const RoutingType = Class.create(
 		"toSourceObject" : {
 			value : function(){
 				return {
-					"parent" : this.parent,
+					"extends" : this.extends,
 					"level3" : this.level3,
 					"level6" : this.level6,
 					"srvMap" : this.srvMap
