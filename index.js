@@ -1216,7 +1216,7 @@ const Server = Class.create(
 		},
 		"srvRecordsMap" : {
 			execute : "once", get : function(){
-				const s = this.source.srv;
+				const s = this.source.srvMap || this.source.srv;
 				if(!s || typeof s !== 'object'){
 					const t = this.routingType;
 					if(!t){
@@ -3365,9 +3365,22 @@ const RoutingType = Class.create(
 		"level6" : {
 			value : undefined
 		},
+		"source" : {
+			get : function(){
+				return this.config.routing.types.source[this.key];
+			}
+		},
 		"srvMap" : {
 			get : function(){
-				return this.config.routing.types.source[this.key].srvMap || undefined;
+				return this.source.srvMap || undefined;
+			}
+		},
+		"parentRoutingType" : {
+			execute : "once", get : function(){
+				if(!this.parent){
+					return undefined;
+				}
+				return this.config.routing.types.map[this.parent] || undefined;
 			}
 		},
 		"srvRecordsMap" : {
@@ -3391,7 +3404,8 @@ const RoutingType = Class.create(
 				return {
 					"parent" : this.parent,
 					"level3" : this.level3,
-					"level6" : this.level6
+					"level6" : this.level6,
+					"srvMap" : this.srvMap
 				};
 			}
 		},
