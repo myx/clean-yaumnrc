@@ -3047,7 +3047,7 @@ const DnsValueServer = Class.create(
 				}
 				if(def.priority !== undefined && def.weight !== undefined && def.port !== undefined){
 					return new DnsValueServer(
-						def.proirity,
+						def.priority,
 						def.weight,
 						def.port,
 						def.target || '',
