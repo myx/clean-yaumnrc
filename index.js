@@ -3348,17 +3348,17 @@ const RoutingType = Class.create(
 			value : undefined
 		},
 		"extends" : {
-			get : function(){
+			execute : "once", get : function(){
 				return this.source.extends || undefined;
 			}
 		},
 		"level3" : {
-			get : function(){
+			execute : "once", get : function(){
 				return this.source.level3 || (this.parentRoutingType || {}).level3;
 			}
 		},
 		"level6" : {
-			get : function(){
+			execute : "once", get : function(){
 				return this.source.level6 || (this.parentRoutingType || {}).level6;
 			}
 		},
@@ -3377,7 +3377,7 @@ const RoutingType = Class.create(
 			}
 		},
 		"srvRecordsMap" : {
-			get : function(){
+			execute : "once", get : function(){
 				const s = this.srvMap;
 				if(!s || typeof s !== 'object'){
 					return {};
