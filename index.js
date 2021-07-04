@@ -3298,8 +3298,7 @@ const RoutingTypes = Class.create(
 					return;
 				}
 				for(let key in types){
-					const type = types[key];
-					this.addRecord(key, type, type.extends, type.level3, type.level6);
+					this.addRecord(key, types[key]);
 				}
 			}
 		},
