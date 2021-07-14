@@ -4117,6 +4117,50 @@ const PortForwardTable = Class.create(
 
 
 
+
+const ServersTable = Class.create(
+	"ServersTable",
+	AbstractTable,
+	function(){
+		this.AbstractTable();
+		return this;
+	},{
+		"sortColumns" : {
+			value : ["location", "name"]
+		},
+		"columns" : {
+			value : [
+				{
+					id : "location",
+					title : "Location"
+				},
+				{
+					id : "name",
+					title : "Name"
+				},
+				{
+					id : "disposition",
+					title : "Disposition"
+				},
+				{
+					id : "cpu",
+					title : "cpu"
+				},
+				{
+					id : "ram",
+					title : "ram"
+				},
+				{
+					id : "hdd",
+					title : "hdd"
+				}
+			]
+		}
+	}
+);
+
+
+
 const MonitoringTable = Class.create(
 	"MonitoringTable",
 	AbstractTable,
@@ -4776,6 +4820,26 @@ const Configuration = Class.create(
 							});
 						}
 					}
+				}
+
+				table.sort();
+				return table;
+			}
+		},
+		"makeServersTable" : {
+			value : function(){
+				const table = new ServersTable();
+				const rows = table.rows;
+
+				for(let s of this.servers.list){
+					rows.push({
+						location: s.location.key,
+						name: s.key,
+						disposition: s.source.disposition,
+						cpu: s.source.resources.cpu,
+						ram: s.source.resources.ram,
+						hdd: s.source.resources.hdd,
+					});
 				}
 
 				table.sort();

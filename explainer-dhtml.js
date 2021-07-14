@@ -181,6 +181,9 @@ function makeExplainer(div, config, closeFn) {
         table(output, config.makePortForwardTable());
     });
 
+    btn("SERVERS", function (output) {
+        table(output, config.makeServersTable());
+    });
 }
 
 module.exports = {
