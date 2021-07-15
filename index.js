@@ -29,7 +29,7 @@
  *  .routing.domains
  */
 
- const Class = {
+const Class = {
 	"create" : function(name, inherit, constructor, properties, statics){
 		const p = constructor.prototype = inherit
 			? Object.create(inherit.prototype || inherit)
@@ -4837,9 +4837,9 @@ const Configuration = Class.create(
 						location: s.location.key,
 						name: s.key,
 						disposition: source.disposition,
-						cpu: source.resources && source.resources.cpu,
-						ram: source.resources && source.resources.ram,
-						hdd: source.resources && source.resources.hdd,
+						cpu: source.resources ? source.resources.cpu : '',
+						ram: source.resources ? source.resources.ram : '',
+						hdd: source.resources ? source.resources.hdd : '',
 					});
 				}
 
