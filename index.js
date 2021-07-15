@@ -29,7 +29,7 @@
  *  .routing.domains
  */
 
-const Class = {
+ const Class = {
 	"create" : function(name, inherit, constructor, properties, statics){
 		const p = constructor.prototype = inherit
 			? Object.create(inherit.prototype || inherit)
@@ -4832,13 +4832,14 @@ const Configuration = Class.create(
 				const rows = table.rows;
 
 				for(let s of this.servers.list){
+					const source = s.source;
 					rows.push({
 						location: s.location.key,
 						name: s.key,
-						disposition: s.source.disposition,
-						cpu: s.source.resources.cpu,
-						ram: s.source.resources.ram,
-						hdd: s.source.resources.hdd,
+						disposition: source.disposition,
+						cpu: source.resources && source.resources.cpu,
+						ram: source.resources && source.resources.ram,
+						hdd: source.resources && source.resources.hdd,
 					});
 				}
 
