@@ -843,7 +843,7 @@ const ResolvableObject = Class.create(
 		return this;
 	},{
 		"resolveMode" : {
-			// null, 'use-wan', 'use-router', 'direct', 'direct-no-ipv6', 'local', 'remote', 'static'
+			// null, 'use-wan', 'use-router', 'direct', 'direct-no-ipv6', 'use-local', 'remote', 'static'
 			value : undefined
 		},
 		"wan3smart" : {
@@ -1791,7 +1791,16 @@ const TargetStatic = Class.create(
 					return this.config.resolveSmart(net);
 				}
 				if(resolveMode === "use-wan"){
-					return this.resolveDirect(null);
+					{
+						const result = this.resolveDirect(null);
+						if(result) return result;
+					}
+					
+					if(this.location){
+						return this.location.resolveSmart(null);
+					}
+
+					return this.resolveDirect(net);
 				}
 				if(this.location){
 					return this.location.resolveSmart(net);
