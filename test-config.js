@@ -213,10 +213,15 @@ module.exports = {
 	},
 	"kvm" : {
 		"OSes" : {
+			"bsd13" : {
+				"install" : "https://download.freebsd.org/ftp/releases/amd64/amd64/ISO-IMAGES/13.0/FreeBSD-13.0-RELEASE-amd64-disc1.iso",
+				"ssh" : true,
+				"title" : "FreeBSD 13.0"
+			},
 			"bsd12" : {
 				"install" : "https://download.freebsd.org/ftp/releases/amd64/amd64/ISO-IMAGES/12.1/FreeBSD-12.1-RELEASE-amd64-disc1.iso",
 				"ssh" : true,
-				"title" : "FreeBSD 12.0"
+				"title" : "FreeBSD 12.1"
 			},
 			"ubuntu16" : {
 				"install" : "http://releases.ubuntu.com/16.04.3/ubuntu-16.04.3-server-amd64.iso",
