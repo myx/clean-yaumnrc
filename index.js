@@ -4908,7 +4908,7 @@ const Configuration = Class.create(
 					locations	: this.locations.toSourceObject(),
 					servers		: this.servers.toSourceObject(),
 					monitoring	: this.monitoring.toSourceObject(),
-					serviecs	: this.source.services || {},
+					services	: this.source.services || {},
 					routing		: this.routing.toSourceObject(),
 					targets		: this.targets.toSourceObject(),
 				};
