@@ -4843,7 +4843,7 @@ const Configuration = Class.create(
 				for(let s of this.servers.list){
 					const source = s.source;
 					rows.push({
-						location: s.location.key,
+						location: s.location ? s.location.key : undefined,
 						name: s.key,
 						disposition: source.disposition,
 						cpu: source.resources ? source.resources.cpu : '',
