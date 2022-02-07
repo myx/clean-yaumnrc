@@ -922,11 +922,6 @@ const Location = Class.create(
 	function(config, key, source){
 		this.ResolvableObject(config, source);
 
-		const wan3 = source.wan3;
-		const wan36 = source.wan36;
-		const wan6 = source.wan6 || wan3;
-		const tap3 = source.tap3;
-		
 		const self = this;
 		const lans = [].concat(
 			source.lan3
@@ -947,12 +942,40 @@ const Location = Class.create(
 			return r;
 		}, undefined);
 
+		const net3 = [].concat(
+			source.wan3,
+			source.net3
+		).reduce(function(r, x){ 
+			if(x){
+				const wan = f.parseNetwork(x, undefined, 32);
+				if(wan){
+					f.defineProperty(wan, 'location', self);
+					if(!r) return wan;
+					if(r.Networks){
+						r.addNetwork(wan);
+					}else{
+						r = new Networks().addNetwork(r).addNetwork(wan);
+						f.defineProperty(r, 'location', self);
+					}
+				}
+			}
+			return r;
+		}, undefined);
+
+		const wan3 = [].concat((f.parseNetwork(source.wan3, undefined, 32)||"").ip)[0];
+		const wan36 = source.wan36;
+		const wan6 = source.wan6 || wan3;
+		const tap3 = source.tap3;
+
 		Object.defineProperties(this, {
 			"key" : {
 				value : key
 			},
 			"wan3" : {
 				value : wan3
+			},
+			"net3" : {
+				value : net3
 			},
 			"wan36" : {
 				value : wan36
@@ -987,8 +1010,16 @@ const Location = Class.create(
 			// external IP for Layer3 access (gateway - only one IP per location)
 			value : null
 		},
+		"net3" : {
+			// external IP subnet for Layer3 access (wan networks)
+			value : null
+		},
 		"wan36" : {
 			// external IPv6 for Layer3 access (gateway - only one IPv6 per location)
+			value : null
+		},
+		"net36" : {
+			// external IPv6 subnet for Layer3 access (wan networks)
 			value : null
 		},
 		"lans" : {
@@ -4062,6 +4093,10 @@ const LocationsTable = Class.create(
 					title : "WAN3"
 				},
 				{
+					id : "net3",
+					title : "NET3"
+				},
+				{
 					id : "wan36",
 					title : "WAN36"
 				},
@@ -4680,6 +4715,7 @@ const Configuration = Class.create(
 							name : l.name || l.key || '',
 							title : l.title || l.description || l.key || '',
 							wan3 : l.wan3 || '',
+							net3 : l.net3 || '',
 							wan36 : l.wan36 || '',
 							lans : l.lans || '',
 							comment : l.comment || '',
