@@ -1220,7 +1220,8 @@ const Location = Class.create(
 				return {
 					"name" : this.name || undefined,
 					"title" : (this.source.title || this.title !== this.name) && this.title || undefined,
-					"wan3" : this.wan3 || undefined,
+					"wan3" : this.source.wan3 || undefined,
+					"net3" : this.source.net3 || undefined,
 					"wan36" : this.wan36 || undefined,
 					"lan3" : this.lans && (this.lans.list ? this.lans.list.map(function(x){return x.toSourceObject();}) : this.lans.toSourceObject()) || undefined,
 					"tap3" : this.tap3 || undefined,
