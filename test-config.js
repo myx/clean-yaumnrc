@@ -20,7 +20,7 @@ module.exports = {
 		},
 		"h2" : {
 			"name" : "h2.myx.ru",
-			"wan3" : "h2-wan",
+			"wan3" : "167.7.212.11",
 			"url" : [
 				"https://my.selectel.ru/vpc/projects"
 			]
@@ -58,7 +58,7 @@ module.exports = {
 		},
 		"o3" : {
 			"name" : "o3.myx.ru",
-			"wan3" : "o3-wan",
+			"wan3" : "97.9.121.22",
 			"lan3" : [
 				"192.168.3.250", 
 				"010.001.002.001/16", 
@@ -72,8 +72,8 @@ module.exports = {
 		},
 		"h5" : {
 			"name" : "h5.myx.ru",
-			"wan3" : "h5-wan",
-			"wan36" : "h5-wan6",
+			"wan3" : "222.1.88.13",
+			"wan36" : "2b01:3e7:222:1::88:13",
 			"lan3" : "192.168.5.250",
 			"tap3" : "10.112.55.20"
 		},
@@ -120,7 +120,7 @@ module.exports = {
 			"location" : "o3",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "10G"	},
 			"wan" : {
-				"ip" : "l6o3-wan"
+				"ip" : "97.9.121.22"
 			},
 			"lan" : {
 				"ip" : "192.168.3.254"

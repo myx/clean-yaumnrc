@@ -45,7 +45,8 @@ function makeExplainer(div, config, closeFn) {
             return;
         }
         if (value.AbstractAddress) {
-            output.innerHTML = value.networkCidr.replace(';', '<br/>');
+            output.innerHTML = (value.cidr || value.ip).replace(';', '<br/>');
+            // output.innerHTML = value.networkCidr.replace(';', '<br/>');
             return;
         }
         output.innerHTML = value;
