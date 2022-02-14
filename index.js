@@ -997,9 +997,9 @@ const Location = Class.create(
 			return r;
 		}, undefined);
 
-		const wan3 = (f.parseNetwork([].concat(source.wan3.filter(function(x){
+		const wan3 = (f.parseNetwork([].concat(source.wan3).filter(function(x){
 			return this.server && x.containsIp(this.server.wan3);
-		},this.config)).concat(source.wan3)[0], undefined, 32)||"").ip;
+		}, this.config).concat(source.wan3)[0], undefined, 32)||"").ip;
 		
 		const wan36 = source.wan36;
 		const wan6 = source.wan6 || wan3;
