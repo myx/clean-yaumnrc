@@ -226,10 +226,18 @@ const SingleAddress = Class.create(
 				return this.ip + '/32';
 			}
 		},
+		"cidr" : {
+			get : function(){
+				return this.ip + '/32';
+			}
+		},
 		"toSourceObject" : {
 			value : function(){
 				return this.mac
-					? { "mac" : this.mac, "ip" : this.ip }
+					? { 
+						"mac" : this.mac, 
+						"ip" : this.ip 
+					}
 					: this.ip;
 			}
 		},
@@ -257,8 +265,8 @@ const NetworkAddress = Class.create(
 	"NetworkAddress",
 	AbstractAddress,
 	function(cidr, ip, bits, mac, key){
-		const mask = (0xFFFFFFFF * (2 ** (32 - bits))) % 0x100000000;
 		const addressInt = AbstractAddress.intForIPv4(ip);
+		const mask = (0xFFFFFFFF * (2 ** (32 - bits))) % 0x100000000;
 		const networkInt = addressInt & mask;
 		Object.defineProperties(this, {
 			"ip" : {
@@ -331,7 +339,10 @@ const NetworkAddress = Class.create(
 		"toSourceObject" : {
 			value : function(){
 				return this.mac
-					? { "mac" : this.mac, "ip" : this.cidr }
+					? { 
+						"mac" : this.mac, 
+						"ip" : this.cidr 
+					}
 					: this.cidr;
 			}
 		},
@@ -972,8 +983,7 @@ const Location = Class.create(
 			if(x){
 				const wan = f.parseNetwork(x, undefined, 32);
 				if(wan){
-					/** the start of net, canonical cidr **/
-					const net = wan.networkObject || wan;
+					const net = /* wan.networkObject || */ wan;
 					f.defineProperty(net, 'location', self);
 					if(!r) return net;
 					if(r.Networks){
