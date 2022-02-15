@@ -1550,7 +1550,8 @@ const Target = Class.create(
 		},
 		"location" : {
 			execute : "once", get : function(){
-				return this.source.location && this.config.locations.map[this.source.location] || this.config.targets.map[this.source.location];
+				const l = this.source.location, c = this.config;
+				return l && c.locations.map[l] || c.targets.map[l] || c.servers.map[l];
 			}
 		},
 		"srvFilterArray" : {
