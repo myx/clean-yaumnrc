@@ -87,6 +87,8 @@
 							out(' Location.location', location);
 							out(' Location.lans', location.lans);
 							out(' Location.lan3', location.lan3);
+							out(' Location.wan3', location.wan3);
+							out(' Location.net3', location.net3);
 							out(' Location.servers', location.servers);
 							out(' Location.routers', location.routers);
 		
@@ -203,6 +205,9 @@
 							out('Config.lan3smart', viewS.lan3smart);
 							out('Location.lan3smart', viewS.location.lan3smart);
 							out('Server.lan3smart', viewS.server.lan3smart);
+
+							out('Location.wan3', viewS.location.wan3);
+							out('Location.net3', viewS.location.net3);
 
 							function dumpTarget(target){
 								const name = target.key;

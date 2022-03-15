@@ -1008,35 +1008,27 @@ const Location = Class.create(
 			return r;
 		}, undefined);
 
-		const wan3 = (wans.filter(function(x){
-			return this.server && x.containsIp(this.server.wan3);
-		}, this.config).concat(wans)[0] || "").ip;
-		
-		const wan36 = source.wan36;
-		const wan6 = source.wan6 || wan3;
-		const tap3 = source.tap3;
-
 		Object.defineProperties(this, {
 			"key" : {
 				value : key
 			},
-			"wan3" : {
-				value : wan3
-			},
 			"net3" : {
 				value : net3
 			},
-			"wan36" : {
-				value : wan36
+			"nets" : {
+				value : nets
 			},
-			"wan6" : {
-				value : wan6
+			"wan36" : {
+				value : source.wan36
+			},
+			"wans" : {
+				value : wans
 			},
 			"lans" : {
 				value : lans
 			},
 			"tap3" : {
-				value : tap3
+				value : source.tap3
 			},
 			"servers" : {
 				value : new ListAndMap()
@@ -1049,7 +1041,9 @@ const Location = Class.create(
 	},{
 		"wan6" : {
 			// Array of external IPs for Layer6 access 
-			value : null
+			execute : "once", get : function(){
+				return this.source.wan6 || this.wan3;
+			}
 		},
 		"wan66" : {
 			// Array of external IPv6s for Layer6 access 
@@ -1057,7 +1051,12 @@ const Location = Class.create(
 		},
 		"wan3" : {
 			// external IP for Layer3 access (gateway - only one IP per location)
-			value : null
+			execute : "once", get : function(){
+				return (this.wans.filter(function(x){
+					console.log(">>>>>>>>>>> " + x + " >> " + this.server?.wan3 + " >> " + this.router + " >> " + this.server);
+					return this.server && x.containsIp(this.server.wan3);
+				}, this.config).concat(this.wans)[0] || "").ip;
+			}
 		},
 		"net3" : {
 			// external IP subnet for Layer3 access (wan networks)

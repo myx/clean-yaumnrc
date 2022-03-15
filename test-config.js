@@ -114,6 +114,25 @@ module.exports = {
 			"tcpShift" : 1000,
 			"monitor" : "l6route"
 		},
+		"l6h0.myx.ru" : {
+			"disposition" : "guest",
+			"router" : "active",
+			"location" : "h0",
+			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "10G"	},
+			"wan" : {
+				"ip" : "5.13.177.101"
+			},
+			"lan" : {
+				"mac" : "AA:BB:EE:DD:EE:FF",
+				"ip" : "192.168.9.254"
+			},
+			"tap" : { 
+				"ip" : "l6h0-tap",
+				"key" : "-----BEGIN RSA PUBLIC KEY-----\r\nMIIBCgKCAQEA1u1UJ1/rKCT2pVPgSAvLWeZ2RW2e72ObC7xG1YVBMUi1V8JCU0+S\r\ntEaEgNknTxNylJm2OiE50YWZzydDMf+GNq3AEqq/9S9UZRuZQlxSbTe4Ic1odgdi\r\nXMZHdMJu3Q4AOCxu8kEHGR4VelvpprjHyZxEteZ/doBSGm4TaomaAT3gI0k5TAol\r\nacjoctu+dgrL1YZA0MtPYAN0JX5yeLA0yZ7AKeHfGW5Ws5E5++Y1QdE3XNXxftL4\r\nX9dhOJBziW4TsPYTpair2oLLcmOYihnD6Bbsb87aoaKt6iheEtVzBgluN+qhzCP1\r\nA5ZgIlicbLrwHD61o83lpatE/dNDbhKVvQIDAQAB\r\n-----END RSA PUBLIC KEY-----"
+			},
+			"tcpShift" : 1000,
+			"monitor" : "l6route"
+		},
 		"l6o3.myx.ru" : {
 			"disposition" : "guest",
 			"router" : "active",
