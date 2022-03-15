@@ -164,8 +164,8 @@ const AbstractAddress = Class.create(
 			value : function(IPv4){
 				if('string' === typeof IPv4){
 					return IPv4.split('.').reduce(function(r, v){
-						return (r * 256) + parseInt(v);
-					}, 0);
+						return (r << 8) + parseInt(v,10);
+					}, 0) | 0;
 				}
 				if('number' === typeof IPv4){
 					return IPv4;
@@ -328,7 +328,7 @@ const NetworkAddress = Class.create(
 		},
 		"containsIp" : {
 			value : function(ip){
-				return (AbstractAddress.intForIPv4(ip) & this.maskInt) == this.networkInt;
+				return (AbstractAddress.intForIPv4(ip) & this.maskInt) === this.networkInt;
 			}
 		},
 		"networkForIp" : {
@@ -976,30 +976,41 @@ const Location = Class.create(
 			return r;
 		}, undefined);
 
-		const net3 = [].concat(
-			source.wan3,
+		const wans = [].concat(
+			source.wan3
+		).reduce(function(r, x){
+			const wan = f.parseNetwork(x, undefined, 32);
+			wan && r.push(wan);
+			return r;
+		}, []);
+
+		const nets = [].concat(
 			source.net3
-		).reduce(function(r, x){ 
-			if(x){
-				const wan = f.parseNetwork(x, undefined, 32);
-				if(wan){
-					const net = /* wan.networkObject || */ wan;
-					f.defineProperty(net, 'location', self);
-					if(!r) return net;
-					if(r.Networks){
-						r.addNetwork(net);
-					}else{
-						r = new Networks().addNetwork(r).addNetwork(net);
-						f.defineProperty(r, 'location', self);
-					}
-				}
+		).reduce(function(r, x){
+			const wan = f.parseNetwork(x, undefined, 32);
+			wan && r.push(wan);
+			return r;
+		}, []);
+
+		const net3 = [].concat(
+			wans,
+			nets
+		).reduce(function(r, wan){ 
+			const net = /* wan.networkObject || */ wan;
+			f.defineProperty(net, 'location', self);
+			if(!r) return net;
+			if(r.Networks){
+				r.addNetwork(net);
+			}else{
+				r = new Networks().addNetwork(r).addNetwork(net);
+				f.defineProperty(r, 'location', self);
 			}
 			return r;
 		}, undefined);
 
-		const wan3 = (f.parseNetwork([].concat(source.wan3).filter(function(x){
-			return this.server && f.parseNetwork(x, undefined, 32)?.containsIp(this.server.wan3);
-		}, this.config).concat(source.wan3)[0], undefined, 32)||"").ip;
+		const wan3 = (wans.filter(function(x){
+			return this.server && x.containsIp(this.server.wan3);
+		}, this.config).concat(wans)[0] || "").ip;
 		
 		const wan36 = source.wan36;
 		const wan6 = source.wan6 || wan3;
