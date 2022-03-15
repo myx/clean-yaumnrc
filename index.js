@@ -1053,7 +1053,6 @@ const Location = Class.create(
 			// external IP for Layer3 access (gateway - only one IP per location)
 			execute : "once", get : function(){
 				return (this.wans.filter(function(x){
-					console.log(">>>>>>>>>>> " + x + " >> " + this.server?.wan3 + " >> " + this.router + " >> " + this.server);
 					return this.server && x.containsIp(this.server.wan3);
 				}, this.config).concat(this.wans)[0] || "").ip;
 			}
