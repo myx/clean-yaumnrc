@@ -266,7 +266,7 @@ const NetworkAddress = Class.create(
 	AbstractAddress,
 	function(cidr, ip, bits, mac, key){
 		const addressInt = AbstractAddress.intForIPv4(ip);
-		const mask = (0xFFFFFFFF * (2 ** (32 - bits))) % 0x100000000;
+		const mask = (0xFFFFFFFF * (2 ** (32 - bits))) & 0xFFFFFFFF;
 		const networkInt = addressInt & mask;
 		Object.defineProperties(this, {
 			"ip" : {
@@ -318,7 +318,7 @@ const NetworkAddress = Class.create(
 		},
 		"mask" : {
 			get : function(){
-				return this.mask = AbstractAddress.intToIPv4(0xFFFFFFFF & this.maskInt) 
+				return this.mask = AbstractAddress.intToIPv4(this.maskInt) 
 			}
 		},
 		"list" : {
