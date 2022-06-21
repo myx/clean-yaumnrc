@@ -2837,7 +2837,7 @@ const DomainInfrastructure = Class.create(
 				}
 
 				if(x.endsWith('.')){
-					return x;
+					return undefined;
 				}
 
 				/** 
