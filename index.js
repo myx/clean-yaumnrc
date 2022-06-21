@@ -2455,9 +2455,6 @@ const Domain = Class.create(
 					return x.substr(0, x.length - this.key.length);
 					return x + '.';
 				}
-				if(x.endsWith('.')){
-					return undefined;
-				}
 				return x;
 			}
 		},
@@ -2821,6 +2818,17 @@ const DomainInfrastructure = Class.create(
 		},
 		"filterName" : {
 			value : function(x){
+				if(x.endsWith('.')){
+					if('.' + x == this.key + '.'){
+						return "@";
+						// return x; // always short
+					}
+					if(x.endsWith(this.key + '.')){
+						return x.substr(0, x.length - this.key.length - 1);
+						return x;
+					}
+					return undefined;
+				}
 				if('.' + x == this.key){
 					return "@";
 					// return x + '.'; // always short
@@ -2829,6 +2837,8 @@ const DomainInfrastructure = Class.create(
 					return x.substr(0, x.length - this.key.length);
 					return x + '.';
 				}
+
+				return undefined; // ignore non-matching names
 
 				for(let d of this.config.routing.domains.list){
 					if(x.endsWith(d.key) || x.endsWith(d.key + '.')){
@@ -2844,20 +2854,6 @@ const DomainInfrastructure = Class.create(
 						 * </code>
 						 */
 					}
-				}
-
-				if('.' + x == this.key + '.'){
-					return "@";
-				}
-
-				if(x.endsWith(this.key + '.')){
-					return x.substr(0, x.length - this.key.length - 1);
-				}
-
-				return undefined; // ignore non-matching names
-
-				if(x.endsWith('.')){
-					return undefined;
 				}
 
 				/** 
