@@ -2642,6 +2642,7 @@ const DomainDedicated = Class.create(
 				const recs6 = result.dnsTypeAAAA;
 				const recsN = result.dnsTypeNS;
 				const recsS = result.dnsTypeSRV;
+				const recsC = result.dnsTypeCNAME;
 
 				var name, aa, a4, a6, target;
 
@@ -2651,7 +2652,7 @@ const DomainDedicated = Class.create(
 						if(filterArray?.length){
 							const targetEndpoints = target.endpointsList;
 							filters: for(const filter of filterArray){
-								const dnsSrvKey = filter + '.' + target.key + '.';
+								const dnsSrvKey = this.filterName(filter + '.' + target.key + '.');
 								if(recsS[dnsSrvKey]){
 									continue filters;
 								}
@@ -2675,7 +2676,7 @@ const DomainDedicated = Class.create(
 
 				for(target of this.config.targetListDns){
 					name = this.filterName(target.key);
-					if(name){
+					if(name && !recsC.map[name]){
 						aa = target.resolveSmart(net);
 						if(aa){
 							a4 = aa.ip;
@@ -2698,6 +2699,7 @@ const DomainDedicated = Class.create(
 						}
 					}
 				}
+
 				if(!recsA.map["*"] || !recsA.map["@"]){
 					aa = this.config.resolveSmart(net);
 					if(aa){
@@ -2746,18 +2748,20 @@ const DomainDedicated = Class.create(
 					for(let check of [Router.isActive, Router.isTesting]){
 						for(target of this.config.locations.list){
 							if(target.routers.list.some(check)){
-								name = DomainInfrastructure.prototype.filterName.call(this, target.key) || target.key;
-								aa = target.resolveSmart(net);
-								if(aa){
-									a4 = aa.ip;
-									a6 = aa.ipv6;
-									if(a4?.length){
-										map[name] = true;
-										recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-@-4-'+target));
-									}
-									if(a6?.length){
-										map[name] = true;
-										recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-@-6-'+target));
+								name = DomainInfrastructure.prototype.filterName.call(this, target.key);
+								if(name && !recsC.map[name]){
+									aa = target.resolveSmart(net);
+									if(aa){
+										a4 = aa.ip;
+										a6 = aa.ipv6;
+										if(a4?.length){
+											map[name] = true;
+											recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-@-4-'+target));
+										}
+										if(a6?.length){
+											map[name] = true;
+											recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-@-6-'+target));
+										}
 									}
 								}
 							}
