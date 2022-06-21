@@ -53,13 +53,13 @@ const Class = {
 			}
 			// Object.defineProperties(p, properties);
 		}
-		if(name && !(properties && properties[name])){
+		if(name && !(properties?.[name])){
 			Object.defineProperty(p, name, { value : constructor });
 		}
 		if(statics){
 			Object.defineProperties(constructor, statics);
 		}
-		if(name && !(statics && statics.toString)){
+		if(name && !(statics?.toString)){
 			Object.defineProperty(constructor, "toString", {
 				value : function(){
 					return "[class " + name + "]";
@@ -811,12 +811,12 @@ const NetworkPortsObject = Class.create(
 		},
 		"addNetworkPortsObject" : {
 			value : function(x){
-				if(x && x.ip){
+				if(x?.ip){
 					for(var y of x.ip){
 						this.addIP(y);
 					}
 				}
-				if(x && x.ipv6){
+				if(x?.ipv6){
 					for(var y of x.ipv6){
 						this.addIPv6(y);
 					}
@@ -828,10 +828,10 @@ const NetworkPortsObject = Class.create(
 				if(this.all.length === 0){
 					return undefined;
 				}
-				if(this.ip && this.ip.length === 0){
+				if(this.ip?.length === 0){
 					this.ip = undefined;
 				}
-				if(this.ipv6 && this.ipv6.length === 0){
+				if(this.ipv6?.length === 0){
 					this.ipv6 = undefined;
 				}
 				return this;
@@ -869,7 +869,7 @@ const ResolvableObject = Class.create(
 	ConfigObject,
 	function(config, source){
 		this.ConfigObject(config, source);
-		source && source.dns && Object.defineProperties(this, {
+		source?.dns && Object.defineProperties(this, {
 			"resolveMode" : {
 				value : source.dns
 			},
@@ -889,7 +889,7 @@ const ResolvableObject = Class.create(
 		"lan3smart" : {
 			// Array of local IPs for Layer3 access (length is likely 1 or 0, but could have several LAN IPs of all the routers) 
 			execute : "once", get : function(){
-				return (this.resolveSmart(this.config.location && this.config.location.lans || null)||{}).ip;
+				return (this.resolveSmart(this.config.location?.lans || null)||{}).ip;
 			}
 		},
 		"resolveDirect" : {
@@ -1175,13 +1175,13 @@ const Location = Class.create(
 		"name" : {
 			// name or key of given instance 
 			execute : "once", get : function(){
-				return this.source && this.source.name || this.key;
+				return this.source?.name || this.key;
 			}
 		},
 		"title" : {
 			// title, name or key of given instance 
 			execute : "once", get : function(){
-				return this.source && this.source.title || this.name;
+				return this.source?.title || this.name;
 			}
 		},
 		"servers" : {
@@ -1208,13 +1208,13 @@ const Location = Class.create(
 		},
 		"networkForClient" : {
 			value : function(ip){
-				return this.lans && this.lans.networkForIp(ip) || undefined;
+				return this.lans?.networkForIp(ip) || undefined;
 			}
 		},
 		"findGatewayForClient" : {
 			value : function(ip){
 				const lan = this.lans.networkForIp(ip);
-				return lan && lan.ip || undefined;
+				return lan?.ip || undefined;
 			}
 		},
 		"isLocal" : {
@@ -1278,19 +1278,19 @@ const Server = Class.create(
 		"wan3" : {
 			// null or Array of external IPs for Layer3 access 
 			execute : "once", get : function(){
-				return this.source.wan && this.source.wan.ip;
+				return this.source.wan?.ip;
 			}
 		},
 		"wan36" : {
 			// null or Array of external IPv6s for Layer3 access 
 			execute : "once", get : function(){
-				return this.source.wan && this.source.wan.ipv6;
+				return this.source.wan?.ipv6;
 			}
 		},
 		"lan3" : {
 			// null or Array of local network IPs for Layer3 access 
 			execute : "once", get : function(){
-				return this.source.lan && this.source.lan.ip;
+				return this.source.lan?.ip;
 			}
 		},
 		"srvRecordsMap" : {
@@ -1405,13 +1405,13 @@ const Server = Class.create(
 
 				const isMacAddress = /^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$/i;
 
-				const doWan = wan && wan.mac && isMacAddress.exec(wan.mac) && wan.ip;
+				const doWan = wan?.mac && isMacAddress.exec(wan.mac) && wan.ip;
 
-				if(lan && lan.mac && isMacAddress.exec(lan.mac) && lan.ip){
+				if(lan?.mac && isMacAddress.exec(lan.mac) && lan.ip){
 					const network = this.location.networkForClient(lan.ip);
 					const gateway = doWan
 						? this.source.gateway || undefined
-						: this.source.gateway || network && network.ip || undefined
+						: this.source.gateway || network?.ip || undefined
 					;
 					dhcpView.addRecord(this.key + "_lan", lan.mac, this.key, lan.ip, network, this.groups, gateway);
 				}
@@ -1472,7 +1472,7 @@ const Router = Class.create(
 		"tap3" : {
 			// null or Array of tinc-tap network IPs for Layer3 access 
 			execute : "once", get : function(){
-				return this.source.tap && this.source.tap.ip;
+				return this.source.tap?.ip;
 			}
 		},
 		"isActive" : {
@@ -1499,13 +1499,13 @@ const Router = Class.create(
 		"isActive" : {
 			// universal - ignores non-Router argument
 			value : function(x){
-				return x && x.router === 'active';
+				return x?.router === 'active';
 			}
 		},
 		"isTesting" : {
 			// universal - ignores non-Router argument
 			value : function(x){
-				return x && x.router === 'testing';
+				return x?.router === 'testing';
 			}
 		},
 		"isActiveOrTesting" : {
@@ -1618,7 +1618,7 @@ const Target = Class.create(
 				}
 				
 				if(forceDirect){
-					const location = (net && net.location) || (this.config.location);
+					const location = net?.location || this.config.location;
 					if(location){
 						var t, found = false;
 						for(t of this.endpointsList){
@@ -1651,7 +1651,7 @@ const Target = Class.create(
 		},
 		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
-				const resolveMode = parent && parent.resolveMode || this.resolveMode;
+				const resolveMode = parent?.resolveMode || this.resolveMode;
 				if(resolveMode === "use-router"){
 					if(this.location){
 						return this.location.resolveSmart(net);
@@ -1659,7 +1659,7 @@ const Target = Class.create(
 					return this.config.resolveSmart(net);
 				}
 				if(resolveMode === "use-local"){
-					if(net && net.location){
+					if(net?.location){
 						return net.location.resolveSmart(net);
 					}
 				}
@@ -1702,7 +1702,7 @@ const Target = Class.create(
 						result.addNetworkPortsObject( t.resolveSmart(net, false, this) );
 					}
 					if(result.all.length){
-						if(net && net.location){
+						if(net?.location){
 							if(result.all.length > 1){
 								const view = net.location.resolveSmart(net);
 								if(view) return view;
@@ -1751,7 +1751,7 @@ const Target = Class.create(
 					if("string" === typeof t){
 						return new TargetSingle(config, key, source, t);
 					}
-					if(t && t.length){
+					if(t?.length){
 						return t.length == 1
 							? new TargetSingle(config, key, source, t[0])
 							: new TargetMultiple(config, key, source, t);
@@ -1839,7 +1839,7 @@ const TargetStatic = Class.create(
 		},
 		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
-				const resolveMode = parent && parent.resolveMode || this.resolveMode;
+				const resolveMode = parent?.resolveMode || this.resolveMode;
 				if(own){
 					if(this.location){
 						return this.location.resolveSmart(net);
@@ -1853,7 +1853,7 @@ const TargetStatic = Class.create(
 					return this.config.resolveSmart(net);
 				}
 				if(resolveMode === "use-local"){
-					if(net && net.location){
+					if(net?.location){
 						return net.location.resolveSmart(net);
 					}
 				}
@@ -2248,17 +2248,17 @@ const Routing = Class.create(
 		},
 		"types" : {
 			execute : "once", get : function(){
-				return new RoutingTypes(this.config, this.source && this.source.types || undefined);
+				return new RoutingTypes(this.config, this.source?.types || undefined);
 			}
 		},
 		"domains" : {
 			execute : "once", get : function(){
-				return new Domains(this.config, this.source && this.source.domains || undefined);
+				return new Domains(this.config, this.source?.domains || undefined);
 			}
 		},
 		"ssl" : {
 			execute : "once", get : function(){
-				return new Ssl(this.config, this.source && this.source.ssl || undefined);
+				return new Ssl(this.config, this.source?.ssl || undefined);
 			}
 		},
 		"initializeParse" : {
@@ -2270,9 +2270,9 @@ const Routing = Class.create(
 			value : function(){
 				return {
 					"options" : this.options || undefined,
-					"types" : this.types && this.types.toSourceObject() || undefined,
-					"ssl" : this.ssl && this.ssl.toSourceObject() || undefined,
-					"domains" : this.domains && this.domains.toSourceObject() || undefined
+					"types" : this.types?.toSourceObject() || undefined,
+					"ssl" : this.ssl?.toSourceObject() || undefined,
+					"domains" : this.domains?.toSourceObject() || undefined
 				};
 			}
 		},
@@ -2336,7 +2336,7 @@ const Domains = Class.create(
 		"staticViewLan" : {
 			execute : "once", get : function(){
 				const l = this.config.location;
-				return this.makeStaticView(l && l.lans || null);
+				return this.makeStaticView(l?.lans || null);
 			}
 		},
 		"makeStaticView" : {
@@ -2396,35 +2396,27 @@ const Domain = Class.create(
 				if(x.endsWith('.')){
 					if('.' + x == this.key + '.'){
 						return x;
-						return "@";
 					}
 					if(x.endsWith(this.key + '.')){
 						return x;
-						return x.substr(0, -this.key.length - 1);
 					}
 					return undefined;
 				}
 				{
 					if(x === "@"){
 						return x + this.key + '.';
-						return "@";
-						// return this.key.substr(1) + '.';
 					}
 					if(x === "*"){
 						return x + this.key + '.';
-						return "*";
 					}
 					if('.' + x == this.key){
 						return x + '.';
-						return "@";
 					}
 					if(x.endsWith(this.key)){
 						return x + '.';
-						return x.substr(0, -this.key.length);
 					}
 					
 					return x + this.key + '.';
-					return x;
 				}
 			}
 		},
@@ -2439,21 +2431,17 @@ const Domain = Class.create(
 				if(x.endsWith('.')){
 					if('.' + x == this.key + '.'){
 						return "@";
-						// return x; // always short
 					}
 					if(x.endsWith(this.key + '.')){
 						return x.substr(0, x.length - this.key.length - 1);
-						return x;
 					}
 					return undefined;
 				}
 				if('.' + x == this.key){
 					return "@";
-					// return x + '.'; // always short
 				}
 				if(x.endsWith(this.key)){
 					return x.substr(0, x.length - this.key.length);
-					return x + '.';
 				}
 				return x;
 			}
@@ -2504,7 +2492,7 @@ const DomainStatic = Class.create(
 		this.Domain(key, config, source);
 		Object.defineProperties(this, {
 			"dns" : {
-				value : new this.DnsStatic(this, config, source && source.dns)
+				value : new this.DnsStatic(this, config, source?.dns)
 			}
 		});
 		return this;
@@ -2520,10 +2508,10 @@ const DomainStatic = Class.create(
 				function(domain, config, source){
 					this.ConfigListAndMap(config, source || {});
 					if(source) for(let key in source){
-						const typeName = domain.filterName(key); // domain.staticName(key);
-						typeName && this.put(
-							typeName, 
-							new DnsTypeStatic(typeName, config, source[key])
+						const name = domain.filterName(key); // domain.staticName(key);
+						name && this.put(
+							name, 
+							new DnsTypeStatic(name, config, source[key])
 						);
 					}
 					return this;
@@ -2593,7 +2581,7 @@ const DomainStatic = Class.create(
 		},
 		"resolveForHost" : {
 			value : function(host, net){
-				return this.dns.map["A"]?.[host+"."]?.value;
+				return this.dns.map["A"]?.[this.filterName(host)??""]?.value;
 				/**
 				const records = this.dns.map["A"];
 				if(!records) return undefined;
@@ -2643,7 +2631,7 @@ const DomainDedicated = Class.create(
 		"staticViewLan" : {
 			execute : "once", get : function(){
 				const l = this.config.location;
-				return this.makeStaticView(l && l.lans || null);
+				return this.makeStaticView(l?.lans || null);
 			}
 		},
 		"makeStaticView" : {
@@ -2660,7 +2648,7 @@ const DomainDedicated = Class.create(
 				for(const target of this.config.targets.list){
 					if(('.' + target.key).endsWith(this.key)){
 						const filterArray = target.srvFilterArray;
-						if(filterArray && filterArray.length){
+						if(filterArray?.length){
 							const targetEndpoints = target.endpointsList;
 							filters: for(const filter of filterArray){
 								const dnsSrvKey = filter + '.' + target.key + '.';
@@ -2692,18 +2680,18 @@ const DomainDedicated = Class.create(
 						if(aa){
 							a4 = aa.ip;
 							a6 = aa.ipv6;
-							if(a4 && a4.length){
+							if(a4?.length){
 								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-4-' + target));
 							}
-							if(a6 && a6.length){
+							if(a6?.length){
 								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-6-' + target));
 							}
 							if(name !== '@'){
 								name = "*." + name;
-								if(a4 && a4.length){
+								if(a4?.length){
 									recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-*-4-' + target));
 								}
-								if(a6 && a6.length){
+								if(a6?.length){
 									recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-*-6-' + target));
 								}
 							}
@@ -2715,11 +2703,11 @@ const DomainDedicated = Class.create(
 					if(aa){
 						a4 = aa.ip;
 						a6 = aa.ipv6;
-						if(a4 && a4.length){
+						if(a4?.length){
 							recsA.map["*"] || recsA.put("*", new DnsRecordStatic("*", a4, 'config-a4'));
 							recsA.map["@"] || recsA.put("@", new DnsRecordStatic("@", a4, 'config-a4'));
 						}
-						if(a6 && a6.length){
+						if(a6?.length){
 							recs6.map["*"] || recs6.put("*", new DnsRecordStatic("*", a6, 'config-a6'));
 							recs6.map["@"] || recs6.put("@", new DnsRecordStatic("@", a6, 'config-a6'));
 						}
@@ -2733,18 +2721,18 @@ const DomainDedicated = Class.create(
 						if(aa){
 							a4 = aa.ip;
 							a6 = aa.ipv6;
-							if(a4 && a4.length){
+							if(a4?.length){
 								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-4-'+target));
 							} 
-							if(a6 && a6.length){
+							if(a6?.length){
 								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-6-'+target));
-							} 
+							}
 							if(name !== '@'){
 								name = "*." + name;
-								if(a4 && a4.length){
+								if(a4?.length){
 									recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-*-4-'+target));
 								} 
-								if(a6 && a6.length){
+								if(a6?.length){
 									recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-*-4-'+target));
 								} 
 							}
@@ -2763,11 +2751,11 @@ const DomainDedicated = Class.create(
 								if(aa){
 									a4 = aa.ip;
 									a6 = aa.ipv6;
-									if(a4 && a4.length){
+									if(a4?.length){
 										map[name] = true;
 										recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-@-4-'+target));
 									}
-									if(a6 && a6.length){
+									if(a6?.length){
 										map[name] = true;
 										recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-@-6-'+target));
 									}
@@ -2887,7 +2875,7 @@ const DomainDelegated = Class.create(
 		this.Domain(key, config, source);
 		Object.defineProperties(this, {
 			"servers" : {
-				value : source && source.servers && [].concat(source.servers) || []
+				value : source?.servers && [].concat(source.servers) || []
 			}
 		});
 		return this;
@@ -2921,10 +2909,10 @@ const DomainSlave = Class.create(
 		this.Domain(key, config, source);
 		Object.defineProperties(this, {
 			"masters" : {
-				value : source && source.masters && [].concat(source.masters) || []
+				value : source?.masters && [].concat(source.masters) || []
 			},
 			"slaves" : {
-				value : source && source.slaves && [].concat(source.slaves) || []
+				value : source?.slaves && [].concat(source.slaves) || []
 			}
 		});
 		return this;
@@ -3190,7 +3178,7 @@ const DhcpView = Class.create(
 	},{
 		"lans" : {
 			get : function(){
-				return this.location && this.location.lans || this.config && this.config.location && this.config.location.lans;
+				return this.location?.lans || this.config?.location?.lans;
 			}
 		},
 		"addRecord" : {
@@ -3236,7 +3224,7 @@ const DhcpHost = Class.create(
 				value : view
 			},
 			"groups" : {
-				value : groups && groups.length && groups || undefined
+				value : groups?.length && groups || undefined
 			},
 			"gateway" : {
 				value : defaultGateway
@@ -3264,32 +3252,32 @@ const DhcpHost = Class.create(
 		},
 		"resolver" : {
 			execute : "once", get : function(){
-				return this.network && this.network.ip || undefined;
+				return this.network?.ip || undefined;
 			}
 		},
 		"networkIp" : {
 			get : function(){
-				return this.network && this.network.network || undefined;
+				return this.network?.network || undefined;
 			}
 		},
 		"networkInt" : {
 			get : function(){
-				return this.network && this.network.networkInt;
+				return this.network?.networkInt;
 			}
 		},
 		"networkMask" : {
 			get : function(){
-				return this.network && this.network.mask;
+				return this.network?.mask;
 			}
 		},
 		"networkBits" : {
 			get : function(){
-				return this.network && this.network.bits;
+				return this.network?.bits;
 			}
 		},
 		"networkCidr" : {
 			get : function(){
-				return this.network && this.network.networkCidr;
+				return this.network?.networkCidr;
 			}
 		},
 		"network" : {
@@ -3318,7 +3306,7 @@ const DhcpHost = Class.create(
 		},
 		"routes" : {
 			execute : "once", get : function(){
-				const location = this.view.location || this.network && this.network.location || this.config.location;
+				const location = this.view.location || this.network?.location || this.config.location;
 				if(!location){
 					return undefined;
 				}
@@ -3371,7 +3359,7 @@ const DhcpHost = Class.create(
 		},
 		"routesAsClasslessString" : {
 			execute : "once", get : function(){
-				return this.routes && this.routes.reduce(function(r, x){
+				return this.routes?.reduce(function(r, x){
 					const fragment = x.asClasslessStringFragment;
 					return fragment 
 						? r	
@@ -3564,7 +3552,7 @@ const Ssl = Class.create(
 			value : function(){
 				return {
 					"defaultPreset" : this.defaultPreset || undefined,
-					"presets" : this.presets && this.presets.toSourceObject() || undefined,
+					"presets" : this.presets?.toSourceObject() || undefined,
 				};
 			}
 		},
@@ -3689,7 +3677,7 @@ const Monitoring = Class.create(
 		},
 		"monitorForTarget" : {
 			value : function(t){
-				const monitor = t.source && t.source.monitor;
+				const monitor = t.source?.monitor;
 				if(undefined === monitor || null === monitor){
 					return undefined;
 				}
@@ -3705,8 +3693,8 @@ const Monitoring = Class.create(
 		"toSourceObject" : {
 			value : function(){
 				return {
-					"templates" : this.templates && this.templates.toSourceObject() || undefined,
-					"notify" : this.notify && this.notify.toSourceObject() || undefined
+					"templates" : this.templates?.toSourceObject() || undefined,
+					"notify" : this.notify?.toSourceObject() || undefined
 				};
 			}
 		},
@@ -4390,7 +4378,7 @@ const Configuration = Class.create(
 				value : new Routers(this, source.servers)
 			},
 			"targets" : {
-				value : new Targets(this, source.targets || source.routing && source.routing.routes)
+				value : new Targets(this, source.targets || source.routing?.routes)
 			},
 			"routing" : {
 				value : new Routing(this, source.routing)
@@ -4491,7 +4479,7 @@ const Configuration = Class.create(
 		},
 		"resolveForHost" : {
 			value : function(host, net){
-				const n = net || this.location && this.location.lans || null;
+				const n = net || this.location?.lans || null;
 				{
 					const r = this.routing.domains.makeStaticView(net).resolveForHost(host, n);
 					if(r) return r;
@@ -4502,7 +4490,7 @@ const Configuration = Class.create(
 				} 
 				{
 					const target = this.targets.map[host] || this.servers.map[host];
-					return target && (target.resolveSmart(n)||{}).ip || undefined;
+					return target?.resolveSmart(n)||{}.ip || undefined;
 				}
 			}
 		},
@@ -4538,13 +4526,13 @@ const Configuration = Class.create(
 		},
 		"networkForClient" : {
 			value : function(ip){
-				return this.location && this.location.networkForClient(ip) || undefined;
+				return this.location?.networkForClient(ip) || undefined;
 			}
 		},
 		"dnsViewLocal" : {
 			execute : "once", get : function(){
 				return this.routing.domains.makeStaticView(
-					this.location && this.location.lans || null
+					this.location?.lans || null
 					/* Networks.LOCAL */
 				);
 			}
@@ -4563,7 +4551,7 @@ const Configuration = Class.create(
 			value : function(net){
 				const entries = {};
 				const source = this.buildDnsView(
-					net || this.location && this.location.lans || null
+					net || this.location?.lans || null
 				).toSourceObject();
 				for (const [domainKey, domain] of Object.entries(source)) {
 					for (const [host, ip] of Object.entries((domain.dns || {}).A || {})) {
@@ -4675,7 +4663,7 @@ const Configuration = Class.create(
 				targets: for(let t of this.config.targets.list){
 					const monitor = this.config.monitoring.monitorForTarget(t);
 					if(monitor){
-						const web = (t.resolveSmart(loc && loc.lans || null) || {}).ip;
+						const web = (t.resolveSmart(loc?.lans || null) || {}).ip;
 						if(web){
 							for(let check of monitor.getChecksArray(false)){
 								// console.log(">>> l6: " + t + ", " + web);
@@ -4830,8 +4818,8 @@ const Configuration = Class.create(
 				}
 				for(let v of views){
 					for(let d of v.view.list){
-						if(d.dns && d.dns.list) for(let t of d.dns.list){
-							if(t && t.list) for(let r of t.list){
+						if(d.dns?.list) for(let t of d.dns.list){
+							if(t?.list) for(let r of t.list){
 								rows.push({
 									view : v.name,
 									domain : d.key,
@@ -4861,7 +4849,7 @@ const Configuration = Class.create(
 						key : key,
 						name : contact.name,
 						type : contact.type,
-						contact : contact.email || contact.phone || contact.redirect || (contact.list && contact.list.join(", "))
+						contact : contact.email || contact.phone || contact.redirect || (contact.list?.join(", "))
 					});
 				}
 
@@ -4877,12 +4865,12 @@ const Configuration = Class.create(
 				servers: for(let s of this.servers.list){
 					const type = s.routingType;
 					if(s.wan3){
-						if(type && type.level6){
+						if(type?.level6){
 							const tgt = Number(type.level6.sshd||-1);
 							if(tgt && tgt > 0){
 								rows.push({
 									name : s.key,
-									location : s.location && s.location.key,
+									location : s.location?.key,
 									ssh : "ssh " + s.key + " -p " + tgt,
 								});
 								continue servers;
@@ -4890,7 +4878,7 @@ const Configuration = Class.create(
 						} 
 						rows.push({
 							name : s.key,
-							location : s.location && s.location.key,
+							location : s.location?.key,
 							ssh : "ssh " + s.key
 						});
 						continue servers;
@@ -4903,7 +4891,7 @@ const Configuration = Class.create(
 								const shift = s.tcpShift || 0;
 								rows.push({
 									name : s.key,
-									location : s.location && s.location.key,
+									location : s.location?.key,
 									ssh : "ssh -4 " + s.key + " -p " + (shift + nport),
 								});
 								continue servers;
@@ -4994,7 +4982,7 @@ const Configuration = Class.create(
 				for(let v of views){
 					for(let mKey in v.view){
 						const m = v.view[mKey];
-						if(m && m.key) {
+						if(m?.key) {
 							rows.push({
 								view : v.name,
 								key : v.key,
