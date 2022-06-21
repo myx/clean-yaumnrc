@@ -2386,44 +2386,56 @@ const Domain = Class.create(
 			value : undefined
 		},
 		"staticName" : {
+			/**
+			 * Makes long/full dns fqdn. Or returns null if name to be skipped.
+			 * 
+			 * @param {dnsName} x 
+			 * @returns 
+			 */
 			value : function(x){
 				if(x.endsWith('.')){
 					if('.' + x == this.key + '.'){
-						return "@";
 						return x;
+						return "@";
 					}
 					if(x.endsWith(this.key + '.')){
-						return x.substr(0, -this.key.length - 1);
 						return x;
+						return x.substr(0, -this.key.length - 1);
 					}
 					return undefined;
 				}
 				{
 					if(x === "@"){
-						return "@";
 						return x + this.key + '.';
+						return "@";
 						// return this.key.substr(1) + '.';
 					}
 					if(x === "*"){
-						return "*";
 						return x + this.key + '.';
+						return "*";
 					}
 					if('.' + x == this.key){
-						return "@";
 						return x + '.';
+						return "@";
 					}
 					if(x.endsWith(this.key)){
-						return x.substr(0, -this.key.length);
 						return x + '.';
+						return x.substr(0, -this.key.length);
 					}
 					
-					return x;
 					return x + this.key + '.';
+					return x;
 				}
 			}
 		},
 		"filterName" : {
-			value : function(x){
+			/**
+			 * Makes local/compact dns name. Or returns null if name to be skipped.
+			 * 
+			 * @param {dnsName} x 
+			 * @returns 
+			 */
+			 value : function(x){
 				if('.' + x == this.key){
 					return "@";
 					// return x + '.'; // always short
@@ -2505,7 +2517,7 @@ const DomainStatic = Class.create(
 				function(domain, config, source){
 					this.ConfigListAndMap(config, source || {});
 					if(source) for(let key in source){
-						const typeName = domain.staticName(key);
+						const typeName = domain.filterName(key); // domain.staticName(key);
 						typeName && this.put(
 							typeName, 
 							new DnsTypeStatic(typeName, config, source[key])
