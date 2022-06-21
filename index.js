@@ -2436,6 +2436,17 @@ const Domain = Class.create(
 			 * @returns 
 			 */
 			 value : function(x){
+				if(x.endsWith('.')){
+					if('.' + x == this.key + '.'){
+						return "@";
+						// return x; // always short
+					}
+					if(x.endsWith(this.key + '.')){
+						return x.substr(0, x.length - this.key.length - 1);
+						return x;
+					}
+					return undefined;
+				}
 				if('.' + x == this.key){
 					return "@";
 					// return x + '.'; // always short
@@ -2444,15 +2455,10 @@ const Domain = Class.create(
 					return x.substr(0, x.length - this.key.length);
 					return x + '.';
 				}
-				if('.' + x == this.key + '.'){
-					return "@";
-					// return x; // always short
+				if(x.endsWith('.')){
+					return undefined;
 				}
-				if(x.endsWith(this.key + '.')){
-					return x.substr(0, x.length - this.key.length - 1);
-					return x;
-				}
-				return undefined;
+				return x;
 			}
 		},
 		"toSourceObject" : {
