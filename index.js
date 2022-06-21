@@ -2318,11 +2318,14 @@ const Domains = Class.create(
 		},
 		"resolveForHost" : {
 			value : function(host, net){
+				return this.domainForHost(host)?.resolveForHost?.(host, net);
+				/**
 				const domain = this.domainForHost(host);
 				return domain && domain.resolveForHost
 					? domain.resolveForHost(host, net)
 					: undefined
 				;
+				**/
 			}
 		},
 		"staticViewWan" : {
@@ -2575,10 +2578,13 @@ const DomainStatic = Class.create(
 		},
 		"resolveForHost" : {
 			value : function(host, net){
+				return this.dns.map["A"]?.[host+"."]?.value;
+				/**
 				const records = this.dns.map["A"];
 				if(!records) return undefined;
 				const record = records.map[host+'.'];
 				return record && record.value || undefined;
+				**/
 			}
 		},
 		"toSourceObject" : {
@@ -2807,7 +2813,7 @@ const DomainInfrastructure = Class.create(
 				}
 
 				for(let d of this.config.routing.domains.list){
-					if(x.endsWith(d.key)){
+					if(x.endsWith(d.key) || x.endsWith(d.key + '.')){
 						return undefined;
 						/***
 						 * infrastructure mirroring. 
@@ -2820,6 +2826,14 @@ const DomainInfrastructure = Class.create(
 						 * </code>
 						 */
 					}
+				}
+
+				if('.' + x == this.key + '.'){
+					return "@";
+				}
+
+				if(x.endsWith(this.key + '.')){
+					return x.substr(0, x.length - this.key.length - 1);
 				}
 
 				if(x.endsWith('.')){
