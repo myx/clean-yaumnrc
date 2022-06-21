@@ -2854,6 +2854,8 @@ const DomainInfrastructure = Class.create(
 					return x.substr(0, x.length - this.key.length - 1);
 				}
 
+				return undefined; // ignore non-matching names
+
 				if(x.endsWith('.')){
 					return undefined;
 				}
