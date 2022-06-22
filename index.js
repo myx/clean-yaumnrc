@@ -2507,11 +2507,10 @@ const DomainStatic = Class.create(
 				ConfigListAndMap,
 				function(domain, config, source){
 					this.ConfigListAndMap(config, source || {});
-					if(source) for(let key in source){
-						const name = domain.filterName(key); // domain.staticName(key);
-						name && this.put(
-							name, 
-							new DnsTypeStatic(name, config, source[key])
+					if(source) for(let type in source){
+						type && this.put(
+							type, 
+							new DnsTypeStatic(type, config, source[key], domain)
 						);
 					}
 					return this;
@@ -2948,12 +2947,13 @@ const DomainSlave = Class.create(
 const DnsTypeStatic = Class.create(
 	"DnsTypeStatic",
 	ConfigListAndMap,
-	function(key, config, source){
+	function(key, config, source, domain){
 		this.ConfigListAndMap(config, source || {});
 		f.defineProperty(this, "key", key);
 		if(source){
 			for(let key in source){
-				this.put(key, new DnsRecordStatic(key, source[key], 'static'));
+				domain && (key = domain.filterName(key)); // domain.staticName(key);
+				key && this.put(key, new DnsRecordStatic(key, source[key], 'static'));
 			}
 		}
 		return this;
