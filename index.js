@@ -2510,7 +2510,7 @@ const DomainStatic = Class.create(
 					if(source) for(let type in source){
 						type && this.put(
 							type, 
-							new DnsTypeStatic(type, config, source[key], domain)
+							new DnsTypeStatic(type, config, source[type], domain)
 						);
 					}
 					return this;
@@ -2951,9 +2951,9 @@ const DnsTypeStatic = Class.create(
 		this.ConfigListAndMap(config, source || {});
 		f.defineProperty(this, "key", key);
 		if(source){
-			for(let key in source){
-				domain && (key = domain.filterName(key)); // domain.staticName(key);
-				key && this.put(key, new DnsRecordStatic(key, source[key], 'static'));
+			for(let name in source){
+				domain && (key = domain.filterName(name)); // domain.staticName(name);
+				key && this.put(key, new DnsRecordStatic(key, source[name], 'static'));
 			}
 		}
 		return this;
