@@ -2746,7 +2746,7 @@ const DomainDedicated = Class.create(
 					for(let check of [Router.isActive, Router.isTesting]){
 						for(target of this.config.locations.list){
 							if(target.routers.list.some(check)){
-								name = this.filterName(target.key, true);
+								name = this.filterName(target.key, true) || target.key;
 								if(name && !recsC.map[name]){
 									aa = target.resolveSmart(net);
 									if(aa){
