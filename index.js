@@ -2424,7 +2424,7 @@ const Domain = Class.create(
 			/**
 			 * Makes local/compact dns name. Or returns null if name to be skipped.
 			 */
-			 value : function(x){
+			 value : function(x, strictMatch){
 				if(x.endsWith('.')){
 					if('.' + x == this.key + '.'){
 						return "@"; // always short
@@ -2440,7 +2440,7 @@ const Domain = Class.create(
 				if(x.endsWith(this.key)){
 					return x.substr(0, x.length - this.key.length);
 				}
-				return undefined;
+				return strictMatch ? undefined : x;
 			}
 		},
 		"toSourceObject" : {
@@ -2650,7 +2650,7 @@ const DomainDedicated = Class.create(
 						if(filterArray?.length){
 							const targetEndpoints = target.endpointsList;
 							filters: for(const filter of filterArray){
-								const dnsSrvKey = this.filterName(filter + '.' + target.key + '.');
+								const dnsSrvKey = this.filterName(filter + '.' + target.key + '.', true);
 								if(recsS[dnsSrvKey]){
 									continue filters;
 								}
@@ -2673,7 +2673,7 @@ const DomainDedicated = Class.create(
 				}
 
 				for(target of this.config.targetListDns){
-					name = this.filterName(target.key);
+					name = this.filterName(target.key, true);
 					if(name && !recsC.map[name]){
 						aa = target.resolveSmart(net);
 						if(aa){
@@ -2746,7 +2746,7 @@ const DomainDedicated = Class.create(
 					for(let check of [Router.isActive, Router.isTesting]){
 						for(target of this.config.locations.list){
 							if(target.routers.list.some(check)){
-								name = this.filterName(target.key);
+								name = this.filterName(target.key, true);
 								if(name && !recsC.map[name]){
 									aa = target.resolveSmart(net);
 									if(aa){
@@ -2831,7 +2831,7 @@ const DomainFailover = Class.create(
 			/**
 			 * Makes local/compact dns name. Or returns null if name to be skipped.
 			 */
-			 value : function(x){
+			 value : function(x, strictMatch){
 				if(x.endsWith('.')){
 					if('.' + x == this.key + '.'){
 						return "@"; // always short
