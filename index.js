@@ -2423,14 +2423,11 @@ const Domain = Class.create(
 		"filterName" : {
 			/**
 			 * Makes local/compact dns name. Or returns null if name to be skipped.
-			 * 
-			 * @param {dnsName} x 
-			 * @returns 
 			 */
 			 value : function(x){
 				if(x.endsWith('.')){
 					if('.' + x == this.key + '.'){
-						return "@";
+						return "@"; // always short
 					}
 					if(x.endsWith(this.key + '.')){
 						return x.substr(0, x.length - this.key.length - 1);
@@ -2438,12 +2435,12 @@ const Domain = Class.create(
 					return undefined;
 				}
 				if('.' + x == this.key){
-					return "@";
+					return "@"; // always short
 				}
 				if(x.endsWith(this.key)){
 					return x.substr(0, x.length - this.key.length);
 				}
-				return x;
+				return undefined;
 			}
 		},
 		"toSourceObject" : {
@@ -2477,6 +2474,8 @@ const Domain = Class.create(
 						return new DomainDedicated(key, config, source);
 					case 'delegated':
 						return new DomainDelegated(key, config, source);
+					case 'failover':
+						return new DomainFailover(key, config, source);
 				}
 				throw new Error("Invalid domain ("+key+") mode: " + source.mode);
 			}
@@ -2747,7 +2746,7 @@ const DomainDedicated = Class.create(
 					for(let check of [Router.isActive, Router.isTesting]){
 						for(target of this.config.locations.list){
 							if(target.routers.list.some(check)){
-								name = DomainInfrastructure.prototype.filterName.call(this, target.key);
+								name = this.filterName(target.key);
 								if(name && !recsC.map[name]){
 									aa = target.resolveSmart(net);
 									if(aa){
@@ -2807,54 +2806,6 @@ const DomainInfrastructure = Class.create(
 		"mode" : {
 			value : "infrastructure"
 		},
-		"filterName" : {
-			value : function(x){
-				if(x.endsWith('.')){
-					if('.' + x == this.key + '.'){
-						return "@";
-						// return x; // always short
-					}
-					if(x.endsWith(this.key + '.')){
-						return x.substr(0, x.length - this.key.length - 1);
-						return x;
-					}
-					return undefined;
-				}
-				if('.' + x == this.key){
-					return "@";
-					// return x + '.'; // always short
-				}
-				if(x.endsWith(this.key)){
-					return x.substr(0, x.length - this.key.length);
-					return x + '.';
-				}
-
-				return undefined; // ignore non-matching names
-
-				for(let d of this.config.routing.domains.list){
-					if(x.endsWith(d.key) || x.endsWith(d.key + '.')){
-						return undefined;
-						/***
-						 * infrastructure mirroring. 
-						 * I think I don't want that here (anymore!)
-						 * <code>
-							if(!d.DomainInfrastructure){
-								return undefined;
-							}
-							return x.substr(0, x.length - d.key.length);
-						 * </code>
-						 */
-					}
-				}
-
-				/** 
-				 * 3-rd party domains we prefix to infrastructure zones
-				 * I think I don't want that here (anymore!)
-				 */
-				return x;
-				return x + this.key + '.';
-			}
-		},
 		"toString" : {
 			value : function(){
 				return "[DomainInfrastructure("+this.key+")]";
@@ -2865,6 +2816,50 @@ const DomainInfrastructure = Class.create(
 	}
 );
 
+
+const DomainFailover = Class.create(
+	"DomainFailover",
+	DomainDedicated,
+	function(key, config, source){
+		this.DomainDedicated(key, config, source);
+		return this;
+	}, {
+		"mode" : {
+			value : "failover"
+		},
+		"filterName" : {
+			/**
+			 * Makes local/compact dns name. Or returns null if name to be skipped.
+			 */
+			 value : function(x){
+				if(x.endsWith('.')){
+					if('.' + x == this.key + '.'){
+						return "@"; // always short
+					}
+					if(x.endsWith(this.key + '.')){
+						return x.substr(0, x.length - this.key.length - 1);
+					}
+					return x + this.key.substr(1);
+				}
+				if('.' + x == this.key){
+					return "@"; // always short
+				}
+				if(x.endsWith(this.key)){
+					return x.substr(0, x.length - this.key.length);
+					return x + '.';
+				}
+				return x;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[DomainFailover("+this.key+")]";
+			}
+		}
+	}, {
+		
+	}
+);
 
 
 
