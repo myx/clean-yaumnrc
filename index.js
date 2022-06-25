@@ -4555,7 +4555,7 @@ const Configuration = Class.create(
 				for (const [domainKey, domain] of Object.entries(source)) {
 					for (const [host, ip] of Object.entries((domain.dns || {}).A || {})) {
 						let fqdn = host.endsWith('.') ? host.slice(0, -1) : host + domainKey;
-						fqdn.startsWith("@.") && (fqdn = fqdn.substr(2));
+						fqdn.startsWith("@.") && (fqdn = fqdn.substring(2));
 						fqdn.startsWith("*.") || ip.forEach((ip) => {
 							(entries[fqdn] || (entries[fqdn] = {}))[ip] = true;
 						});
