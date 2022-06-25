@@ -1868,9 +1868,11 @@ const TargetStatic = Class.create(
 				case "no-address":
 					return undefined;
 				case "direct-no-ipv6":
-					const a = this.resolveDirect(net, undefined, true);
-					if(a){
-						return a;
+					{
+						const result = this.resolveDirect(net, undefined, true);
+						if(result){
+							return result;
+						}
 					}
 					break;
 				case "direct":
@@ -1882,7 +1884,9 @@ const TargetStatic = Class.create(
 
 					{
 						const result = this.resolveDirect(null);
-						if(result) return result;
+						if(result) {
+							return result;
+						}
 					}
 					
 					if(this.location){
