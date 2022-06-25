@@ -4531,8 +4531,8 @@ const Configuration = Class.create(
 			// all servers and targets related to DNS
 			execute : "once", get : function(){
 				const map = {};
-				for(const target of this.targets.list){
-					map[target.key] = target;
+				for(const t of this.targets.list){
+					map[t.key] = t;
 				}
 				if(!map['default']){
 					map['default'] = new Target(this, 'default', {});
