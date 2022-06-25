@@ -1820,11 +1820,6 @@ const TargetStatic = Class.create(
 				return [ new UpstreamObject() ];
 			}
 		},
-		"hasLocalEndpoints" : {
-			get : function(){
-				return !this.location || this.location === this.config.location;
-			}
-		},
 		"resolveDirect" : {
 			// leads to l6routes
 			value : function(net, /* unused */ forceDirect, noIPv6){
