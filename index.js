@@ -1820,6 +1820,11 @@ const TargetStatic = Class.create(
 				return [ new UpstreamObject() ];
 			}
 		},
+		"hasLocalEndpoints" : {
+			get : function(){
+				return !this.location || this.location === this.config.location;
+			}
+		},
 		"resolveDirect" : {
 			// leads to l6routes
 			value : function(net, /* unused */ forceDirect, noIPv6){
@@ -1846,22 +1851,20 @@ const TargetStatic = Class.create(
 					return undefined;
 				}
 				const resolveMode = parent?.resolveMode || this.resolveMode;
-				if(!resolveMode){
-					return this.config.resolveSmart(net);
-				}
-				switch(resolveMode){
-				case "use-router":
-					if(this.location){
-						return this.location.resolveSmart(net);
-					}
-					return this.config.resolveSmart(net);
+				switch(resolveMode || "use-router"){
+
 				case "use-local":
 					if(net?.location){
 						return net.location.resolveSmart(net);
 					}
-					break;
+					if(this.location){
+						return this.location.resolveSmart(net);
+					}
+					return this.config.resolveSmart(net);
+
 				case "no-address":
 					return undefined;
+
 				case "direct-no-ipv6":
 					{
 						const result = this.resolveDirect(net, undefined, true);
@@ -1869,34 +1872,34 @@ const TargetStatic = Class.create(
 							return result;
 						}
 					}
-					break;
+					if(this.location){
+						return this.location.resolveSmart(net);
+					}
+					return this.config.resolveSmart(net);
+
 				case "direct":
 					return this.resolveDirect(net);
-				case "use-wan":
-					if(!this.location){
-						return this.config.resolveSmart(net);
-					}
 
+				case "use-wan":
 					{
 						const result = this.resolveDirect(null);
 						if(result) {
 							return result;
 						}
 					}
-					
 					if(this.location){
 						return this.location.resolveSmart(null);
 					}
-
 					return this.resolveDirect(net);
-				}
 
-				if(this.location){
-					return this.location.resolveSmart(net);
+				case "use-router":
+					// FALL-THROUGH
+				default:
+					if(this.location){
+						return this.location.resolveSmart(net);
+					}
+					return this.config.resolveSmart(net);
 				}
-
-				return this.config.resolveSmart(net);
-				// return this.resolveDirect(net);
 			}
 		},
 		"toString" : {
