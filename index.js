@@ -1878,9 +1878,9 @@ const TargetStatic = Class.create(
 				case "direct":
 					return this.resolveDirect(net);
 				case "use-wan":
-					//if(!this.location){
-					//	return this.config.resolveSmart(net);
-					//}
+					if(!this.location){
+						return this.config.resolveSmart(net);
+					}
 
 					{
 						const result = this.resolveDirect(null);
