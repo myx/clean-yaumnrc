@@ -1820,6 +1820,11 @@ const TargetStatic = Class.create(
 				return [ new UpstreamObject() ];
 			}
 		},
+		"hasLocalEndpoints" : {
+			get : function(){
+				return !this.location || this.location === this.config.location;
+			}
+		},
 		"resolveDirect" : {
 			// leads to l6routes
 			value : function(net, /* unused */ forceDirect, noIPv6){
@@ -1839,38 +1844,42 @@ const TargetStatic = Class.create(
 		},
 		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
-				const resolveMode = parent?.resolveMode || this.resolveMode;
 				if(own){
 					if(this.location){
 						return this.location.resolveSmart(net);
 					}
 					return undefined;
 				}
-				if(resolveMode === "use-router"){
+				const resolveMode = parent?.resolveMode || this.resolveMode;
+				if(!resolveMode){
+					return this.config.resolveSmart(net);
+				}
+				switch(resolveMode){
+				case "use-router":
 					if(this.location){
 						return this.location.resolveSmart(net);
 					}
 					return this.config.resolveSmart(net);
-				}
-				if(resolveMode === "use-local"){
+				case "use-local":
 					if(net?.location){
 						return net.location.resolveSmart(net);
 					}
-				}
-				if(resolveMode === "no-address"){
+					break;
+				case "no-address":
 					return undefined;
-				}
-				if(resolveMode === "direct-no-ipv6"){
+				case "direct-no-ipv6":
 					const a = this.resolveDirect(net, undefined, true);
-					if(a) return a;
-				}
-				if(resolveMode === "direct" || resolveMode === "use-router"){
+					if(a){
+						return a;
+					}
+					break;
+				case "direct":
 					return this.resolveDirect(net);
-				}
-				if(!resolveMode && !this.location){
-					return this.config.resolveSmart(net);
-				}
-				if(resolveMode === "use-wan"){
+				case "use-wan":
+					//if(!this.location){
+					//	return this.config.resolveSmart(net);
+					//}
+
 					{
 						const result = this.resolveDirect(null);
 						if(result) return result;
@@ -1882,10 +1891,13 @@ const TargetStatic = Class.create(
 
 					return this.resolveDirect(net);
 				}
+
 				if(this.location){
 					return this.location.resolveSmart(net);
 				}
-				return this.resolveDirect(net);
+
+				return this.config.resolveSmart(net);
+				// return this.resolveDirect(net);
 			}
 		},
 		"toString" : {
@@ -4553,7 +4565,7 @@ const Configuration = Class.create(
 					net || this.location?.lans || null
 				).toSourceObject();
 				for (const [domainKey, domain] of Object.entries(source)) {
-					for (const [host, ip] of Object.entries((domain.dns || {}).A || {})) {
+					if(domain.dns?.["A"]) for (const [host, ip] of Object.entries(domain.dns?.["A"])) {
 						let fqdn = host.endsWith('.') ? host.slice(0, -1) : host + domainKey;
 						fqdn.startsWith("@.") && (fqdn = fqdn.substring(2));
 						fqdn.startsWith("*.") || ip.forEach((ip) => {
