@@ -1198,10 +1198,11 @@ const Location = Class.create(
 				for(const r of this.routers.list.filter(Router.isActive)){
 					result.push( r );
 				}
-				if(!result.length) {
-					for(const r of this.routers.list.filter(Router.isTesting)){
-						result.push( r );
-					}
+				if(result.length) {
+					return result;
+				}
+				for(const r of this.routers.list.filter(Router.isTesting)){
+					result.push( r );
 				}
 				return result;
 			}
@@ -1219,21 +1220,37 @@ const Location = Class.create(
 		},
 		"isLocal" : {
 			get : function(){
-				return this === this.config.location;
+				return this.hasLocalEndpoints;
 			}
 		},
 		"isRemote" : {
 			get : function(){
-				return this !== this.config.location;
+				return this.hasRemoteEndpoints;
 			}
 		},
 		"hasLocalEndpoints" : {
 			get : function(){
+				if(this.source.group?.push){
+					for(let l of this.source.group){
+						if(this.config.locations.map[l]?.hasLocalEndpoints){
+							return true;
+						}
+					}
+					return false;
+				}
 				return this === this.config.location;
 			}
 		},
 		"hasRemoteEndpoints" : {
 			get : function(){
+				if(this.source.group?.push){
+					for(let l of this.source.group){
+						if(this.config.locations.map[l]?.hasRemoteEndpoints){
+							return true;
+						}
+					}
+					return false;
+				}
 				return this !== this.config.location;
 			}
 		},
@@ -1247,6 +1264,7 @@ const Location = Class.create(
 					"wan36" : this.wan36 || undefined,
 					"lan3" : this.lans && (this.lans.list ? this.lans.list.map(function(x){return x.toSourceObject();}) : this.lans.toSourceObject()) || undefined,
 					"tap3" : this.tap3 || undefined,
+					"group" : this.wan36 || undefined,
 				};
 			}
 		},
@@ -1822,7 +1840,13 @@ const TargetStatic = Class.create(
 		},
 		"hasLocalEndpoints" : {
 			get : function(){
-				return !this.location || this.location === this.config.location;
+				if(!this.location){
+					return true;
+				}
+				if(this.location === this.config.location){
+					return true;
+				}
+				return this.location.hasLocalEndpoints ?? false;
 			}
 		},
 		"isRemote" : {
