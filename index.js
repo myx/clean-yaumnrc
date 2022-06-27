@@ -4558,9 +4558,7 @@ const Configuration = Class.create(
 				for(const t of this.targets.list){
 					map[t.key] = t;
 				}
-				if(!map['default']){
-					map['default'] = new Target(this, 'default', {});
-				}
+				map['default'] ??= new Target(this, 'default', {});
 				return Object.values(map);
 			}
 		},
