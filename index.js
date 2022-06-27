@@ -1849,7 +1849,7 @@ const TargetStatic = Class.create(
 				return this.location.hasLocalEndpoints ?? false;
 			}
 		},
-		"isRemote" : {
+		"hasRemoteEndpoints" : {
 			get : function(){
 				if(this.location){
 					return false;
@@ -1858,6 +1858,16 @@ const TargetStatic = Class.create(
 					return false;
 				}
 				return true;
+			}
+		},
+		"isLocal" : {
+			get : function(){
+				return this.hasLocalEndpoints;
+			}
+		},
+		"isRemote" : {
+			get : function(){
+				return this.hasRemoteEndpoints;
 			}
 		},
 		"resolveDirect" : {
