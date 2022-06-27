@@ -1849,6 +1849,17 @@ const TargetStatic = Class.create(
 				return this.location.hasLocalEndpoints ?? false;
 			}
 		},
+		"isRemote" : {
+			get : function(){
+				if(this.location){
+					return false;
+				}
+				if(this.location === this.config.location){
+					return false;
+				}
+				return true;
+			}
+		},
 		"resolveDirect" : {
 			// leads to l6routes
 			value : function(net, /* unused */ forceDirect, noIPv6){
