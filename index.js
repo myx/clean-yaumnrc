@@ -1857,7 +1857,7 @@ const TargetStatic = Class.create(
 				if(this.location === this.config.location){
 					return false;
 				}
-				return true;
+				return this.location.hasRemoteEndpoints ?? true;
 			}
 		},
 		"isLocal" : {
