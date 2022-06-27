@@ -1851,7 +1851,7 @@ const TargetStatic = Class.create(
 		},
 		"hasRemoteEndpoints" : {
 			get : function(){
-				if(this.location){
+				if(!this.location){
 					return false;
 				}
 				if(this.location === this.config.location){
