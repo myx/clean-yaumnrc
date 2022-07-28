@@ -893,7 +893,7 @@ const ResolvableObject = Class.create(
 			}
 		},
 		"resolveDirect" : {
-			value : function(net, forceDirect, noIPv6){
+			value : function(net, forceDirect, noIPv6, localOnly){
 				throw new Error("Must re-implement, instance: " + this + ", net: " + net);
 			}
 		},
@@ -1095,7 +1095,7 @@ const Location = Class.create(
 			value : null
 		},
 		"resolveDirect" : {
-			value : function(net, /* unused */ forceDirect, noIPv6){
+			value : function(net, /* unused */ forceDirect, noIPv6, localOnly){
 				const result = new NetworkPortsObject();
 				if(net && this.lan3 && net.location === this){
 					var lan3, filtered, found = false;
@@ -1109,6 +1109,15 @@ const Location = Class.create(
 					if(found){
 						return result.normalize();
 					}
+				}
+				if(localOnly){
+					if(this.lan3){
+						var lan3, filtered;
+						for(lan3 of this.lan3){
+							result.addIP(lan3);
+						}
+					}
+					return result.normalize();
 				}
 				if(this.wan3){
 					result.addIP(this.wan3);
@@ -1381,10 +1390,22 @@ const Server = Class.create(
 			}
 		},
 		"resolveDirect" : {
-			value : function(net, /* unused */ forceDirect, noIPv6){
+			value : function(net, /* unused */ forceDirect, noIPv6, localOnly){
 				const result = new NetworkPortsObject();
 				if(net && this.location === net.location){
+					if(localOnly){
+						if(this.lan3){
+							result.addIP( this.lan3 );
+						}
+						return result.normalize();
+					}
 					result.addIP( this.lan3 && net.filterIp(this.lan3, true) || this.wan3 );
+					return result.normalize();
+				}
+				if(localOnly){
+					if(this.lan3){
+						result.addIP( this.lan3 );
+					}
 					return result.normalize();
 				}
 				this.wan3 && result.addIP(this.wan3);
@@ -1395,17 +1416,32 @@ const Server = Class.create(
 		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
 				const resolveMode = parent && (parent.resolveMode || 'default') || this.resolveMode || 'direct';
-				if(resolveMode === "use-wan"){
-					const a = this.resolveDirect(null);
-					if(a) return a;
-				}
-				if(resolveMode === "direct"){
-					const a = this.resolveDirect(net);
-					if(a) return a;
-				}
-				if(resolveMode === "direct-no-ipv6"){
-					const a = this.resolveDirect(net, undefined, true);
-					if(a) return a;
+				resolveMode: switch(resolveMode){
+					case "use-wan":{
+						const a = this.resolveDirect(null);
+						if(a) return a;
+						break resolveMode;
+					}
+					case "direct":{
+						const a = this.resolveDirect(net);
+						if(a) return a;
+						break resolveMode;
+					}
+					case "direct-no-ipv6":{
+						const a = this.resolveDirect(net, undefined, true);
+						if(a) return a;
+						break resolveMode;
+					}
+					case "direct-local":{
+						const a = this.resolveDirect(net, undefined, true, true);
+						if(a) return a;
+						break resolveMode;
+					}
+					case "use-lan":{
+						const a = this.resolveDirect(net, undefined, true, true);
+						if(a) return a;
+						break resolveMode;
+					}
 				}
 				if(own){
 					return undefined;
@@ -1615,7 +1651,7 @@ const Target = Class.create(
 			}
 		},
 		"resolveDirect" : {
-			value : function(net, forceDirect, noIPv6){
+			value : function(net, forceDirect, noIPv6, localOnly){
 				const result = new NetworkPortsObject();
 				if(net){
 					var t, lan3, found = false;
@@ -1635,6 +1671,21 @@ const Target = Class.create(
 					}
 				}
 				
+				if(localOnly){
+					var t, lan3;
+					for(t of this.endpointsList){
+						if(!net || t.location === net.location){
+							lan3 = forceDirect || !net
+								? t.lan3
+								: t.lan3 && net.filterIp(t.lan3, true);
+							if(lan3){
+								result.addIP(lan3);
+							}
+						}
+					}
+					return result.normalize();
+				}
+
 				if(forceDirect){
 					const location = net?.location || this.config.location;
 					if(location){
@@ -1670,46 +1721,57 @@ const Target = Class.create(
 		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
 				const resolveMode = parent?.resolveMode || this.resolveMode;
-				if(resolveMode === "use-router"){
-					if(this.location){
-						return this.location.resolveSmart(net);
-					}
-					return this.config.resolveSmart(net);
-				}
-				if(resolveMode === "use-local"){
-					if(net?.location){
-						return net.location.resolveSmart(net);
-					}
-				}
-				if(resolveMode === "no-address"){
-					return undefined;
-				}
-				if(resolveMode === "direct"){
-					const a = this.resolveDirect(net, true);
-					if(a) return a;
-				}
-				if(resolveMode === "direct-no-ipv6"){
-					const a = this.resolveDirect(net, true, true);
-					if(a) return a;
-				}
-				if(resolveMode === "use-wan"){
-					{
-						const result = this.resolveDirect(null);
-						if(result) return result;
-					}
-					
-					if(this.location){
-						return this.location.resolveSmart(null);
-					}
-
-					{					
-						const result = new NetworkPortsObject();
-						for(const t of this.endpointsList){
-							result.addNetworkPortsObject( t.resolveSmart(null, false, this) );
+				resolveMode: switch(resolveMode){
+					case "use-router":{
+						if(this.location){
+							return this.location.resolveSmart(net);
 						}
-						return result.normalize();
+						return this.config.resolveSmart(net);
+					}
+					case "use-local":{
+						if(net?.location){
+							return net.location.resolveSmart(net);
+						}
+						break resolveMode;
+					}
+					case "no-address":{
+						return undefined;
+					}
+					case "direct":{
+						const a = this.resolveDirect(net, true);
+						if(a) return a;
+						break resolveMode;
+					}
+					case "direct-no-ipv6":{
+						const a = this.resolveDirect(net, true, true);
+						if(a) return a;
+						break resolveMode;
+					}
+					case "direct-local":{
+						const a = this.resolveDirect(net, true, true, true);
+						if(a) return a;
+						break resolveMode;
+					}
+					case "use-wan":{
+						{
+							const result = this.resolveDirect(null);
+							if(result) return result;
+						}
+						
+						if(this.location){
+							return this.location.resolveSmart(null);
+						}
+	
+						{					
+							const result = new NetworkPortsObject();
+							for(const t of this.endpointsList){
+								result.addNetworkPortsObject( t.resolveSmart(null, false, this) );
+							}
+							return result.normalize();
+						}
 					}
 				}
+
 				if(this.location){
 					return this.location.resolveSmart(net);
 				}
@@ -1872,19 +1934,19 @@ const TargetStatic = Class.create(
 		},
 		"resolveDirect" : {
 			// leads to l6routes
-			value : function(net, /* unused */ forceDirect, noIPv6){
+			value : function(net, forceDirect, noIPv6, localOnly){
 				if(this.location){
-					return this.location.resolveDirect(net, forceDirect, noIPv6);
+					return this.location.resolveDirect(net, forceDirect, noIPv6, localOnly);
 				}
 				if(net){
 					if(net.location){
-						return net.location.resolveDirect(net, forceDirect, noIPv6);
+						return net.location.resolveDirect(net, forceDirect, noIPv6, localOnly);
 					}
 					if(this.config.location){
-						return this.config.location.resolveDirect(net, forceDirect, noIPv6);
+						return this.config.location.resolveDirect(net, forceDirect, noIPv6, localOnly);
 					}
 				}
-				return this.config.resolveDirect(net, forceDirect, noIPv6);
+				return this.config.resolveDirect(net, forceDirect, noIPv6, localOnly);
 			}
 		},
 		"resolveSmart" : {
@@ -1910,6 +1972,9 @@ const TargetStatic = Class.create(
 				case "no-address":
 					return undefined;
 
+				case "direct":
+					return this.resolveDirect(net);
+	
 				case "direct-no-ipv6":
 					{
 						const result = this.resolveDirect(net, undefined, true);
@@ -1921,9 +1986,9 @@ const TargetStatic = Class.create(
 						return this.location.resolveSmart(net);
 					}
 					return this.config.resolveSmart(net);
-
-				case "direct":
-					return this.resolveDirect(net);
+	
+				case "direct-local":
+					return this.resolveDirect(net, undefined, true, true);
 
 				case "use-wan":
 					{
@@ -4499,16 +4564,16 @@ const Configuration = Class.create(
 		},
 		"resolveDirect" : {
 			// leads to l6routes
-			value : function(net, forceDirect, noIPv6){
+			value : function(net, forceDirect, noIPv6, localOnly){
 				const result = new NetworkPortsObject();
 				for(var l of this.locations.list){
 					if(l.routers.list.some(Router.isActive)){
-						result.addNetworkPortsObject( l.resolveDirect(net, forceDirect, noIPv6) );
+						result.addNetworkPortsObject( l.resolveDirect(net, forceDirect, noIPv6, localOnly) );
 						continue;
 					}
 					for(var i of l.routers.list){
 						if(i.isActive && i.wan3){
-							result.addNetworkPortsObject( i.resolveDirect(net, forceDirect, noIPv6) );
+							result.addNetworkPortsObject( i.resolveDirect(net, forceDirect, noIPv6, localOnly) );
 						}
 					}
 				}

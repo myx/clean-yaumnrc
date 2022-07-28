@@ -188,7 +188,16 @@ module.exports = {
 			}
 		},
 		"ae3.myx.ru" : {
-			"location" : "h1"
+			"disposition" : "standalone",
+			"location" : "h1",
+			"wan" : {
+				"ip" : "ae3.myx.ru.wan",
+				"ipv6" : "2a01:4f8:160:30c1:0:0:0:777"
+			},
+			"lan" : {
+				"ip" : "77.77.77.77"
+			},
+			"dns" : "direct-local"
 		},
 		"www-h1.myx.ru" : {
 			"disposition" : "standalone",
@@ -543,6 +552,12 @@ module.exports = {
 			"location" : "o3",
 			"target" : "l6o2.myx.ru",
 			"dns" : "use-router",
+			"ssl" : "strong"
+		},
+		"local-o3.myx.ru" : {
+			"location" : "o3",
+			"target" : "l6o2.myx.ru",
+			"dns" : "direct-local",
 			"ssl" : "strong"
 		},
 		"l6o3.myx.ru" : {
