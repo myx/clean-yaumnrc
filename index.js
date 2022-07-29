@@ -3442,7 +3442,7 @@ const DhcpHost = Class.create(
 
 				const groups = this.groups;
 				if(groups){
-					const localGw = network.ip;
+					const localGw = this.gateway || network.ip;
 					const networks = new Set();
 					for(var s of location.config.servers.list){
 						if(!s.lan3 || !s.hasGroups(groups)){
