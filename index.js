@@ -1808,13 +1808,14 @@ const Target = Class.create(
 	},{
 		"makeTargetObject" : {
 			value : function(key, config, source){
+				const t = source.target;
+				const t0 = source.static;
+				const t1 = source.proxyHttp;
+				const t2 = source.proxyHttps;
+				const t3 = source.redirectHttp;
+				const t4 = source.redirectHttps;
 				{
-					const t0 = source.static;
-					const t1 = source.proxyHttp;
-					const t2 = source.proxyHttps;
-					const t3 = source.redirectHttp;
-					const t4 = source.redirectHttps;
-					if(t0 | t1 || t2 || t3 || t4){
+					if( (t2 || t4) || (!t && (t0 || t1 || t3)) ){
 						return new TargetStatic(
 							config, 
 							key, 
@@ -1826,17 +1827,14 @@ const Target = Class.create(
 						);
 					}
 				}
-				{
-					const t = source.target;
-					if("string" === typeof t){
-						return new TargetSingle(config, key, source, t);
-					}
-					if(t?.length){
-						return t.length == 1
-							? new TargetSingle(config, key, source, t[0])
-							: new TargetMultiple(config, key, source, t);
-						;
-					}
+				if("string" === typeof t){
+					return new TargetSingle(config, key, source, t);
+				}
+				if(t?.length){
+					return t.length == 1
+						? new TargetSingle(config, key, source, t[0])
+						: new TargetMultiple(config, key, source, t);
+					;
 				}
 				// invalid?
 				return new Target(config, key, source);
