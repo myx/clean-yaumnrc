@@ -2614,6 +2614,9 @@ const DomainStatic = Class.create(
 		Object.defineProperties(this, {
 			"dns" : {
 				value : new this.DnsStatic(this, config, source?.dns)
+			},
+			"allowTransfer" : {
+				value : source['allow-transfer'] || undefined /*|| "none" */
 			}
 		});
 		return this;
@@ -2715,7 +2718,7 @@ const DomainStatic = Class.create(
 				return {
 					"publish" : this.publish,
 					"mode" : this.mode,
-					"allow-transfer" : this.source['allow-transfer'],
+					"allow-transfer" : this.allowTransfer,
 					"dns" : this.dns.toSourceObject()
 				};
 			}
