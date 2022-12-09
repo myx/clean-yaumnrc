@@ -2797,8 +2797,7 @@ const DomainDedicated = Class.create(
 				for(target of this.config.targetListDns){
 					name = this.filterName(target.key, true);
 					if(name && !recsC.map[name]){
-						aa = target.resolveSmart(net);
-						if(aa){
+						if( (aa = target.resolveSmart(net)) ){
 							a4 = aa.ip;
 							a6 = aa.ipv6;
 							if(a4?.length){
@@ -2807,14 +2806,12 @@ const DomainDedicated = Class.create(
 							if(a6?.length){
 								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-6-' + target));
 							}
-							if(name !== '@'){
-								name = "*." + name;
-								if(a4?.length){
-									recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-*-4-' + target));
-								}
-								if(a6?.length){
-									recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-*-6-' + target));
-								}
+							name = (name === "@" ? "*" : "*." + name);
+							if(a4?.length){
+								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-*-4-' + target));
+							}
+							if(a6?.length){
+								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-*-6-' + target));
 							}
 						}
 					}
@@ -2823,8 +2820,7 @@ const DomainDedicated = Class.create(
 				for(target of this.config.locations.list){
 					name = this.filterName(target.key);
 					if(name){
-						aa = target.resolveSmart(net);
-						if(aa){
+						if( (aa = target.resolveSmart(net)) ){
 							a4 = aa.ip;
 							a6 = aa.ipv6;
 							if(a4?.length){
@@ -2854,8 +2850,7 @@ const DomainDedicated = Class.create(
 							if(target.routers.list.some(check)){
 								name = this.filterName(target.key, true) || target.key;
 								if(name && !recsC.map[name]){
-									aa = target.resolveSmart(net);
-									if(aa){
+									if( (aa = target.resolveSmart(net)) ){
 										a4 = aa.ip;
 										a6 = aa.ipv6;
 										if(a4?.length){
@@ -2879,9 +2874,8 @@ const DomainDedicated = Class.create(
 					}
 				}
 
-				if(!recsA.map["*"] || !recsA.map["@"]){
-					aa = this.config.resolveSmart(net);
-					if(aa){
+				if(!recsA.map["*"] || !recsA.map["@"] || !recs6.map["*"] || !recs6.map["@"]){
+					if( (aa = this.config.resolveSmart(net)) ){
 						a4 = aa.ip;
 						a6 = aa.ipv6;
 						if(a4?.length){
