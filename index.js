@@ -2800,18 +2800,15 @@ const DomainDedicated = Class.create(
 						if( (aa = target.resolveSmart(net)) ){
 							a4 = aa.ip;
 							a6 = aa.ipv6;
-							if(a4?.length){
-								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-4-' + target));
-							}
-							if(a6?.length){
-								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-6-' + target));
-							}
-							name = (name === "@" ? "*" : "*." + name);
-							if(a4?.length){
-								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-*-4-' + target));
-							}
-							if(a6?.length){
-								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-*-6-' + target));
+							for(name of [name, (name === "@" ? "*" : "*." + name)]){
+								if(a4?.length){
+									recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'target-44-' + target));
+									recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6 || [], 'target-46-' + target));
+								}else//
+								if(a6?.length){
+									recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4 || [], 'target-64-' + target));
+									recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'target-66-' + target));
+								}
 							}
 						}
 					}
@@ -2823,20 +2820,15 @@ const DomainDedicated = Class.create(
 						if( (aa = target.resolveSmart(net)) ){
 							a4 = aa.ip;
 							a6 = aa.ipv6;
-							if(a4?.length){
-								recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-4-'+target));
-							} 
-							if(a6?.length){
-								recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-6-'+target));
-							}
-							if(name !== '@'){
-								name = "*." + name;
+							for(name of [name, (name === "@" ? "*" : "*." + name)]){
 								if(a4?.length){
-									recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-*-4-'+target));
-								} 
+									recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-44-'+target));
+									recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6 || [], 'location-46-'+target));
+								} else//
 								if(a6?.length){
-									recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-*-4-'+target));
-								} 
+									recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4 || [], 'location-64-'+target));
+									recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-66-'+target));
+								}
 							}
 						}
 					}
@@ -2855,11 +2847,13 @@ const DomainDedicated = Class.create(
 										a6 = aa.ipv6;
 										if(a4?.length){
 											map[name] = true;
-											recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'location-@-4-'+target));
-										}
+											recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4, 'router-44-'+target));
+											recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6 || [], 'router-46-'+target));
+										}else//
 										if(a6?.length){
 											map[name] = true;
-											recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'location-@-6-'+target));
+											recsA.map[name] || recsA.put(name, new DnsRecordStatic(name, a4 || [], 'router-64-'+target));
+											recs6.map[name] || recs6.put(name, new DnsRecordStatic(name, a6, 'router-66-'+target));
 										}
 									}
 								}
@@ -2876,15 +2870,11 @@ const DomainDedicated = Class.create(
 
 				if(!recsA.map["*"] || !recsA.map["@"] || !recs6.map["*"] || !recs6.map["@"]){
 					if( (aa = this.config.resolveSmart(net)) ){
-						a4 = aa.ip;
-						a6 = aa.ipv6;
-						if(a4?.length){
-							recsA.map["*"] || recsA.put("*", new DnsRecordStatic("*", a4, 'config-a4'));
-							recsA.map["@"] || recsA.put("@", new DnsRecordStatic("@", a4, 'config-a4'));
-						}
-						if(a6?.length){
-							recs6.map["*"] || recs6.put("*", new DnsRecordStatic("*", a6, 'config-a6'));
-							recs6.map["@"] || recs6.put("@", new DnsRecordStatic("@", a6, 'config-a6'));
+						for(name of ["@", "*"]){
+							if(!recsA.map[name] && !recs6.map[name]){
+								recsA.put(name, new DnsRecordStatic(name, aa.ip || [], 'config-a4'));
+								recs6.put(name, new DnsRecordStatic(name, aa.ipv6 || [], 'config-a6'));
+							}
 						}
 					}
 				}
