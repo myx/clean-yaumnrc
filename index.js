@@ -2820,22 +2820,6 @@ const DomainDedicated = Class.create(
 					}
 				}
 
-				if(!recsA.map["*"] || !recsA.map["@"]){
-					aa = this.config.resolveSmart(net);
-					if(aa){
-						a4 = aa.ip;
-						a6 = aa.ipv6;
-						if(a4?.length){
-							recsA.map["*"] || recsA.put("*", new DnsRecordStatic("*", a4, 'config-a4'));
-							recsA.map["@"] || recsA.put("@", new DnsRecordStatic("@", a4, 'config-a4'));
-						}
-						if(a6?.length){
-							recs6.map["*"] || recs6.put("*", new DnsRecordStatic("*", a6, 'config-a6'));
-							recs6.map["@"] || recs6.put("@", new DnsRecordStatic("@", a6, 'config-a6'));
-						}
-					}
-				}
-
 				for(target of this.config.locations.list){
 					name = this.filterName(target.key);
 					if(name){
@@ -2892,6 +2876,22 @@ const DomainDedicated = Class.create(
 					}
 					if(!recsN.map["@"]){
 						recsN.put("@", new DnsRecordStatic("@", Object.keys(map), 'config-n'));
+					}
+				}
+
+				if(!recsA.map["*"] || !recsA.map["@"]){
+					aa = this.config.resolveSmart(net);
+					if(aa){
+						a4 = aa.ip;
+						a6 = aa.ipv6;
+						if(a4?.length){
+							recsA.map["*"] || recsA.put("*", new DnsRecordStatic("*", a4, 'config-a4'));
+							recsA.map["@"] || recsA.put("@", new DnsRecordStatic("@", a4, 'config-a4'));
+						}
+						if(a6?.length){
+							recs6.map["*"] || recs6.put("*", new DnsRecordStatic("*", a6, 'config-a6'));
+							recs6.map["@"] || recs6.put("@", new DnsRecordStatic("@", a6, 'config-a6'));
+						}
 					}
 				}
 
