@@ -1900,6 +1900,9 @@ const TargetStatic = Class.create(
 		},
 		"hasLocalEndpoints" : {
 			get : function(){
+				if(this.proxyHttps || this.redirectHttps){
+					return false;
+				}
 				if(!this.location){
 					return true;
 				}
