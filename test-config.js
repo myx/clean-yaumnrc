@@ -1,7 +1,7 @@
 module.exports = {
 	"locations" : {
 		"h1" : {
-			"name" : "h1.myx.ru",
+			"name" : "h1.myx.nz",
 			"wan3" : "88.198.177.100",
 			"wan36" : "2a01:4f8:d1:1d00::100",
 			"url" : [
@@ -19,14 +19,14 @@ module.exports = {
 			"tap3" : "10.112.11.20"
 		},
 		"h2" : {
-			"name" : "h2.myx.ru",
+			"name" : "h2.myx.nz",
 			"wan3" : "167.7.212.11",
 			"url" : [
-				"https://my.selectel.ru/vpc/projects"
+				"https://my.selectel.example/vpc/projects"
 			]
 		},
 		"h3" : {
-			"name" : "h3.myx.ru",
+			"name" : "h3.myx.nz",
 			"wan3" : "5.19.177.100/28",
 			"wan36" : "2a01:4f8:5:1700::100",
 			"url" : [
@@ -40,7 +40,7 @@ module.exports = {
 			"tap3" : "10.112.13.20"
 		},
 		"h0" : {
-			"name" : "h0.myx.ru",
+			"name" : "h0.myx.nz",
 			"wan3" : [
 				"5.11.177.100/28",
 				"5.13.177.100/28",
@@ -57,7 +57,7 @@ module.exports = {
 			"tap3" : "10.112.17.20"
 		},
 		"o3" : {
-			"name" : "o3.myx.ru",
+			"name" : "o3.myx.nz",
 			"wan3" : "97.9.121.22",
 			"lan3" : [
 				"192.168.3.250", 
@@ -71,22 +71,22 @@ module.exports = {
 			"tap3" : "10.112.21.20" 
 		},
 		"h5" : {
-			"name" : "h5.myx.ru",
+			"name" : "h5.myx.nz",
 			"wan3" : "222.1.88.13",
 			"wan36" : "2b01:3e7:222:1::88:13",
 			"lan3" : "192.168.5.250",
 			"tap3" : "10.112.55.20"
 		},
 		"g1" : {
-			"name" : "g1.myx.ru",
+			"name" : "g1.myx.nz",
 			"title" : "GCP (Google Cloud Platform)"
 		},
 		"a1" : {
-			"name" : "a1.myx.ru",
+			"name" : "a1.myx.nz",
 			"title" : "AWS (Amazon Web S?)"
 		},
 		"eu" : {
-			"name" : "eu.myx.ru",
+			"name" : "eu.myx.nz",
 			"title" : "EU Root Entry, h1+o3",
 			"group" : [
 				"h1",
@@ -95,7 +95,7 @@ module.exports = {
 		}
 	},
 	"servers" : {
-		"l6h1.myx.ru" : {
+		"l6h1.myx.nz" : {
 			"disposition" : "guest",
 			"router" : "active",
 			"location" : "h1",
@@ -114,7 +114,7 @@ module.exports = {
 			"tcpShift" : 1000,
 			"monitor" : "l6route"
 		},
-		"l6h0.myx.ru" : {
+		"l6h0.myx.nz" : {
 			"disposition" : "guest",
 			"router" : "active",
 			"location" : "h0",
@@ -133,7 +133,7 @@ module.exports = {
 			"tcpShift" : 1000,
 			"monitor" : "l6route"
 		},
-		"l6o3.myx.ru" : {
+		"l6o3.myx.nz" : {
 			"disposition" : "guest",
 			"router" : "active",
 			"location" : "o3",
@@ -151,7 +151,7 @@ module.exports = {
 			"tcpShift" : 2000,
 			"monitor" : "l6route"
 		},
-		"stdalone1-h1.myx.ru" : {
+		"stdalone1-h1.myx.nz" : {
 			"disposition" : "standalone",
 			"location" : "h1",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
@@ -163,7 +163,7 @@ module.exports = {
 				"ip" : "192.168.1.77"
 			}
 		},
-		"stdalone2-h1.myx.ru" : {
+		"stdalone2-h1.myx.nz" : {
 			"disposition" : "host",
 			"location" : "h1",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
@@ -175,7 +175,7 @@ module.exports = {
 				"ipv6" : "2a01:4f8:160:30c1:0:0:0:76"
 			}
 		},
-		"stdalone3-h1.myx.ru" : {
+		"stdalone3-h1.myx.nz" : {
 			"disposition" : "standalone",
 			"location" : "h1",
 			"resources" : {	"cpu" : 2,	"ram" : "1024m",	"hdd" : "100G"	},
@@ -187,11 +187,11 @@ module.exports = {
 				"ip" : "7.7.7.7"
 			}
 		},
-		"ae3.myx.ru" : {
+		"ae3.myx.nz" : {
 			"disposition" : "standalone",
 			"location" : "h1",
 			"wan" : {
-				"ip" : "ae3.myx.ru.wan",
+				"ip" : "ae3.myx.nz.wan",
 				"ipv6" : "2a01:4f8:160:30c1:0:0:0:777"
 			},
 			"lan" : {
@@ -199,7 +199,7 @@ module.exports = {
 			},
 			"dns" : "direct-local"
 		},
-		"www-h1.myx.ru" : {
+		"www-h1.myx.nz" : {
 			"disposition" : "standalone",
 			"location" : "h1",
 			"net" : "www",
@@ -212,7 +212,7 @@ module.exports = {
 			"type" : "ae3bsd",
 			"monitor" : "acmcms"
 		},
-		"www-o3.myx.ru" : {
+		"www-o3.myx.nz" : {
 			"disposition" : "standalone",
 			"location" : "o3",
 			"net" : "www",
@@ -225,7 +225,7 @@ module.exports = {
 			"type" : "ae3bsd",
 			"monitor" : "acmcms"
 		},
-		"www-2-o3.myx.ru" : {
+		"www-2-o3.myx.nz" : {
 			"disposition" : "standalone",
 			"location" : "o3",
 			"net" : "www",
@@ -238,7 +238,7 @@ module.exports = {
 			"type" : "unix",
 			"monitor" : "acmcms"
 		},
-		"mpxy1.myx.ru" : {
+		"mpxy1.myx.nz" : {
 			"disposition" : "other",
 			"location" : "h1",
 			"net" : "monitoring",
@@ -249,7 +249,7 @@ module.exports = {
 				"ip" : "192.168.1.27"
 			}
 		},
-		"mpxy5.myx.ru" : {
+		"mpxy5.myx.nz" : {
 			"disposition" : "other",
 			"location" : "h5",
 			"net" : [ "monitoring", "www" ],
@@ -259,7 +259,7 @@ module.exports = {
 				"ip" : "192.168.5.27"
 			}
 		},
-		"mpxy3.myx.ru" : {
+		"mpxy3.myx.nz" : {
 			"disposition" : "other",
 			"location" : "o3",
 			"net" : [ "monitoring", "www" ],
@@ -340,7 +340,7 @@ module.exports = {
 			"myx" : {
 				"type" : "email",
 				"name" : "Alexander Kharichev",
-				"email" : "myx@ndmsy123stems.com",
+				"email" : "myx@ndmserver.com",
 				"redirect" : "myx-tst"
 			},
 			"myx-sms" : {
@@ -351,13 +351,13 @@ module.exports = {
 			},
 			"liepe" : {
 				"type" : "email",
-				"name" : "Alexandra Platonova",
-				"email" : "a.platonova@ndm123systems.com"
+				"name" : "Valentiona Platonova",
+				"email" : "a.platonova@ndmserver.com"
 			},
 			"liepe-sms": {
 				"type": "sms",
-				"name": "Alexandra Platonova",
-				"phone": "+79262043368"
+				"name": "Valentiona Platonkina",
+				"phone": "+546784332345"
 			},
 			"myx-all" : {
 				"type" : "group",
@@ -462,8 +462,8 @@ module.exports = {
 				"acme-le-MYX-RU" : {
 					"type" : "acme-http-01",
 					"acme" : "letsencrypt",
-					"master" : "l6o3.myx.ru",
-					"email" : "myx@myx.ru",
+					"master" : "l6o3.myx.nz",
+					"email" : "myx@myx.nz",
 					"keySize": "2048",
 					"subject" : "/C=RU/ST=RU/OU=MyX/CN=${CN}/ext:subjectAltName=DNS:${CN}"
 				}
@@ -473,7 +473,7 @@ module.exports = {
 			".myx.co.nz" : {
 				"mode" : "infrastructure"
 			},
-			".myx.ru" : {
+			".myx.nz" : {
 				"mode" : "infrastructure",
 				"dns" : {
 					"A" : {
@@ -485,7 +485,7 @@ module.exports = {
 					}
 				}
 			},
-			".ded.myx.ru" : {
+			".ded.myx.nz" : {
 				"mode" : "dedicated",
 				"dns" : {
 					"A" : {
@@ -497,14 +497,14 @@ module.exports = {
 					}
 				}
 			},
-			".del.myx.ru" : {
+			".del.myx.nz" : {
 				"mode" : "delegated",
 				"servers" : [
 					"ns1.keen.com", 
 					"ns2.keen.com"
 				]
 			},
-			".sta.myx.ru" : {
+			".sta.myx.nz" : {
 				"mode" : "static",
 				"dns" : {
 					"NS" : {
@@ -530,139 +530,139 @@ module.exports = {
 						]
 					},
 					"CNAME" : {
-						"zinka.sta.myx.ru." : "www.microsoft.com."
+						"zinka.sta.myx.nz." : "www.microsoft.com."
 					}
 				}
 			},
-			".sla.myx.ru" : {
+			".sla.myx.nz" : {
 				"mode": "slave",
 				"masters": ["5.9.100.67", "172.16.111.11", "172.16.121.11"]
 			},
-			".slb.myx.ru" : {
+			".slb.myx.nz" : {
 				"mode": "slave",
 				"masters": ["5.9.100.67", "172.16.111.11", "172.16.121.11"]
 			}
 		}
 	},
 	"targets" : {
-		"h1.myx.ru" : {
-			"target" : "l6h1.myx.ru"
+		"h1.myx.nz" : {
+			"target" : "l6h1.myx.nz"
 		},
-		"o3.myx.ru" : {
+		"o3.myx.nz" : {
 			"location" : "o3",
-			"target" : "l6o2.myx.ru",
+			"target" : "l6o2.myx.nz",
 			"dns" : "use-router",
 			"ssl" : "strong"
 		},
-		"local-o3.myx.ru" : {
+		"local-o3.myx.nz" : {
 			"location" : "o3",
-			"target" : "l6o2.myx.ru",
+			"target" : "l6o2.myx.nz",
 			"dns" : "direct-local",
 			"ssl" : "strong"
 		},
-		"l6o3.myx.ru" : {
-			"target" : "l6o3.myx.ru",
+		"l6o3.myx.nz" : {
+			"target" : "l6o3.myx.nz",
 			"ssl" : "strong"
 		},
-		"l6.myx.ru" : {
-			"target" : [ "l6h1.myx.ru", "l6o3.myx.ru" ]
+		"l6.myx.nz" : {
+			"target" : [ "l6h1.myx.nz", "l6o3.myx.nz" ]
 		},
-		"stdalone2-h1.myx.ru" : {
-			"target" : "stdalone2-h1.myx.ru",
+		"stdalone2-h1.myx.nz" : {
+			"target" : "stdalone2-h1.myx.nz",
 			"dns" : "ignore-wan"
 		},
-		"stdalone3-h1.myx.ru" : {
-			"target" : "stdalone2-h1.myx.ru",
+		"stdalone3-h1.myx.nz" : {
+			"target" : "stdalone2-h1.myx.nz",
 			"dns" : "ignore-wan"
 		},
-		"stdalone.myx.ru" : {
+		"stdalone.myx.nz" : {
 			"target" : [
-				"stdalone1-h1.myx.ru", 
-				"stdalone2-h1.myx.ru", 
-				"stdalone3-h1.myx.ru"
+				"stdalone1-h1.myx.nz", 
+				"stdalone2-h1.myx.nz", 
+				"stdalone3-h1.myx.nz"
 			]
 		},
-		"www.myx.ru" : {
+		"www.myx.nz" : {
 			"target" : [
-				"www-h1.myx.ru",
-				"www-o3.myx.ru"
+				"www-h1.myx.nz",
+				"www-o3.myx.nz"
 			],
 			"monitor" : "acmcms"
 		},
-		"web.myx.ru" : {
-			"target" : "l6.myx.ru",
+		"web.myx.nz" : {
+			"target" : "l6.myx.nz",
 			"monitor" : "acmcms"
 		},
-		"zyx.myx.ru" : {
-			"target" : "zyxel.myx.ru",
+		"zyx.myx.nz" : {
+			"target" : "zyxel.myx.nz",
 			"monitor" : "acmcms"
 		},
-		"zyxel.myx.ru" : {
-			"proxyHttp" : "http://zyxel.ru",
-			"proxyHttps" : "https://zyxel.ru"
+		"zyxel.myx.nz" : {
+			"proxyHttp" : "http://zyxel.example",
+			"proxyHttps" : "https://zyxel.example"
 		},
-		"mpxy-direct.myx.ru" : {
-			"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru", "mpxy5.myx.ru"],
+		"mpxy-direct.myx.nz" : {
+			"target" : ["mpxy1.myx.nz", "mpxy3.myx.nz", "mpxy5.myx.nz"],
 			"dns" : "direct"
 		},
-		"mpxy-default.myx.ru" : {
-			"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru", "mpxy5.myx.ru"]
+		"mpxy-default.myx.nz" : {
+			"target" : ["mpxy1.myx.nz", "mpxy3.myx.nz", "mpxy5.myx.nz"]
 		},
-		"mpxy-router.myx.ru" : {
-			"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru", "mpxy5.myx.ru"],
+		"mpxy-router.myx.nz" : {
+			"target" : ["mpxy1.myx.nz", "mpxy3.myx.nz", "mpxy5.myx.nz"],
 			"dns" : "use-router"
 		},
-		"mpxy-def-h1l.myx.ru" : {
+		"mpxy-def-h1l.myx.nz" : {
 			"location" : "h1",
-			"target" : ["mpxy1.myx.ru", "mpxy3.myx.ru"]
+			"target" : ["mpxy1.myx.nz", "mpxy3.myx.nz"]
 		},
-		"capandcap.ru" : {
-			"proxyHttp" : "http://capandcap.ru",
-			"proxyHttps" : "https://canandcap.ru"
+		"capandcap.example" : {
+			"proxyHttp" : "http://capandcap.example",
+			"proxyHttps" : "https://canandcap.example"
 		},
-		"bcp-h1.myx.ru" : {
+		"bcp-h1.myx.nz" : {
 			"location" : "h1",
-			"proxyHttp" : "http://maersk.myx.ru:5001", 
-			"proxyHttps" : "http://maersk.myx.ru:5001",
+			"proxyHttp" : "http://maersk.myx.nz:5001", 
+			"proxyHttps" : "http://maersk.myx.nz:5001",
 			"ssl" : "ndm-strong-VG"
 		},
 
-		"bcp-aw.myx.ru" : {
+		"bcp-aw.myx.nz" : {
 			"proxyHttp" : "http://buildproxy-env.eu-central-1.elasticbeanstalk.com", 
 			"proxyHttps" : "http://buildproxy-env.eu-central-1.elasticbeanstalk.com",
 			"ssl" : "ndm-strong-VG"
 		},
 
 
-		"bcp-o3.myx.ru" : {
+		"bcp-o3.myx.nz" : {
 			"location" : "o3",
-			"proxyHttp" : "http://sovtransavto.myx.ru:5001", 
-			"proxyHttps" : "http://sovtransavto.myx.ru:5001",
+			"proxyHttp" : "http://sovtransavto.myx.nz:5001", 
+			"proxyHttps" : "http://sovtransavto.myx.nz:5001",
 			"ssl" : "ndm-strong-VG"
 		},
 
-		"bcp.myx.ru" : {
+		"bcp.myx.nz" : {
 			"target" : [
-				"bcp-h1.myx.ru",
-				"bcp-o3.myx.ru",
-				"bcp-aw.myx.ru"
+				"bcp-h1.myx.nz",
+				"bcp-o3.myx.nz",
+				"bcp-aw.myx.nz"
 			]
 		},
 		
 		"eu-web" : {
 			"target" : [
-				"h1.myx.ru",
-				"h5.myx.ru",
-				"o3.myx.ru"
+				"h1.myx.nz",
+				"h5.myx.nz",
+				"o3.myx.nz"
 			]
 		},
 		
 		"eu.site" : {
 			"location" : "eu-web",
 			"target" : [
-				"bcp-h1.myx.ru",
-				"bcp-o3.myx.ru",
-				"bcp-aw.myx.ru"
+				"bcp-h1.myx.nz",
+				"bcp-o3.myx.nz",
+				"bcp-aw.myx.nz"
 			]
 		}
 	},
