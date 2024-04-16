@@ -1412,7 +1412,8 @@ const Server = Class.create(
 		},
 		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
-				resolveMode: switch( (parent ?? this).resolveMode || "default" ){
+				const resolveMode = parent ? parent.resolveMode : (this.resolveMode || 'default');
+				resolveMode: switch(resolveMode){
 					case "no-address":{
 						return undefined;
 					}
