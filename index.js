@@ -1412,8 +1412,7 @@ const Server = Class.create(
 		},
 		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
-				const resolveMode = parent?.resolveMode || this.resolveMode || 'default';
-				resolveMode: switch(resolveMode){
+				resolveMode: switch(parent?.resolveMode || this.resolveMode || 'default'){
 					case "no-address":{
 						return undefined;
 					}
@@ -1423,7 +1422,7 @@ const Server = Class.create(
 						break resolveMode;
 					}
 					case "default":{
-						const a = this.resolveDirect(net, false);
+						const a = this.resolveDirect(net);
 						if(a) return a;
 						break resolveMode;
 					}
@@ -1720,8 +1719,7 @@ const Target = Class.create(
 		},
 		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
-				const resolveMode = parent?.resolveMode || this.resolveMode;
-				resolveMode: switch(resolveMode){
+				resolveMode: switch(parent?.resolveMode || this.resolveMode){
 					case "no-address":{
 						return undefined;
 					}
