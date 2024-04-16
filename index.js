@@ -1130,8 +1130,8 @@ const Location = Class.create(
 		"resolveSmart" : {
 			value : function(net, own/*, location*/){
 				{
-					const result = this.resolveDirect(net);
-					if(result) return result;
+					const a = this.resolveDirect(net);
+					if(a) return a;
 				}
 				{
 					const result = new NetworkPortsObject();
@@ -1412,7 +1412,7 @@ const Server = Class.create(
 		},
 		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
-				resolveMode: switch(parent?.resolveMode || this.resolveMode || 'default'){
+				resolveMode: switch( (parent ?? this).resolveMode || "default" ){
 					case "no-address":{
 						return undefined;
 					}
