@@ -1389,22 +1389,20 @@ const Server = Class.create(
 			}
 		},
 		"resolveDirect" : {
-			value : function(net, /* unused */ forceDirect, noIPv6, localOnly){
+			value : function(net, forceDirect, noIPv6, localOnly){
 				const result = new NetworkPortsObject();
-				if(net && this.location === net.location){
-					if(localOnly){
-						if(this.lan3){
-							result.addIP(this.lan3);
-						}
-						return result.normalize();
-					}
-					result.addIP( this.lan3 && net.filterIp(this.lan3, true) || this.wan3 );
-					return result.normalize();
-				}
 				if(localOnly){
 					if(this.lan3){
 						result.addIP(this.lan3);
 					}
+					return result.normalize();
+				}
+				if(net && forceDirect && this.lan3){
+					result.addIP( this.lan3 );
+					return result.normalize();
+				}
+				if(net && this.location === net.location){
+					result.addIP( this.lan3 && net.filterIp(this.lan3, true) || this.wan3 );
 					return result.normalize();
 				}
 				this.wan3 && result.addIP(this.wan3);
@@ -1425,22 +1423,17 @@ const Server = Class.create(
 						break resolveMode;
 					}
 					case "direct":{
-						const a = this.resolveDirect(net);
+						const a = this.resolveDirect(net, true);
 						if(a) return a;
 						break resolveMode;
 					}
 					case "direct-no-ipv6":{
-						const a = this.resolveDirect(net, undefined, true);
+						const a = this.resolveDirect(net, true, true);
 						if(a) return a;
 						break resolveMode;
 					}
 					case "direct-local":{
-						const a = this.resolveDirect(net, undefined, true, true);
-						if(a) return a;
-						break resolveMode;
-					}
-					case "use-lan":{
-						const a = this.resolveDirect(net, undefined, true, true);
+						const a = this.resolveDirect(net, true, true, true);
 						if(a) return a;
 						break resolveMode;
 					}
