@@ -1412,13 +1412,18 @@ const Server = Class.create(
 		},
 		"resolveSmart" : {
 			value : function(net, own, parent/*, location*/){
-				const resolveMode = parent && (parent.resolveMode || 'default') || this.resolveMode || 'direct';
+				const resolveMode = parent && (parent.resolveMode || 'default') || this.resolveMode || 'default';
 				resolveMode: switch(resolveMode){
 					case "no-address":{
 						return undefined;
 					}
 					case "use-wan":{
 						const a = this.resolveDirect(null);
+						if(a) return a;
+						break resolveMode;
+					}
+					case "default":{
+						const a = this.resolveDirect(net, true);
 						if(a) return a;
 						break resolveMode;
 					}
