@@ -1112,8 +1112,7 @@ const Location = Class.create(
 				}
 				if(localOnly){
 					if(this.lan3){
-						var lan3, filtered;
-						for(lan3 of this.lan3){
+						for(var lan3 of this.lan3){
 							result.addIP(lan3);
 						}
 					}
@@ -1395,7 +1394,7 @@ const Server = Class.create(
 				if(net && this.location === net.location){
 					if(localOnly){
 						if(this.lan3){
-							result.addIP( this.lan3 );
+							result.addIP(this.lan3);
 						}
 						return result.normalize();
 					}
@@ -1404,7 +1403,7 @@ const Server = Class.create(
 				}
 				if(localOnly){
 					if(this.lan3){
-						result.addIP( this.lan3 );
+						result.addIP(this.lan3);
 					}
 					return result.normalize();
 				}
@@ -1417,6 +1416,9 @@ const Server = Class.create(
 			value : function(net, own, parent/*, location*/){
 				const resolveMode = parent && (parent.resolveMode || 'default') || this.resolveMode || 'direct';
 				resolveMode: switch(resolveMode){
+					case "no-address":{
+						return undefined;
+					}
 					case "use-wan":{
 						const a = this.resolveDirect(null);
 						if(a) return a;
@@ -1722,6 +1724,9 @@ const Target = Class.create(
 			value : function(net, own, parent/*, location*/){
 				const resolveMode = parent?.resolveMode || this.resolveMode;
 				resolveMode: switch(resolveMode){
+					case "no-address":{
+						return undefined;
+					}
 					case "use-router":{
 						if(this.location){
 							return this.location.resolveSmart(net);
@@ -1733,9 +1738,6 @@ const Target = Class.create(
 							return net.location.resolveSmart(net);
 						}
 						break resolveMode;
-					}
-					case "no-address":{
-						return undefined;
 					}
 					case "direct":{
 						const a = this.resolveDirect(net, true);
@@ -1753,15 +1755,11 @@ const Target = Class.create(
 						break resolveMode;
 					}
 					case "use-wan":{
-						{
-							const result = this.resolveDirect(null);
-							if(result) return result;
-						}
-						
+						const a = this.resolveDirect(null);
+						if(a) return a;
 						if(this.location){
 							return this.location.resolveSmart(null);
 						}
-	
 						{					
 							const result = new NetworkPortsObject();
 							for(const t of this.endpointsList){
@@ -1960,8 +1958,10 @@ const TargetStatic = Class.create(
 				}
 				const resolveMode = parent?.resolveMode || this.resolveMode;
 				switch(resolveMode || "use-router"){
-
-				case "use-local":
+				case "no-address":{
+					return undefined;
+				}
+				case "use-local":{
 					if(net?.location){
 						return net.location.resolveSmart(net);
 					}
@@ -1969,40 +1969,29 @@ const TargetStatic = Class.create(
 						return this.location.resolveSmart(net);
 					}
 					return this.config.resolveSmart(net);
-
-				case "no-address":
-					return undefined;
-
-				case "direct":
+				}
+				case "direct":{
 					return this.resolveDirect(net);
-	
-				case "direct-no-ipv6":
-					{
-						const result = this.resolveDirect(net, undefined, true);
-						if(result){
-							return result;
-						}
-					}
+				}
+				case "direct-no-ipv6":{
+					const a = this.resolveDirect(net, undefined, true);
+					if(a) return a;
 					if(this.location){
 						return this.location.resolveSmart(net);
 					}
 					return this.config.resolveSmart(net);
-	
-				case "direct-local":
+				}
+				case "direct-local":{
 					return this.resolveDirect(net, undefined, true, true);
-
-				case "use-wan":
-					{
-						const result = this.resolveDirect(null);
-						if(result) {
-							return result;
-						}
-					}
+				}
+				case "use-wan":{
+					const a = this.resolveDirect(null);
+					if(a) return a;
 					if(this.location){
 						return this.location.resolveSmart(null);
 					}
 					return this.resolveDirect(net);
-
+				}
 				case "use-router":
 					// FALL-THROUGH
 				default:
@@ -4571,8 +4560,8 @@ const Configuration = Class.create(
 		"resolveSmart" : {
 			value : function(net){
 				{
-					const result = this.resolveDirect(net);
-					if(result) return result;
+					const a = this.resolveDirect(net);
+					if(a) return a;
 				}
 				{
 					const result = new NetworkPortsObject();
