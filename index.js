@@ -1012,6 +1012,9 @@ const Location = Class.create(
 			"key" : {
 				value : key
 			},
+			"zone" : {
+				value : source.zone || undefined
+			},
 			"net3" : {
 				value : net3
 			},
@@ -1029,6 +1032,9 @@ const Location = Class.create(
 			},
 			"tap3" : {
 				value : source.tap3
+			},
+			"group" : {
+				value : source.group || undefined
 			},
 			"servers" : {
 				value : new ListAndMap()
@@ -1236,6 +1242,25 @@ const Location = Class.create(
 				return this.hasRemoteEndpoints;
 			}
 		},
+		"endpointsList" : {
+			// to be functionally compatible with Target objects
+			get : function(){
+				if(this.source.group?.push){
+					// map group member names to locations
+					return this.source.group.reduce(function(r,n){
+						const m = this.config.locations.map[n];
+						if(!m || m === this || r.contains(m)){
+							return r;
+						}
+						for(const e of (m.endpointsList ?? [])){
+							r.push(e);
+						}
+						return r;
+					},[]);
+				}
+				return [ this ];
+			}
+		},
 		"hasLocalEndpoints" : {
 			get : function(){
 				if(this.source.group?.push){
@@ -1267,12 +1292,13 @@ const Location = Class.create(
 				return {
 					"name" : this.name || undefined,
 					"title" : (this.source.title || this.title !== this.name) && this.title || undefined,
+					"zone" : this.zone || undefined,
 					"wan3" : this.source.wan3 || undefined,
 					"net3" : this.source.net3 || undefined,
 					"wan36" : this.wan36 || undefined,
 					"lan3" : this.lans && (this.lans.list ? this.lans.list.map(function(x){return x.toSourceObject();}) : this.lans.toSourceObject()) || undefined,
 					"tap3" : this.tap3 || undefined,
-					"group" : this.wan36 || undefined,
+					"group" : this.group || undefined,
 				};
 			}
 		},
@@ -2453,12 +2479,12 @@ const Domains = Class.create(
 		"makeStaticView" : {
 			value : function(net){
 				const result = new Domains(this.config);
-				for(let domain of this.list){
-					const view = domain.makeStaticView 
-						? domain.makeStaticView(net)
-						: domain
+				for(let d of this.list){
+					const view = d.makeStaticView 
+						? d.makeStaticView(net)
+						: d
 					;
-					view && (result.put(domain.key, view));
+					view && (result.put(d.key, view));
 				}
 				return result;
 			}
@@ -4613,7 +4639,7 @@ const Configuration = Class.create(
 			execute : "once", get : function(){
 				const map = {};
 				for(const t of this.targets.list){
-					map[t.key] = t;
+						map[t.key] = t;
 				}
 				map['default'] ??= new Target(this, 'default', {});
 				return Object.values(map);
