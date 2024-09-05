@@ -1,5 +1,6 @@
 /**
  * 
+ *  // parse configuration
  *	const config = Config.parse({
  *		"locations" : {
  *			"h1" : {
@@ -12,23 +13,32 @@
  * 	});
  *  
  * 
- * 	const view = config.makeView('l6h1.myx.ru');
+ *  // create configuration view for a server
+ * 	const view = config.makeView('l6h1.myx.nz');
  * 
  * 
  *  .resolveXXX - Name Resolution (DNS) related
+ * 
  *  .provisionXXX - Envirionvemt Provisioning (DHCP) related
+ * 
  *  .proxyXXX - Level6 Proxying (NGINX/SOCKS) related
+ * 
  *  .forwardXXX - Level3 Forwarding (IPFW/NAT) related
+ * 
  *  .networkXXX - L2, L3/CIDR segment (like 192.168.3.0/24;192.168.7.0/24)
  * 
  * 
- *  .locations
- *  .servers
- *  .targets
- *  .routing
- *  .routing.domains
+ *  .locations -- all (infrastructure) locations
+ *  .servers -- all (infrastructure) servers
+ *  .targets -- all (routing) targets
+ *  .routing -- routing settings
+ *  .routing.domains -- all (DNS) domains
  */
 
+ /**
+  * Class class. Classic JS is missing native `class` keyword. 
+  * This polyfill has some extra features ("execute":"once").
+  */
 const Class = {
 	"create" : function(name, inherit, constructor, properties, statics){
 		const p = constructor.prototype = inherit
@@ -67,56 +77,19 @@ const Class = {
 			});
 		}
 		return constructor;
-	}
-};
-
-
-const f = {
-	defineProperty : function(o, n, v){
+	},
+	"defineProperty" : function(o, n, v){
 		Object.defineProperty(o, n, { value : v	});
 		return v;
-	},
-	parseNetwork : function(cidr, mac, defaultBits, key){
-		if(!cidr){
-			return undefined;
-		}
-		/** if address already  */
-		if(cidr.AbstractAddress){
-			return cidr;
-		}
-		/** if it's a map object  */
-		if(cidr.ip || cidr.key || cidr.mac){
-			return f.parseNetwork(cidr.ip, cidr.mac, defaultBits, key || cidr.key);
-		}
-		const pos = cidr.indexOf('/');
-		if(pos === -1){
-			if(!defaultBits || defaultBits === 32){
-				return new SingleAddress(cidr, mac);
-			}
-			return new NetworkAddress(
-				cidr + '/' + defaultBits, 
-				cidr, 
-				defaultBits, 
-				mac,
-				key
-			);
-		}
-		{
-			const bits = parseInt(cidr.substr(pos+1));
-			if(bits === 32){
-				return new SingleAddress(cidr, mac);
-			}
-			return new NetworkAddress(
-				cidr, 
-				cidr.substr(0, pos), 
-				bits, 
-				mac,
-				key
-			);
-		}
 	}
 };
 
+
+
+
+/**
+ * Abstract Network Address
+ */
 const AbstractAddress = Class.create(
 	"AbstractAddress",
 	undefined,
@@ -189,7 +162,11 @@ const AbstractAddress = Class.create(
 	}
 );
 
-const SingleAddress = Class.create(
+
+/**
+ * Singular IP address
+ */
+ const SingleAddress = Class.create(
 	"SingleAddress", 
 	AbstractAddress, 
 	function(ip, mac, comment){
@@ -205,7 +182,7 @@ const SingleAddress = Class.create(
 				value : mac
 			}
 		});
-		comment && f.defineProperty(this, "comment", comment);
+		comment && Class.defineProperty(this, "comment", comment);
 		return this;
 	}, {
 		"key" : {
@@ -261,6 +238,9 @@ const SingleAddress = Class.create(
 );
 
 
+/**
+ * Network (IP address prefix and a prefix mask)
+ */
 const NetworkAddress = Class.create(
 	"NetworkAddress",
 	AbstractAddress,
@@ -286,7 +266,7 @@ const NetworkAddress = Class.create(
 			}
 		});
 		if(key){
-			f.defineProperty(this, 'key', key);
+			Class.defineProperty(this, 'key', key);
 		}
 		return this;
 	}, {
@@ -366,6 +346,9 @@ const NetworkAddress = Class.create(
 );
 
 
+/**
+ * Set of networks (consists of zero or more single addresses or networks)
+ */
 const Networks = Class.create(
 	"Networks",
 	AbstractAddress,
@@ -376,7 +359,7 @@ const Networks = Class.create(
 			},
 		});
 		if(key){
-			f.defineProperty(this, 'key', key);
+			Class.defineProperty(this, 'key', key);
 		}
 		return this;
 	}, {
@@ -403,7 +386,7 @@ const Networks = Class.create(
 					throw new Error("This ia an instance method!");
 				}
 				return this.list = this.cidrs.reduce(function(r,v){
-					const net = f.parseNetwork(v);
+					const net = Networks.parseNetwork(v);
 					net && r.push(net);
 					return r;
 				}, []);
@@ -470,6 +453,175 @@ const Networks = Class.create(
 					"192.168.0.0/16"
 				]);
 			}
+		},
+		"parseNetwork" : {
+			value : function(cidr, mac, defaultBits, key){
+				if(!cidr){
+					return undefined;
+				}
+				/** if address already  */
+				if(cidr.AbstractAddress){
+					return cidr;
+				}
+				/** if it's a map object  */
+				if(cidr.ip || cidr.key || cidr.mac){
+					return Networks.parseNetwork(cidr.ip, cidr.mac, defaultBits, key || cidr.key);
+				}
+				const pos = cidr.indexOf('/');
+				if(pos === -1){
+					if(!defaultBits || defaultBits === 32){
+						return new SingleAddress(cidr, mac);
+					}
+					return new NetworkAddress(
+						cidr + '/' + defaultBits, 
+						cidr, 
+						defaultBits, 
+						mac,
+						key
+					);
+				}
+				{
+					const bits = parseInt(cidr.substr(pos+1));
+					if(bits === 32){
+						return new SingleAddress(cidr, mac);
+					}
+					return new NetworkAddress(
+						cidr, 
+						cidr.substr(0, pos), 
+						bits, 
+						mac,
+						key
+					);
+				}
+			}
+		}
+	}
+);
+
+
+
+
+const NetworkPortObject = Class.create(
+	"NetworkPortObject",
+	undefined,
+	function(){
+		this.net = null;
+		this.mac = null;
+		this.ip = [];
+		this.ipv6 = [];
+		return this;
+	},{
+		"net" : {
+			value : undefined
+		},
+		"mac" : {
+			value : undefined
+		},
+		"ip" : {
+			value : undefined
+		},
+		"ipv6" : {
+			value : undefined
+		},
+		"toString" : {
+			value : function(){
+				return "[NetworkPort(" + this.net + ", " + this.mac + ", " + this.ip + ", " + this.ipv6 + "])]";
+			}
+		}
+	}
+);
+
+
+const NetworkPortsObject = Class.create(
+	"NetworkPortsObject",
+	undefined,
+	function(){
+		this.all = [];
+		this.ip = [];
+		this.ipv6 = [];
+		return this;
+	},{
+		"addIP" : {
+			value : function(x){
+				if(!x){
+					return;
+				}
+				if(x.push){
+					for(var y of x){
+						this.addIP(y);
+					}
+					return;
+				}
+				if(this.ip.indexOf(x) === -1){
+					this.all.push(x);
+					this.ip.push(x);
+				}
+			}
+		},
+		"addIPv6" : {
+			value : function(x){
+				if(!x){
+					return;
+				}
+				if(x.push){
+					for(var y of x){
+						this.addIPv6(y);
+					}
+					return;
+				}
+				if(this.ipv6.indexOf(x) === -1){
+					this.all.push(x);
+					this.ipv6.push(x);
+				}
+			}
+		},
+		"addNetworkPortsObject" : {
+			value : function(x){
+				if(x?.ip){
+					for(var y of x.ip){
+						this.addIP(y);
+					}
+				}
+				if(x?.ipv6){
+					for(var y of x.ipv6){
+						this.addIPv6(y);
+					}
+				}
+			}
+		},
+		"normalize" : {
+			value : function(){
+				if(this.all.length === 0){
+					return undefined;
+				}
+				if(this.ip?.length === 0){
+					this.ip = undefined;
+				}
+				if(this.ipv6?.length === 0){
+					this.ipv6 = undefined;
+				}
+				return this;
+			}
+		},
+		"removeIPv6" : {
+			value : function(){
+				if(this.all.length === 0){
+					return undefined;
+				}
+				if(!this.ip || this.ip.length === 0){
+					return undefined;
+				}
+				if(this.ipv6){
+					this.all = this.ip;
+					this.ipv6 = undefined;
+				}
+				return this;
+			}
+		},
+		"toString" : {
+			value : function(){
+				return "[NetworkPorts(" + this.all + "])]";
+			}
 		}
 	}
 );
@@ -479,7 +631,9 @@ const Networks = Class.create(
 
 
 
-
+/**
+ * The ordered Map object (simple: .list is public order and .map is value map)
+ */
 const ListAndMap = Class.create(
 	"ListAndMap",
 	undefined,
@@ -613,12 +767,14 @@ const IpRoute = Class.create(
 
 
 
-
+/**
+ * An abstract configuration object with source (source in form of JS Object)
+ */
 const SourceObject = Class.create(
 	"SourceObject",
 	undefined,
 	function(source){
-		(undefined !== source) && f.defineProperty(this, 'source', source);
+		(undefined !== source) && Class.defineProperty(this, 'source', source);
 		return this;
 	},{
 		"source" : {
@@ -713,12 +869,16 @@ const SourceObject = Class.create(
 
 
 
+/**
+ * Abstract configuration object. Contains reference to 
+ * configuration root (and source. extends SourceObject).
+ */
 const ConfigObject = Class.create(
 	"ConfigObject",
 	SourceObject,
 	function(config, source){
 		this.SourceObject(source);
-		(undefined !== config) && f.defineProperty(this, "config", config);
+		(undefined !== config) && Class.defineProperty(this, "config", config);
 		return this;
 	},{
 		"config" : {
@@ -735,135 +895,10 @@ const ConfigObject = Class.create(
 
 
 
-const NetworkPortObject = Class.create(
-	"NetworkPortObject",
-	undefined,
-	function(){
-		this.net = null;
-		this.mac = null;
-		this.ip = [];
-		this.ipv6 = [];
-		return this;
-	},{
-		"net" : {
-			value : undefined
-		},
-		"mac" : {
-			value : undefined
-		},
-		"ip" : {
-			value : undefined
-		},
-		"ipv6" : {
-			value : undefined
-		},
-		"toString" : {
-			value : function(){
-				return "[NetworkPort(" + this.net + ", " + this.mac + ", " + this.ip + ", " + this.ipv6 + "])]";
-			}
-		}
-	}
-);
-
-
-const NetworkPortsObject = Class.create(
-	"NetworkPortsObject",
-	undefined,
-	function(){
-		this.all = [];
-		this.ip = [];
-		this.ipv6 = [];
-		return this;
-	},{
-		"addIP" : {
-			value : function(x){
-				if(!x){
-					return;
-				}
-				if(x.push){
-					for(var y of x){
-						this.addIP(y);
-					}
-					return;
-				}
-				if(this.ip.indexOf(x) === -1){
-					this.all.push(x);
-					this.ip.push(x);
-				}
-			}
-		},
-		"addIPv6" : {
-			value : function(x){
-				if(!x){
-					return;
-				}
-				if(x.push){
-					for(var y of x){
-						this.addIPv6(y);
-					}
-					return;
-				}
-				if(this.ipv6.indexOf(x) === -1){
-					this.all.push(x);
-					this.ipv6.push(x);
-				}
-			}
-		},
-		"addNetworkPortsObject" : {
-			value : function(x){
-				if(x?.ip){
-					for(var y of x.ip){
-						this.addIP(y);
-					}
-				}
-				if(x?.ipv6){
-					for(var y of x.ipv6){
-						this.addIPv6(y);
-					}
-				}
-			}
-		},
-		"normalize" : {
-			value : function(){
-				if(this.all.length === 0){
-					return undefined;
-				}
-				if(this.ip?.length === 0){
-					this.ip = undefined;
-				}
-				if(this.ipv6?.length === 0){
-					this.ipv6 = undefined;
-				}
-				return this;
-			}
-		},
-		"removeIPv6" : {
-			value : function(){
-				if(this.all.length === 0){
-					return undefined;
-				}
-				if(!this.ip || this.ip.length === 0){
-					return undefined;
-				}
-				if(this.ipv6){
-					this.all = this.ip;
-					this.ipv6 = undefined;
-				}
-				return this;
-			}
-		},
-		"toString" : {
-			value : function(){
-				return "[NetworkPorts(" + this.all + "])]";
-			}
-		}
-	}
-);
-
-
-
-
-
+/**
+ * Resolvable Object is any object that has endpoints, addresses
+ * and otherwise leads to a network reachable resource.
+ */
 const ResolvableObject = Class.create(
 	"ResolvableObject",
 	ConfigObject,
@@ -949,7 +984,9 @@ const ResolvableObject = Class.create(
 
 
 
-
+/**
+ * Infrastructure Location. 
+ */
 const Location = Class.create(
 	"Location",
 	ResolvableObject,
@@ -961,15 +998,15 @@ const Location = Class.create(
 			source.lan3
 		).reduce(function(r, x){ 
 			if(x){
-				const lan = f.parseNetwork(x, undefined, 24);
+				const lan = Networks.parseNetwork(x, undefined, 24);
 				if(lan){
-					f.defineProperty(lan, 'location', self);
+					Class.defineProperty(lan, 'location', self);
 					if(!r) return lan;
 					if(r.Networks){
 						r.addNetwork(lan);
 					}else{
 						r = new Networks().addNetwork(r).addNetwork(lan);
-						f.defineProperty(r, 'location', self);
+						Class.defineProperty(r, 'location', self);
 					}
 				}
 			}
@@ -979,7 +1016,7 @@ const Location = Class.create(
 		const wans = [].concat(
 			source.wan3
 		).reduce(function(r, x){
-			const wan = f.parseNetwork(x, undefined, 32);
+			const wan = Networks.parseNetwork(x, undefined, 32);
 			wan && r.push(wan);
 			return r;
 		}, []);
@@ -987,7 +1024,7 @@ const Location = Class.create(
 		const nets = [].concat(
 			source.net3
 		).reduce(function(r, x){
-			const wan = f.parseNetwork(x, undefined, 32);
+			const wan = Networks.parseNetwork(x, undefined, 32);
 			wan && r.push(wan);
 			return r;
 		}, []);
@@ -997,13 +1034,13 @@ const Location = Class.create(
 			nets
 		).reduce(function(r, wan){ 
 			const net = /* wan.networkObject || */ wan;
-			f.defineProperty(net, 'location', self);
+			Class.defineProperty(net, 'location', self);
 			if(!r) return net;
 			if(r.Networks){
 				r.addNetwork(net);
 			}else{
 				r = new Networks().addNetwork(r).addNetwork(net);
-				f.defineProperty(r, 'location', self);
+				Class.defineProperty(r, 'location', self);
 			}
 			return r;
 		}, undefined);
@@ -1320,7 +1357,7 @@ const Server = Class.create(
 	ResolvableObject,
 	function(config, key, source){
 		this.ResolvableObject(config, source);
-		f.defineProperty(this, "key", key);
+		Class.defineProperty(this, "key", key);
 		return this;
 	}, {
 		"key" : {
@@ -1542,7 +1579,7 @@ const Router = Class.create(
 	Server,
 	function(config, key, source){
 		this.Server(config, key, source);
-		f.defineProperty(this, "router", source.router);
+		Class.defineProperty(this, "router", source.router);
 		return this;
 	}, {
 		"router" : {
@@ -1604,7 +1641,7 @@ const SslPresetSettings = Class.create(
 	"SslPresetSettings",
 	undefined,
 	function(config, key, source){
-		f.defineProperty(this, "key", key);
+		Class.defineProperty(this, "key", key);
 		return this;
 	}, {
 	}
@@ -1615,7 +1652,7 @@ const GitStaticSettings = Class.create(
 	"GitStaticSettings",
 	undefined,
 	function(config, key, source){
-		f.defineProperty(this, "key", key);
+		Class.defineProperty(this, "key", key);
 		return this;
 	}, {
 	}
@@ -1630,7 +1667,7 @@ const Target = Class.create(
 	ResolvableObject,
 	function(config, key, source){
 		this.ResolvableObject(config, source);
-		f.defineProperty(this, "key", key);
+		Class.defineProperty(this, "key", key);
 		return this;
 	}, {
 		"key" : {
@@ -2142,7 +2179,10 @@ const UpstreamObject = Class.create(
 
 
 
-// ConfigObject that is ListAndMap of SourceObjects
+/**
+ * The abstract object that is ConfigObject and is ListAndMap at 
+ * the same time. Contains SourceObjects.
+ */
 const ConfigListAndMap = Class.create(
 	"ConfigListAndMap",
 	ListAndMap,
@@ -2197,7 +2237,9 @@ const ConfigListAndMap = Class.create(
 
 
 
-
+/**
+ * The collection of all available locations. Contains 'Location' objects.
+ */
 const Locations = Class.create(
 	"Locations",
 	ConfigListAndMap,
@@ -2271,6 +2313,9 @@ const Locations = Class.create(
 
 
 
+/**
+ * The collection of all available servers. Contains 'Server' objects.
+ */
 const Servers = Class.create(
 	"Servers",
 	ConfigListAndMap,
@@ -2315,6 +2360,9 @@ const Servers = Class.create(
 
 
 
+/**
+ * The collection of all available routers. Contains 'Router' objects.
+ */
 const Routers = Class.create(
 	"Routers",
 	Servers,
@@ -2363,7 +2411,10 @@ const Routers = Class.create(
 
 
 
-const Targets = Class.create(
+/**
+ * The collection of all available targets. Contains 'Target' objects.
+ */
+ const Targets = Class.create(
 	"Targets",
 	ConfigListAndMap,
 	function(config, source){
@@ -2405,7 +2456,10 @@ const Targets = Class.create(
 
 
 
-const Routing = Class.create(
+/**
+ * Routing configuration class.
+ */
+ const Routing = Class.create(
 	"Routing",
 	SourceObject,
 	function(config, source){
@@ -2464,7 +2518,10 @@ const Routing = Class.create(
 
 
 
-const Domains = Class.create(
+/**
+ * All routing domains. Contains 'Domain' objects.
+ */
+ const Domains = Class.create(
 	"Domains",
 	ConfigListAndMap,
 	function(config, source){
@@ -3108,7 +3165,7 @@ const DnsTypeStatic = Class.create(
 	ConfigListAndMap,
 	function(key, config, source, domain){
 		this.ConfigListAndMap(config, source || {});
-		f.defineProperty(this, "key", key);
+		Class.defineProperty(this, "key", key);
 		if(source){
 			for(let name in source){
 				domain && (key = domain.filterName(name)); // domain.staticName(name);
@@ -3336,7 +3393,7 @@ const DhcpView = Class.create(
 	ConfigListAndMap,
 	function(config, location){
 		this.ConfigListAndMap(config);
-		location && f.defineProperty(this, "location", location);
+		location && Class.defineProperty(this, "location", location);
 		return this;
 	},{
 		"lans" : {
@@ -3394,11 +3451,11 @@ const DhcpHost = Class.create(
 			}
 		});
 		if(key){
-			f.defineProperty(this, "key", key);
+			Class.defineProperty(this, "key", key);
 		}else{
-			f.defineProperty(this, "key", host + '_' + mac.replace(/\:/g, ''));
+			Class.defineProperty(this, "key", host + '_' + mac.replace(/\:/g, ''));
 		}
-		network && f.defineProperty(this, "network", network);
+		network && Class.defineProperty(this, "network", network);
 		return this;
 	},{
 		"key" : {
@@ -3504,7 +3561,7 @@ const DhcpHost = Class.create(
 						}
 						// taps: same network / different location
 						{
-							result.push(new IpRoute(f.parseNetwork(s.lan3), localGw, "remote"));
+							result.push(new IpRoute(Networks.parseNetwork(s.lan3), localGw, "remote"));
 							continue;
 						}
 					}
@@ -4524,7 +4581,9 @@ const DnsTable = Class.create(
 
 
 
-
+/**
+ * Configuration object, the parsing result. 
+ */
 const Configuration = Class.create(
 	"Configuration",
 	ResolvableObject,
