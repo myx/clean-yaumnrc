@@ -52,6 +52,12 @@ function makeExplainer(div, config, closeFn) {
         output.innerHTML = value;
     }
 
+	function title(output, text) {
+        const title = document.createElement("h2");
+		title.innerHTML = text;
+		output.appendChild(title);
+	}
+
     function table(output, layout) {
         const table = document.createElement("table");
         table.style = "margin:2em 0;";
@@ -151,38 +157,47 @@ function makeExplainer(div, config, closeFn) {
     }
 
     btn("SSH", function (output) {
+		title(output, "SSH Access");
         table(output, config.makeSshAccessTable());
     });
 
     btn("CONTACTS", function (output) {
+		title(output, "Contact Information");
         table(output, config.makeContactsTable());
     });
 
     btn("LOCATIONS", function (output) {
+		title(output, "Infrastructure Locations");
         table(output, config.makeLocationsTable());
     });
 
     btn("DNS-WAN", function (output) {
+		title(output, "DNS Records (WAN-view)");
         table(output, config.makeDnsTable(null));
     });
 
     btn("DNS-ALL", function (output) {
+		title(output, "DNS Records (ALL)");
         table(output, config.makeDnsTable());
     });
 
     btn("MON-WAN", function (output) {
+		title(output, "Monitoring tests (WAN)");
         table(output, config.makeMonitoringTable(null));
     });
 
     btn("MON-ALL", function (output) {
+		title(output, "Monitoring tests (ALL)");
         table(output, config.makeMonitoringTable());
     });
 
     btn("FWD", function (output) {
+		title(output, "Port Forwarding (NAT)");
         table(output, config.makePortForwardTable());
     });
 
     btn("SERVERS", function (output) {
+		title(output, "Server List");
         table(output, config.makeServersTable());
     });
 }
