@@ -2238,7 +2238,7 @@ const Locations = Class.create(
 				var item, location;
 				for(item of Array.from(hostedSpecification)){
 					if(item.startsWith("@zone:")){
-						item = item.substr(6);
+						item = item.substr(6) || undefined;
 						for(location of this.list){
 							if(location.zone === item){
 								list.includes(location) || list.push(location);
