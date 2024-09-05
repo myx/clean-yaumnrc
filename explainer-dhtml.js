@@ -128,6 +128,7 @@ function makeExplainer(div, config, closeFn) {
                 th.innerHTML = "#";
                 tr.appendChild(th);
                 const thFilter = document.createElement('th');
+				thFilter.innerHTML = "&nbsp;";
                 trFilters.appendChild(thFilter);
             }
             for (const column of layout.columns) {
@@ -137,13 +138,25 @@ function makeExplainer(div, config, closeFn) {
                 const columnId = column.id || column.name;
                 this.columns.push(columnId);
                 const thFilter = document.createElement('th');
+				{
+					const style = thFilter.style;
+					style.position = 'relative';
+					style.height = '1.1em';
+				}
                 const inputFilter = document.createElement('input');
-                inputFilter.columnId = columnId;
-                inputFilter.style.width = '100%';
-                inputFilter.style.boxSizing = 'border-box';
-                inputFilter.addEventListener('input', function () {
-                    table.filtersChanged();
-                });
+				{
+					inputFilter.columnId = columnId;
+					const style = inputFilter.style;
+					style.position = 'absolute';
+					style.top = '0';
+					style.left = '0';
+					style.width = '100%';
+					style.height = '100%';
+					style.boxSizing = 'border-box';
+					inputFilter.addEventListener('input', function () {
+						table.filtersChanged();
+					});
+				}
                 thFilter.appendChild(inputFilter);
                 trFilters.appendChild(thFilter);
             }
