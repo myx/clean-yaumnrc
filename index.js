@@ -4412,13 +4412,13 @@ const PortForwardTable = Class.create(
 		return this;
 	},{
 		"sortColumns" : {
-			value : ["view", "extPort"]
+			value : ["view", "extPort", "type"]
 		},
 		"columns" : {
 			value : [
 				{
 					id : "view",
-					title : "View"
+					title : "Location"
 				},
 				{
 					id : "extPort",
@@ -5134,6 +5134,7 @@ const Configuration = Class.create(
 					if(l.key && l.wan3) {
 						views.push({
 							name : l.key,
+							wan3 : l.wan3,
 							view : this.buildPortForwardView(l)
 						});
 					}
@@ -5144,10 +5145,11 @@ const Configuration = Class.create(
 						if(d.extPort) {
 							rows.push({
 								view : v.name,
-								extPort : d.extPort,
-								lclPort : d.lclPort,
-								lclIp : d.lclIp,
 								type : d.type,
+								extIp : v.wan3,
+								extPort : d.extPort,
+								lclIp : d.lclIp,
+								lclPort : d.lclPort,
 								comment : d.comment || '',
 							});
 						}
