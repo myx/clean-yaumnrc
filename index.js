@@ -4421,12 +4421,16 @@ const PortForwardTable = Class.create(
 					title : "Location"
 				},
 				{
-					id : "extPort",
-					title : "Ext Port"
-				},
-				{
 					id : "type",
 					title : "Type"
+				},
+				{
+					id : "extIp",
+					title : "Ext IP"
+				},
+				{
+					id : "extPort",
+					title : "Ext Port"
 				},
 				{
 					id : "lclIp",
