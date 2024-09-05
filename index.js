@@ -1059,7 +1059,7 @@ const Location = Class.create(
 			// external IP for Layer3 access (gateway - only one IP per location)
 			execute : "once", get : function(){
 				return (this.wans.filter(function(x){
-					return this.server && x.containsIp(this.server.wan3);
+					return this.config.server && x.containsIp(this.config.server.wan3);
 				}, this.config).concat(this.wans)[0] || "").ip;
 			}
 		},
@@ -2216,6 +2216,45 @@ const Locations = Class.create(
 					const location = new Location(this.config, key, settings);
 					this.put(key, location);
 				}
+			}
+		},
+		"endpointsList" : {
+			execute : "once", get : function(){
+				const result = [];
+				for(var location of this.list){
+					for(var endpoint of (location.endpointsList ?? [])){
+						result.includes(endpoint) || result.push(endpoint);
+					}
+				}
+				return result;
+			}
+		},
+		"extractLocations" : {
+			value : function(hostedSpecification){
+				if(!hostedSpecification){
+					return [];
+				}
+				const list = [], result = [];
+				for(var item of Array.from(hostedSpecification)){
+					if(item.startsWith("@zone:")){
+						for(var location of this.list){
+							if(location.zone === item.substr(6)){
+								list.includes(location) || list.push(location);
+							}
+						}
+						continue;
+					}
+					var location = this.map[item];
+					if(location){
+						list.includes(location) || list.push(location);
+					}
+				}
+				for(var location of list){
+					for(var endpoint of (location.endpointsList ?? [])){
+						result.includes(endpoint) || result.push(endpoint);
+					}
+				}
+				return result;
 			}
 		},
 		"toString" : {
@@ -4639,7 +4678,7 @@ const Configuration = Class.create(
 			execute : "once", get : function(){
 				const map = {};
 				for(const t of this.targets.list){
-						map[t.key] = t;
+					map[t.key] = t;
 				}
 				map['default'] ??= new Target(this, 'default', {});
 				return Object.values(map);
