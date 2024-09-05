@@ -2235,16 +2235,18 @@ const Locations = Class.create(
 					return [];
 				}
 				const list = [], result = [];
-				for(var item of Array.from(hostedSpecification)){
+				var item, location;
+				for(item of Array.from(hostedSpecification)){
 					if(item.startsWith("@zone:")){
-						for(var location of this.list){
-							if(location.zone === item.substr(6)){
+						item = item.substr(6);
+						for(location of this.list){
+							if(location.zone === item){
 								list.includes(location) || list.push(location);
 							}
 						}
 						continue;
 					}
-					var location = this.map[item];
+					location = this.map[item];
 					if(location){
 						list.includes(location) || list.push(location);
 					}
