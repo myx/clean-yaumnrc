@@ -2277,7 +2277,7 @@ const Locations = Class.create(
 					return [];
 				}
 				const list = [], result = [];
-				for(var item of Array.from(hostedSpecification)){
+				for(var item of [].concat(hostedSpecification ?? [])){
 					if(item.startsWith("@zone:")){
 						var zone = item.substr(6) || undefined;
 						for(var location of this.list){
