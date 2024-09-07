@@ -481,7 +481,8 @@ module.exports = {
 						"@" : "5.9.100.81"
 					},
 					"TXT" : {
-						"verification_key" : "eiouoofheuwdoexhdnwandhewifuahelfhzlfhgeliunhr3nrhceucnhrfeizucnrh83cnhzreiucrvroz9ecnz9hch9rnzephhxe9p8nbhe9r8zxbhre98xnreh98rnxez98xn"
+						"verification_key1" : "eiouoofheuwdoexhdnwandhewidfdsf7865fdsf875adsf654dsf765867fdsf8976asdf8976fuahelfhzlfhgeliunhr3nrhceucnhrfeizucnrh83cnhzreiucrvroz9ecnz9hch9rnzephhxe9p8nbhe9r8zxbhre98xnreh98rnxez98xn",
+						"verification_key2" : "87fdg6sfdg786a786dasf768g5fd78gf6g9df8af89dfds897fg6h78j5f7ad9f8ds7v65vbnx5g9jgjk5sgfg57dfsaf78a69F59EW8FSDF756SADF67F76FG8DGS6Ddgfh9gfh799876gdfsgfd8g76876gfd8769876dfsgds986dfsg876a"
 					},
 					"CNAME" : {
 						"cgit.myx.co.nz." : "yandex.googlehosted.com."
