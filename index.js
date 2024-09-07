@@ -4478,16 +4478,28 @@ const ServersTable = Class.create(
 					title : "Disposition"
 				},
 				{
+					id : "type",
+					title : "Type"
+				},
+				{
+					id : "os",
+					title : "OS"
+				},
+				{
 					id : "cpu",
-					title : "cpu"
+					title : "CPU"
 				},
 				{
 					id : "ram",
-					title : "ram"
+					title : "RAM"
 				},
 				{
 					id : "hdd",
-					title : "hdd"
+					title : "HDD"
+				},
+				{
+					id : "shift",
+					title : "Shift"
 				}
 			]
 		}
@@ -5175,9 +5187,12 @@ const Configuration = Class.create(
 						location: s.location ? s.location.key : undefined,
 						name: s.key,
 						disposition: source.disposition || '',
-						cpu: source.resources ? source.resources.cpu : '',
-						ram: source.resources ? source.resources.ram : '',
-						hdd: source.resources ? source.resources.hdd : '',
+						cpu: source?.cpu || '',
+						ram: source?.ram || '',
+						hdd: source?.hdd || '',
+						shift:  source?.tcpShift || '',
+						type:  source?.type || '',
+						os:  source?.os || '',
 					});
 				}
 
