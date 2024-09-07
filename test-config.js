@@ -480,6 +480,9 @@ module.exports = {
 						"*" : "5.9.34.107",
 						"@" : "5.9.100.81"
 					},
+					"TXT" : {
+						"verification_key" : "eiouoofheuwdoexhdnwandhewifuahelfhzlfhgeliunhr3nrhceucnhrfeizucnrh83cnhzreiucrvroz9ecnz9hch9rnzephhxe9p8nbhe9r8zxbhre98xnreh98rnxez98xn"
+					},
 					"CNAME" : {
 						"cgit.myx.co.nz." : "yandex.googlehosted.com."
 					}

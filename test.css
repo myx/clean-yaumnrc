@@ -78,3 +78,17 @@ blockquote {
     line-height: 1.1em;
     padding: 1em;
 }
+
+.explainer TD {
+	vertical-align: top;
+	word-wrap: break-word;
+	max-width: 40em;
+}
+
+.explainer TR.explainer-content:nth-child(even) {
+    background-color: #eff;
+}
+
+.explainer TR.explainer-content:nth-child(odd) {
+    background-color: #ffe;
+}

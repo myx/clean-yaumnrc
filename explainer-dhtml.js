@@ -10,6 +10,7 @@ function makeExplainer(div, config, closeFn) {
 
     function btn(name, action) {
         const btn = document.createElement("button");
+		btn.classList.add('explainer-button');
         btn.style = "height:2em;line-height:1em;padding:0.3em;overflow:hodden";
         btn.innerHTML = name;
         btn.onclick = function () {
@@ -54,13 +55,16 @@ function makeExplainer(div, config, closeFn) {
 
 	function title(output, text) {
         const title = document.createElement("h2");
+		title.classList.add('explainer-title');
+        title.style = "margin:1em 0;";
 		title.innerHTML = text;
 		output.appendChild(title);
 	}
 
     function table(output, layout) {
-        const table = document.createElement("table");
-        table.style = "margin:2em 0;";
+		const table = document.createElement("table");
+		table.classList.add('explainer-table');
+        table.style = "margin:.2em 0;max-width:100%;";
         table.border = "1px";
         table.cellPadding = "3";
         table.cellPadding = "2";
@@ -72,7 +76,7 @@ function makeExplainer(div, config, closeFn) {
         };
 
         table.removeContent = function () {
-            for (const item of this.querySelectorAll('.content')) {
+            for (const item of this.querySelectorAll('.explainer-content')) {
                 item.parentNode.removeChild(item);
             }
         };
@@ -96,7 +100,7 @@ function makeExplainer(div, config, closeFn) {
             let index = 0;
             for (const row of layout.rows) {
                 const tr = document.createElement("tr");
-                tr.classList.add('content');
+                tr.classList.add('explainer-content');
                 {
                     const td = document.createElement("td");
                     td.innerHTML = ++index;
@@ -122,7 +126,7 @@ function makeExplainer(div, config, closeFn) {
         table.fillHeaders = function () {
             const tr = document.createElement("tr");
             const trFilters = document.createElement("tr");
-            trFilters.classList.add('filters');
+            trFilters.classList.add('explainer-filters');
             {
                 const th = document.createElement("th");
                 th.innerHTML = "#";
