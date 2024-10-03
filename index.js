@@ -1769,6 +1769,10 @@ const Target = Class.create(
 							return result.normalize();
 						}
 					}
+					if(this.location){
+						const a = this.location.resolveDirect(net, true, noIPv6);
+						if(a) return a;
+					}
 				}
 
 				// from WAN
