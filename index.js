@@ -4819,6 +4819,7 @@ const Configuration = Class.create(
 					}
 					const nport = Number(port||0) + tcpShift;
 					const prot = darr[1] || undefined;
+					const open = darr[2] === "public" || false;
 					if(!prot || prot === 'tcp'){
 						const key = nport + '-tcp';
 						entries[key] = {
@@ -4826,6 +4827,7 @@ const Configuration = Class.create(
 							lclPort : lport,
 							lclIp : lip,
 							type : 'tcp',
+							open : open,
 							comment : comment || '',
 						};
 					}
@@ -4836,6 +4838,7 @@ const Configuration = Class.create(
 							lclPort : lport,
 							lclIp : lip,
 							type : 'udp',
+							open : open,
 							comment : comment || '',
 						};
 					}
