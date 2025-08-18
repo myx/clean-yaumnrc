@@ -4818,9 +4818,9 @@ const Configuration = Class.create(
 						return;
 					}
 					const nport = Number(port||0) + tcpShift;
-					const prot = darr[1] || undefined;
+					const prot = darr[1] || "*";
 					const open = darr[2] === "public" || false;
-					if(!prot || prot === 'tcp'){
+					if(prot === "*" || prot === 'tcp'){
 						const key = nport + '-tcp';
 						entries[key] = {
 							extPort : nport,
@@ -4831,7 +4831,7 @@ const Configuration = Class.create(
 							comment : comment || '',
 						};
 					}
-					if(!prot || prot === 'udp'){
+					if(prot === "*" || prot === 'udp'){
 						const key = nport + '-udp';
 						entries[key] = {
 							extPort : nport,
