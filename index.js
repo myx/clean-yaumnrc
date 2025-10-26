@@ -2094,7 +2094,7 @@ const TargetMultiple = Class.create(
 		},
 		"endpointsToMap" : {
 			value : function(mapInitial){
-				const map = mapInitial || {};
+				const map = mapInitial ?? {};
 				for(let key of [].concat(this.target)){
 					if(key !== this.key){
 						const target = this.config.targets.map[key];
